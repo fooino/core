@@ -1,0 +1,46 @@
+{
+    "name": "fooino/core",
+    "description": "The fooino core package",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sajad Sholi",
+            "email": "sajadsholi@outlook.com"
+        }
+    ],
+    "require": {
+        "morilog/jalali": "^3.4",
+        "mavinoo/laravel-batch": "^2.3",
+        "astrotomic/laravel-translatable": "^11.12",
+        "laravel/passport": "^12.0",
+        "spatie/laravel-activitylog": "^4.5",
+        "jenssegers/agent": "^2.6.4"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fooino\\Core\\": "src/",
+            "Fooino\\Core\\Database\\": "database/",
+            "Fooino\\Core\\Database\\Factories\\": "database/factories/"
+        },
+        "files": [
+            "src/helpers.php",
+            "src/Constants/Constants.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Fooino\\Core\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Fooino\\Core\\Providers\\CoreServiceProvider"
+            ]
+        }
+    }
+}
