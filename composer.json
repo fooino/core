@@ -1,22 +1,15 @@
 {
     "name": "fooino/core",
-    "description": "The fooino core package",
+    "description": "The fooino core package with tools and functionalities.",
     "type": "library",
-    "license": "MIT",
+    "license": "proprietary",
     "authors": [
         {
             "name": "Sajad Sholi",
-            "email": "sajadsholi@outlook.com"
+            "email": "sajadsholi@outlook.com",
+            "role": "owner"
         }
     ],
-    "require": {
-        "morilog/jalali": "^3.4",
-        "mavinoo/laravel-batch": "^2.3",
-        "astrotomic/laravel-translatable": "^11.12",
-        "laravel/passport": "^12.0",
-        "spatie/laravel-activitylog": "^4.5",
-        "jenssegers/agent": "^2.6.4"
-    },
     "require-dev": {
         "orchestra/testbench": "^9.0"
     },
