@@ -4,6 +4,8 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Tests\TestCase;
 use DivisionByZeroError;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 use stdClass;
 use TypeError;
 use ValueError;
@@ -352,5 +354,152 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(replaceSlashToDash(value: ['hi/hello', 'foobar']) == ['hi-hello', 'foobar']);
         $this->assertTrue(replaceSlashToDash(value: '2023/01/02') == '2023-01-02');
         $this->assertTrue(replaceSlashToDash(value: '') == '');
+    }
+
+
+    public function test_prettify_canonical_helper()
+    {
+        $this->assertEquals(
+            prettify_canonical("test / prettify canonical ? %& $ *"),
+            "test_/_prettify_canonical_?__&____"
+        );
+        $this->assertEquals(
+            prettify_canonical("https://google.com"),
+            "https://google.com"
+        );
+    }
+
+    public function test_prettify_slug_helper()
+    {
+        $this->assertEquals(
+            prettify_slug("test / prettify slug ? %& $ *"),
+            "test___prettify_slug_________"
+        );
+    }
+
+
+
+
+    public function test_date_range_function()
+    {
+        $range = dateRange(from: '2024-02-03', to: '2024-02-10');
+
+        $this->assertTrue($range == [
+            '2024-02-03',
+            '2024-02-04',
+            '2024-02-05',
+            '2024-02-06',
+            '2024-02-07',
+            '2024-02-08',
+            '2024-02-09',
+            '2024-02-10',
+        ]);
+    }
+
+    public function test_count_with_unit()
+    {
+        $this->assertEquals(countWithUnit(1), 1);
+        $this->assertEquals(countWithUnit(1.1), 1.1);
+
+        $this->assertEquals(countWithUnit(1000), '1 thousand');
+        $this->assertEquals(countWithUnit(10000000.22), '10 million');
+        $this->assertEquals(countWithUnit(10000000000.22), '10 billion');
+        $this->assertEquals(countWithUnit(1000000000000000), '1,000,000 billion');
+    }
+
+
+
+    public function test_remove_empty_string()
+    {
+        $stdClass = new stdClass;
+        $this->assertTrue(removeEmptyString(12) == 12);
+        $this->assertTrue(removeEmptyString(12.12) == 12.12);
+        $this->assertTrue(removeEmptyString(true) == true);
+        $this->assertTrue(removeEmptyString(false) == false);
+        $this->assertTrue(removeEmptyString([1, 2]) == [1, 2]);
+        $this->assertTrue(removeEmptyString($stdClass) == $stdClass);
+        $this->assertTrue(removeEmptyString('foobar') == 'foobar');
+        $this->assertTrue(removeEmptyString(' foobar') == 'foobar');
+        $this->assertTrue(removeEmptyString('foobar ') == 'foobar');
+        $this->assertTrue(removeEmptyString(' foobar ') == 'foobar');
+        $this->assertTrue(removeEmptyString(' 0912 123 1234 ') == '09121231234');
+    }
+
+    public function test_set_user_timezone()
+    {
+        $this->assertTrue(config('user-timezone') == null);
+        setUserTimezone('UTC');
+        $this->assertTrue(config('user-timezone') == 'UTC');
+    }
+
+
+    public function test_remove_emoji()
+    {
+        $stdClass = new stdClass;
+        $this->assertTrue(removeEmoji(12) == 12);
+        $this->assertTrue(removeEmoji(12.12) == 12.12);
+        $this->assertTrue(removeEmoji(true) == true);
+        $this->assertTrue(removeEmoji(false) == false);
+        $this->assertTrue(removeEmoji([1, 2]) == [1, 2]);
+        $this->assertTrue(removeEmoji($stdClass) == $stdClass);
+        $this->assertTrue(removeEmoji('foobar') == 'foobar');
+        $this->assertTrue(removeEmoji(' ') == ' ');
+        $this->assertTrue(removeEmoji('😀😃😄😁😆😅😂🤣😊😇foobar') == 'foobar');
+    }
+
+
+
+    public function test_change_percentage_helper()
+    {
+        $this->assertTrue(changePercentage(from: 200, to: 50) == 75);
+        $this->assertTrue(changePercentage(from: 200, to: 0) == -100);
+        $this->assertTrue(changePercentage(from: 0, to: 200) == 100);
+    }
+
+
+    public function test_resolve_request()
+    {
+        $this->assertThrows(
+            fn() => resolveRequest(
+                request: TestFormRequest::class
+            ),
+            ValidationException::class,
+            'The name field is required'
+        );
+
+        $resolved = resolveRequest(
+            request: TestFormRequest::class,
+            data: [
+                'name'  => 'foobar',
+                'email' => 'foobar@gmail.com'
+            ]
+        );
+
+        $this->assertTrue($resolved instanceof TestFormRequest);
+        $this->assertTrue($resolved->safe()->name == 'foobar');
+        $this->assertTrue($resolved->safe()->email == 'foobar@gmail.com');
+    }
+}
+
+
+class TestFormRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'name'  => [
+                'required',
+                'max:255'
+            ],
+            'email' => [
+                'required',
+                'email'
+            ]
+        ];
     }
 }
