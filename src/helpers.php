@@ -20,8 +20,8 @@ if (
     !function_exists('trimTrailingZeroes')
 ) {
     function trimTrailingZeroes(
-        $number,
-        $decimalSeparator = '.'
+        string|int|float|null $number,
+        string $decimalSeparator = '.'
     ): string {
 
         return Math::trimTrailingZeroes(
@@ -35,10 +35,10 @@ if (
     !function_exists('numberFormat')
 ) {
     function numberFormat(
-        $number,
-        $decimalSeparator = '.',
-        $thousandsSeparator = ',',
-        $divisor = 1
+        string|float|int|null $number,
+        string $decimalSeparator = '.',
+        string $thousandsSeparator = ',',
+        int|float $divisor = 1
     ): string {
 
         return Math::numberFormat(
@@ -53,126 +53,151 @@ if (
 if (
     !function_exists('number')
 ) {
-    function number($number): string
+    function number(string|int|float|null $number): string
     {
-        return Math::number($number);
+        return Math::number(number: $number);
     }
 }
 
 if (
     !function_exists('add')
 ) {
-    function add($a, $b): string
-    {
-        return Math::add($a, $b);
+    function add(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+
+        return Math::add(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('subtract')
 ) {
-    function subtract($a, $b): string
-    {
-        return Math::subtract($a, $b);
+    function subtract(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+        return Math::subtract(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('multiply')
 ) {
-    function multiply($a, $b): string
-    {
-        return Math::multiply($a, $b);
+    function multiply(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+        return Math::multiply(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('divide')
 ) {
-    function divide($a, $b): string
-    {
-        return Math::divide($a, $b);
+    function divide(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+        return Math::divide(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('modulus')
 ) {
-    function modulus($a, $b): string
-    {
-        return Math::modulus($a, $b);
+    function modulus(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+        return Math::modulus(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('square')
 ) {
-    function square($number): string
+    function square(string|int|float|null $number): string
     {
-        return Math::sqrt($number);
+        return Math::sqrt(number: $number);
     }
 }
 
 if (
     !function_exists('power')
 ) {
-    function power($number, $exponent = 2): string
-    {
-        return Math::power($number, $exponent);
+    function power(
+        string|int|float|null $number,
+        string|int|float|null $exponent = 2
+    ): string {
+        return Math::power(number: $number, exponent: $exponent);
     }
 }
 
 if (
     !function_exists('greaterThan')
 ) {
-    function greaterThan($a, $b): bool
-    {
-        return Math::greaterThan($a, $b);
+    function greaterThan(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::greaterThan(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('greaterThanOrEqual')
 ) {
-    function greaterThanOrEqual($a, $b): bool
-    {
-        return Math::greaterThanOrEqual($a, $b);
+    function greaterThanOrEqual(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::greaterThanOrEqual(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('lessThan')
 ) {
-    function lessThan($a, $b): bool
-    {
-        return Math::lessThan($a, $b);
+    function lessThan(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::lessThan(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('lessThanOrEqual')
 ) {
-    function lessThanOrEqual($a, $b): bool
-    {
-        return Math::lessThanOrEqual($a, $b);
+    function lessThanOrEqual(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::lessThanOrEqual(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('equal')
 ) {
-    function equal($a, $b): bool
-    {
-        return Math::equal($a, $b);
+    function equal(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::equal(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('notEqual')
 ) {
-    function notEqual($a, $b): bool
-    {
-        return Math::notEqual($a, $b);
+    function notEqual(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::notEqual(a: $a, b: $b);
     }
 }
 

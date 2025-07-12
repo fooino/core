@@ -3,7 +3,7 @@
 namespace Fooino\Core\Concretes\Math;
 
 
-class MathManger
+class MathManager
 {
     /**
      * set precision and trim trailing zeroes with construct method.
@@ -29,7 +29,7 @@ class MathManger
      */
     public function instance(...$args): self
     {
-        return new MathManger(...$args);
+        return new MathManager(...$args);
     }
 
     /**
