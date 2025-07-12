@@ -341,6 +341,7 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(trimEmptyString(true) == true);
         $this->assertTrue(trimEmptyString(false) == false);
         $this->assertTrue(trimEmptyString([1, 2]) == [1, 2]);
+        $this->assertTrue(trimEmptyString(collect([1, 2])) == collect([1, 2]));
         $this->assertTrue(trimEmptyString($stdClass) == $stdClass);
         $this->assertTrue(trimEmptyString('foobar') == 'foobar');
         $this->assertTrue(trimEmptyString(' foobar') == 'foobar');
@@ -356,6 +357,7 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(removeEmptyString(true) == true);
         $this->assertTrue(removeEmptyString(false) == false);
         $this->assertTrue(removeEmptyString([1, 2]) == [1, 2]);
+        $this->assertTrue(trimEmptyString(collect([1, 2])) == collect([1, 2]));
         $this->assertTrue(removeEmptyString($stdClass) == $stdClass);
         $this->assertTrue(removeEmptyString('foobar') == 'foobar');
         $this->assertTrue(removeEmptyString(' foobar') == 'foobar');
@@ -372,6 +374,7 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(replaceSlashToDash(value: 123) == 123);
         $this->assertTrue(replaceSlashToDash(value: 123.123) == 123.123);
         $this->assertTrue(replaceSlashToDash(value: [123]) == [123]);
+        $this->assertTrue(replaceSlashToDash(value: collect([123])) == collect([123]));
         $this->assertTrue(replaceSlashToDash(value: null == null));
         $this->assertTrue(replaceSlashToDash(value: true == true));
         $this->assertTrue(replaceSlashToDash(value: false == false));
@@ -383,18 +386,20 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(changePercentage(from: 10, to: 3.331) == 66.69);
         $this->assertTrue(changePercentage(from: 200, to: 0) == -100);
         $this->assertTrue(changePercentage(from: 0, to: 200) == 100);
+        $this->assertTrue(changePercentage(from: -100, to: 200) == 300);
     }
 
-    public function test_count_with_unit()
+    public function test_number_with_unit()
     {
-        $this->assertEquals(countWithUnit(1), 1);
-        $this->assertEquals(countWithUnit(1.1), 1.1);
+        $this->assertEquals(numberWithUnit(null), 0);
+        $this->assertEquals(numberWithUnit(1), 1);
+        $this->assertEquals(numberWithUnit(1.1), 1.1);
 
-        $this->assertEquals(countWithUnit(1000), '1 msg.thousand');
-        $this->assertEquals(countWithUnit(10000000.22), '10 msg.million');
-        $this->assertEquals(countWithUnit(20030000.22), '20.03 msg.million');
-        $this->assertEquals(countWithUnit(10000000000.22), '10 msg.billion');
-        $this->assertEquals(countWithUnit(1000000000000000), '1,000,000 msg.billion');
+        $this->assertEquals(numberWithUnit(1000), '1 msg.thousand');
+        $this->assertEquals(numberWithUnit(10000000.22), '10 msg.million');
+        $this->assertEquals(numberWithUnit(20030000.22), '20.03 msg.million');
+        $this->assertEquals(numberWithUnit(10000000000.22), '10 msg.billion');
+        $this->assertEquals(numberWithUnit(1000000000000000), '1,000 msg.trillion');
     }
 
     public function test_date_range_function()
@@ -445,6 +450,7 @@ class HelpersUnitTest extends TestCase
         setUserTimezone('UTC');
         $this->assertTrue(config('user-timezone') == 'UTC');
     }
+
     public function test_get_user_timezone()
     {
         $this->assertTrue(getUserTimezone() == 'UTC');
@@ -484,6 +490,7 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(removeEmoji(true) == true);
         $this->assertTrue(removeEmoji(false) == false);
         $this->assertTrue(removeEmoji([1, 2]) == [1, 2]);
+        $this->assertTrue(removeEmoji(collect([1, 2])) == collect([1, 2]));
         $this->assertTrue(removeEmoji($stdClass) == $stdClass);
         $this->assertTrue(removeEmoji('foobar') == 'foobar');
         $this->assertTrue(removeEmoji(' ') == ' ');

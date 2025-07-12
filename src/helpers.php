@@ -185,6 +185,7 @@ if (
         array $excludes = [],
         string $replacementChar = '_'
     ): string|int|float|null|array|bool {
+
         return app(ReplaceForbiddenCharactersTask::class)->run(
             value: $value,
             excludes: $excludes,
@@ -277,15 +278,16 @@ if (
 
 
 if (
-    !function_exists('countWithUnit')
+    !function_exists('numberWithUnit')
 ) {
-    function countWithUnit(int|float $count): int|float|string
+    function numberWithUnit(int|float|null $number): int|float|string
     {
         return match (true) {
-            $count >= 1000000000        => trimTrailingZeroes(number_format($count / 1000000000, 2)) . ' ' . __(key: 'msg.billion'),
-            $count >= 1000000           => trimTrailingZeroes(number_format($count / 1000000, 2)) . ' ' . __(key: 'msg.million'),
-            $count >= 1000              => trimTrailingZeroes(number_format($count / 1000, 2)) . ' ' . __(key: 'msg.thousand'),
-            default                     => (float) $count,
+            $number >= 1000000000000     => trimTrailingZeroes(number_format(divide($number, 1000000000000), 2)) . ' ' . __(key: 'msg.trillion'),
+            $number >= 1000000000        => trimTrailingZeroes(number_format(divide($number, 1000000000), 2)) . ' ' . __(key: 'msg.billion'),
+            $number >= 1000000           => trimTrailingZeroes(number_format(divide($number, 1000000), 2)) . ' ' . __(key: 'msg.million'),
+            $number >= 1000              => trimTrailingZeroes(number_format(divide($number, 1000), 2)) . ' ' . __(key: 'msg.thousand'),
+            default                      => (float) $number,
         };
     }
 }
@@ -334,7 +336,6 @@ if (
     }
 }
 
-
 if (
     !function_exists('setUserTimezone')
 ) {
@@ -381,26 +382,17 @@ if (
     }
 }
 
-
-
-
-
-
-
-
-
 if (
     !function_exists('jsonAttribute')
 ) {
     function jsonAttribute(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => filled($value) ? Json::decode($value, true) : [],
-            set: fn($value) => filled($value) ? Json::encode($value)       : null,
+            get: fn($value) => filled($value) ? Json::decodeToArray($value) : [],
+            set: fn($value) => filled($value) ? Json::encode($value)        : null,
         );
     }
 }
-
 
 if (
     !function_exists('userInfo')
@@ -420,10 +412,8 @@ if (
             'country_code'              => (string) $modelKey?->country_code ?? '',
             'phone_number'              => (string) $modelKey?->phone_number ?? '',
             'phone_number_original'     => (string) $modelKey?->getRawOriginal('phone_number', '') ?? '',
-            'email'                     => (string) $modelKey?->email ?? '',
-            'token'                     => (string) $modelKey?->getRawOriginal('token', '') ?? '',
             'type'                      => $type,
-            'type_translated'           => __(key: (filled($type) ? $type : 'unknown')),
+            'type_translated'           => __(key: 'msg.' . (filled($type) ? $type : 'unknown')),
         ];
     }
 }
