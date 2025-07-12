@@ -1,8 +1,9 @@
 <?php
 
-use Fooino\Core\Tasks\Tools\V1\ReplaceForbiddenCharactersTask;
+use Fooino\Core\Tasks\Tools\ReplaceForbiddenCharactersTask;
 
 if (!function_exists('replaceForbiddenCharacters')) {
+
     function replaceForbiddenCharacters(
         string|int|float|null $value,
         array $excludes = [],
