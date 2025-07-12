@@ -176,14 +176,20 @@ if (
     }
 }
 
-if (!function_exists('replaceForbiddenCharacters')) {
+if (
+    !function_exists('replaceForbiddenCharacters')
+) {
 
     function replaceForbiddenCharacters(
-        string|int|float|null $value,
+        string|int|float|null|array|bool $value,
         array $excludes = [],
         string $replacementChar = '_'
-    ) {
-        return filled($value) ? app(ReplaceForbiddenCharactersTask::class)->run(value: $value, excludes: $excludes, replacementChar: $replacementChar) : $value;
+    ): string|int|float|null|array|bool {
+        return app(ReplaceForbiddenCharactersTask::class)->run(
+            value: $value,
+            excludes: $excludes,
+            replacementChar: $replacementChar
+        );
     }
 }
 
@@ -210,27 +216,11 @@ if (
 if (
     !function_exists('removeComma')
 ) {
-    function removeComma($value)
+    function removeComma(mixed $value): mixed
     {
         return (\is_string($value) || \is_array($value)) ? \str_replace(',', '', $value) : $value;
     }
 }
-
-
-if (
-    !function_exists('replaceSlashToDash')
-) {
-    function replaceSlashToDash(array|string $value): array|string
-    {
-        return \str_replace(
-            search: '/',
-            replace: '-',
-            subject: $value
-        );
-    }
-}
-
-
 
 if (
     !function_exists('trimEmptyString')
@@ -242,6 +232,24 @@ if (
     }
 }
 
+if (
+    !function_exists('removeEmptyString')
+) {
+    function removeEmptyString(mixed $value): mixed
+    {
+        return (\is_string($value) && filled($value)) ? str_replace(' ', '', $value) : $value;
+    }
+}
+
+if (
+    !function_exists('replaceSlashToDash')
+) {
+    function replaceSlashToDash(mixed $value): mixed
+    {
+        return (\is_string($value) || \is_array($value)) ? \str_replace('/', '-', $value) : $value;
+    }
+}
+
 
 if (
     !function_exists('changePercentage')
@@ -249,7 +257,7 @@ if (
     function changePercentage(
         int|float $from,
         int|float $to
-    ) {
+    ): int|float|string {
 
         if (
             $to == 0
@@ -269,63 +277,16 @@ if (
 
 
 if (
-    !function_exists('prettify_canonical')
-) {
-    function prettify_canonical($value)
-    {
-        return filled($value) ? replaceForbiddenCharacters(value: $value, excludes: ['/', '=', ':', '?', '&', '.']) : null;
-    }
-}
-
-if (
-    !function_exists('prettify_slug')
-) {
-    function prettify_slug($value)
-    {
-        return filled($value) ? replaceForbiddenCharacters(value: $value) : null;
-    }
-}
-
-if (
     !function_exists('countWithUnit')
 ) {
     function countWithUnit(int|float $count): int|float|string
     {
         return match (true) {
-            $count >= 1000000000        => trimTrailingZeroes(number_format($count / 1000000000, 2)) . ' ' . __(key: 'billion'),
-            $count >= 1000000           => trimTrailingZeroes(number_format($count / 1000000, 2)) . ' ' . __(key: 'million'),
-            $count >= 1000              => trimTrailingZeroes(number_format($count / 1000, 2)) . ' ' . __(key: 'thousand'),
+            $count >= 1000000000        => trimTrailingZeroes(number_format($count / 1000000000, 2)) . ' ' . __(key: 'msg.billion'),
+            $count >= 1000000           => trimTrailingZeroes(number_format($count / 1000000, 2)) . ' ' . __(key: 'msg.million'),
+            $count >= 1000              => trimTrailingZeroes(number_format($count / 1000, 2)) . ' ' . __(key: 'msg.thousand'),
             default                     => (float) $count,
         };
-    }
-}
-
-
-if (
-    !function_exists('resolveRequest')
-) {
-    function resolveRequest(
-        string $request,
-        array $data = [],
-        User|null $user = null
-    ) {
-        $req = new $request();
-
-        $req->merge($data);
-
-        if (
-            filled($user)
-        ) {
-            $req->setUserResolver(fn() => $user);
-        }
-
-        $container = app();
-        $req
-            ->setContainer($container)
-            ->setRedirector($container->make('redirect'))
-            ->validateResolved();
-
-        return $req;
     }
 }
 
@@ -356,6 +317,25 @@ if (
 }
 
 if (
+    !function_exists('prettifyCanonical')
+) {
+    function prettifyCanonical(string|int|float|null|array|bool $value): string|int|float|null|array|bool
+    {
+        return emptyToNullOrValue(replaceForbiddenCharacters(value: $value, excludes: ['/', '=', ':', '?', '&', '.']));
+    }
+}
+
+if (
+    !function_exists('prettifySlug')
+) {
+    function prettifySlug(string|int|float|null|array|bool $value): string|int|float|null|array|bool
+    {
+        return emptyToNullOrValue(replaceForbiddenCharacters(value: $value));
+    }
+}
+
+
+if (
     !function_exists('setUserTimezone')
 ) {
     function setUserTimezone(string $timezone): void
@@ -365,13 +345,48 @@ if (
 }
 
 if (
-    !function_exists('removeEmptyString')
+    !function_exists('getUserTimezone')
 ) {
-    function removeEmptyString(mixed $value): mixed
+    function getUserTimezone(): string
     {
-        return (\is_string($value) && filled($value)) ? str_replace(' ', '', $value) : $value;
+        return config('user-timezone', 'UTC');
     }
 }
+
+if (
+    !function_exists('resolveRequest')
+) {
+    function resolveRequest(
+        string $request,
+        array $data = [],
+        User|null $user = null
+    ) {
+        $req = new $request();
+
+        $req->merge($data);
+
+        if (
+            filled($user)
+        ) {
+            $req->setUserResolver(fn() => $user);
+        }
+
+        $container = app();
+        $req
+            ->setContainer($container)
+            ->setRedirector($container->make('redirect'))
+            ->validateResolved();
+
+        return $req;
+    }
+}
+
+
+
+
+
+
+
 
 
 if (
