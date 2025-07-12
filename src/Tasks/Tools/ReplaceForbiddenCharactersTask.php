@@ -6,16 +6,28 @@ class ReplaceForbiddenCharactersTask
 {
 
     public function run(
-        string|int|float $value,
+        string|int|float|null|array|bool $value,
         array $excludes = [],
         string $replacementChar = '_'
-    ): string {
+    ): string|int|float|null|array|bool {
+
+        if (
+            blank($value) ||
+            !is_string($value)
+        ) {
+            return $value;
+        }
 
         $forbiddens = $this->forbiddenCharacters();
 
         foreach ($excludes as $exclude) {
+
             foreach ($forbiddens as $key => $forbidden) {
-                if ($exclude == $forbidden) {
+
+                if (
+                    $exclude == $forbidden
+                ) {
+
                     unset($forbiddens[$key]);
                 }
             }

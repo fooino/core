@@ -165,6 +165,15 @@ class DateHandler
         DateTimeZone $from = new DateTimeZone('America/New_York'),
         DateTimeZone $to = new DateTimeZone('UTC')
     ): string {
+
+        $date = $this->parseDate(date: $date);
+
+        throw_if(
+            \is_null($date),
+            Exception::class,
+            'The date is empty'
+        );
+
         return (new DateTime(
             datetime: $date,
             timezone: $from
@@ -179,6 +188,16 @@ class DateHandler
         DateTimeZone $from = new DateTimeZone('UTC'),
         DateTimeZone $to = new DateTimeZone('America/New_York'),
     ): string {
+
+
+        $date = $this->parseDate(date: $date);
+
+        throw_if(
+            \is_null($date),
+            Exception::class,
+            'The date is empty'
+        );
+
         return (new DateTime(
             datetime: $date,
             timezone: new DateTimeZone('UTC')
@@ -239,7 +258,9 @@ class DateHandler
             return false;
         }
 
-        if ($isDateAndTime) {
+        if (
+            $isDateAndTime
+        ) {
             try {
                 $timeSection = \explode(":", $section[1]);
 

@@ -47,6 +47,15 @@ class ReplaceForbiddenCharactersTaskUnitTest extends TestCase
             '../',
             '_'
         ];
+
+        $this->assertTrue(app(ReplaceForbiddenCharactersTask::class)->run(value: 123) == 123);
+        $this->assertTrue(app(ReplaceForbiddenCharactersTask::class)->run(value: null) == null);
+        $this->assertTrue(app(ReplaceForbiddenCharactersTask::class)->run(value: '') == '');
+        $this->assertTrue(app(ReplaceForbiddenCharactersTask::class)->run(value: true) == true);
+        $this->assertTrue(app(ReplaceForbiddenCharactersTask::class)->run(value: false) == false);
+        $this->assertTrue(app(ReplaceForbiddenCharactersTask::class)->run(value: []) == []);
+        $this->assertTrue(app(ReplaceForbiddenCharactersTask::class)->run(value: [123]) == [123]);
+
         $result = app(ReplaceForbiddenCharactersTask::class)->run(value: implode('a', $forbidden));
         $this->assertEquals($result, '_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a___a_');
 

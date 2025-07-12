@@ -4,8 +4,8 @@ namespace Fooino\Core\Providers;
 
 use Fooino\Core\Concretes\{
     Json\JsonResponse,
-    Math\MathManger,
-    Date\DateManger
+    Math\MathManager,
+    Date\DateManager
 };
 use Illuminate\Support\ServiceProvider;
 
@@ -66,11 +66,11 @@ class CoreServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton('math-facade', function ($app) {
-            return new MathManger();
+            return new MathManager();
         });
 
         $this->app->singleton('date-facade', function ($app) {
-            return new DateManger();
+            return new DateManager();
         });
 
         return $this;

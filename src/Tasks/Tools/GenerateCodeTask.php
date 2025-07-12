@@ -86,8 +86,10 @@ class GenerateCodeTask
         }
 
         $this->attempts++;
-        if ($this->attempts > $this->maxAttempts) {
-            throw new Exception("The task attempts more than {$this->maxAttempts} times.");
+        if (
+            $this->attempts > $this->maxAttempts
+        ) {
+            throw new Exception("The task attempts more than {$this->maxAttempts} times and can not generate code anymore");
         }
 
         $code = $this->generateCode();
@@ -112,16 +114,22 @@ class GenerateCodeTask
             $this->timestampStyle
         ) {
 
-            return replaceForbiddenCharacters(strtolower(Str::random($this->length))) . time() . replaceForbiddenCharacters(strtolower(Str::random($this->length)));
+            return replaceForbiddenCharacters(
+                strtolower(
+                    Str::random($this->length) . time() . Str::random($this->length)
+                )
+            );
 
             // 
         } elseif (
             $this->isNumeric
         ) {
             $code = "";
+
             for ($i = 0; $i < $this->length; $i++) {
                 $code .= ($i == 0) ? rand(1, 9) : rand(0, 9);
             }
+
             return $code;
 
             //

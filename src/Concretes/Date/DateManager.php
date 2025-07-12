@@ -7,7 +7,7 @@ use Fooino\Core\Exceptions\CanNotConvertDateException;
 use DateTimeZone;
 use Exception;
 
-class DateManger extends DateHandler
+class DateManager extends DateHandler
 {
     /**
      * Convert date base on timezone and the format you desire.
@@ -68,7 +68,7 @@ class DateManger extends DateHandler
             throw_if(
                 $throwException,
                 CanNotConvertDateException::class,
-                $log
+                'Can not convert date. ' . $e->getMessage()
             );
 
             return '';

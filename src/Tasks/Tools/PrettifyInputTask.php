@@ -8,18 +8,17 @@ class PrettifyInputTask
 {
     public function run($key, $value): mixed
     {
-        $isJson = false;
+        $isJson = Json::is(string: $value);
         if (
-            Json::is($value)
+            $isJson
         ) {
-            $isJson = true;
-            $value = Json::decode($value, true);
+            $value = Json::decodeToArray(json: $value);
         }
 
         if (
             \is_array($value)
         ) {
-            \array_walk_recursive($value, fn(&$item, $itemKey) => $item = $this->replace($item));
+            \array_walk_recursive($value, fn(&$item, $itemKey) => $item = $this->replace(value: $item));
         }
 
         if (
@@ -27,14 +26,14 @@ class PrettifyInputTask
             \is_int($value) ||
             \is_float($value)
         ) {
-            return $this->replace($value);
+            return $this->replace(value: $value);
         }
 
         return ($isJson) ? Json::encode($value) : $value;
     }
 
 
-    private function replace($value)
+    private function replace(mixed $value): mixed
     {
         if (
             \is_null($value) ||
@@ -54,12 +53,14 @@ class PrettifyInputTask
         $arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
         $english = range(0, 9);
         $replaced = str_replace($arabic, $english, str_replace($persian, $english, $value));
+
         $arabicLetters = ['ي', 'ك'];
         $persianLetters = ['ی', 'ک'];
         $replaced = str_replace($arabicLetters, $persianLetters, $replaced);
+
         $replaced = strip_tags($replaced, $this->allowedTags());
 
-        $replaced = trimEmptyString($replaced);
+        $replaced = trimEmptyString(value: $replaced);
 
         settype($replaced, $type);
         return $replaced;

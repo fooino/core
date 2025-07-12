@@ -20,8 +20,8 @@ if (
     !function_exists('trimTrailingZeroes')
 ) {
     function trimTrailingZeroes(
-        $number,
-        $decimalSeparator = '.'
+        string|int|float|null $number,
+        string $decimalSeparator = '.'
     ): string {
 
         return Math::trimTrailingZeroes(
@@ -35,10 +35,10 @@ if (
     !function_exists('numberFormat')
 ) {
     function numberFormat(
-        $number,
-        $decimalSeparator = '.',
-        $thousandsSeparator = ',',
-        $divisor = 1
+        string|float|int|null $number,
+        string $decimalSeparator = '.',
+        string $thousandsSeparator = ',',
+        int|float $divisor = 1
     ): string {
 
         return Math::numberFormat(
@@ -53,137 +53,169 @@ if (
 if (
     !function_exists('number')
 ) {
-    function number($number): string
+    function number(string|int|float|null $number): string
     {
-        return Math::number($number);
+        return Math::number(number: $number);
     }
 }
 
 if (
     !function_exists('add')
 ) {
-    function add($a, $b): string
-    {
-        return Math::add($a, $b);
+    function add(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+
+        return Math::add(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('subtract')
 ) {
-    function subtract($a, $b): string
-    {
-        return Math::subtract($a, $b);
+    function subtract(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+        return Math::subtract(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('multiply')
 ) {
-    function multiply($a, $b): string
-    {
-        return Math::multiply($a, $b);
+    function multiply(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+        return Math::multiply(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('divide')
 ) {
-    function divide($a, $b): string
-    {
-        return Math::divide($a, $b);
+    function divide(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+        return Math::divide(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('modulus')
 ) {
-    function modulus($a, $b): string
-    {
-        return Math::modulus($a, $b);
+    function modulus(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): string {
+        return Math::modulus(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('square')
 ) {
-    function square($number): string
+    function square(string|int|float|null $number): string
     {
-        return Math::sqrt($number);
+        return Math::sqrt(number: $number);
     }
 }
 
 if (
     !function_exists('power')
 ) {
-    function power($number, $exponent = 2): string
-    {
-        return Math::power($number, $exponent);
+    function power(
+        string|int|float|null $number,
+        string|int|float|null $exponent = 2
+    ): string {
+        return Math::power(number: $number, exponent: $exponent);
     }
 }
 
 if (
     !function_exists('greaterThan')
 ) {
-    function greaterThan($a, $b): bool
-    {
-        return Math::greaterThan($a, $b);
+    function greaterThan(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::greaterThan(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('greaterThanOrEqual')
 ) {
-    function greaterThanOrEqual($a, $b): bool
-    {
-        return Math::greaterThanOrEqual($a, $b);
+    function greaterThanOrEqual(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::greaterThanOrEqual(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('lessThan')
 ) {
-    function lessThan($a, $b): bool
-    {
-        return Math::lessThan($a, $b);
+    function lessThan(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::lessThan(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('lessThanOrEqual')
 ) {
-    function lessThanOrEqual($a, $b): bool
-    {
-        return Math::lessThanOrEqual($a, $b);
+    function lessThanOrEqual(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::lessThanOrEqual(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('equal')
 ) {
-    function equal($a, $b): bool
-    {
-        return Math::equal($a, $b);
+    function equal(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::equal(a: $a, b: $b);
     }
 }
 
 if (
     !function_exists('notEqual')
 ) {
-    function notEqual($a, $b): bool
-    {
-        return Math::notEqual($a, $b);
+    function notEqual(
+        string|int|float|null $a,
+        string|int|float|null $b
+    ): bool {
+        return Math::notEqual(a: $a, b: $b);
     }
 }
 
-if (!function_exists('replaceForbiddenCharacters')) {
+if (
+    !function_exists('replaceForbiddenCharacters')
+) {
 
     function replaceForbiddenCharacters(
-        string|int|float|null $value,
+        string|int|float|null|array|bool $value,
         array $excludes = [],
         string $replacementChar = '_'
-    ) {
-        return filled($value) ? app(ReplaceForbiddenCharactersTask::class)->run(value: $value, excludes: $excludes, replacementChar: $replacementChar) : $value;
+    ): string|int|float|null|array|bool {
+
+        return app(ReplaceForbiddenCharactersTask::class)->run(
+            value: $value,
+            excludes: $excludes,
+            replacementChar: $replacementChar
+        );
     }
 }
 
@@ -210,27 +242,11 @@ if (
 if (
     !function_exists('removeComma')
 ) {
-    function removeComma($value)
+    function removeComma(mixed $value): mixed
     {
         return (\is_string($value) || \is_array($value)) ? \str_replace(',', '', $value) : $value;
     }
 }
-
-
-if (
-    !function_exists('replaceSlashToDash')
-) {
-    function replaceSlashToDash(array|string $value): array|string
-    {
-        return \str_replace(
-            search: '/',
-            replace: '-',
-            subject: $value
-        );
-    }
-}
-
-
 
 if (
     !function_exists('trimEmptyString')
@@ -242,6 +258,24 @@ if (
     }
 }
 
+if (
+    !function_exists('removeEmptyString')
+) {
+    function removeEmptyString(mixed $value): mixed
+    {
+        return (\is_string($value) && filled($value)) ? str_replace(' ', '', $value) : $value;
+    }
+}
+
+if (
+    !function_exists('replaceSlashToDash')
+) {
+    function replaceSlashToDash(mixed $value): mixed
+    {
+        return (\is_string($value) || \is_array($value)) ? \str_replace('/', '-', $value) : $value;
+    }
+}
+
 
 if (
     !function_exists('changePercentage')
@@ -249,7 +283,7 @@ if (
     function changePercentage(
         int|float $from,
         int|float $to
-    ) {
+    ): int|float|string {
 
         if (
             $to == 0
@@ -269,63 +303,17 @@ if (
 
 
 if (
-    !function_exists('prettify_canonical')
+    !function_exists('numberWithUnit')
 ) {
-    function prettify_canonical($value)
-    {
-        return filled($value) ? replaceForbiddenCharacters(value: $value, excludes: ['/', '=', ':', '?', '&', '.']) : null;
-    }
-}
-
-if (
-    !function_exists('prettify_slug')
-) {
-    function prettify_slug($value)
-    {
-        return filled($value) ? replaceForbiddenCharacters(value: $value) : null;
-    }
-}
-
-if (
-    !function_exists('countWithUnit')
-) {
-    function countWithUnit(int|float $count): int|float|string
+    function numberWithUnit(int|float|null $number): int|float|string
     {
         return match (true) {
-            $count >= 1000000000        => trimTrailingZeroes(number_format($count / 1000000000, 2)) . ' ' . __(key: 'billion'),
-            $count >= 1000000           => trimTrailingZeroes(number_format($count / 1000000, 2)) . ' ' . __(key: 'million'),
-            $count >= 1000              => trimTrailingZeroes(number_format($count / 1000, 2)) . ' ' . __(key: 'thousand'),
-            default                     => (float) $count,
+            $number >= 1000000000000     => trimTrailingZeroes(number_format(divide($number, 1000000000000), 2)) . ' ' . __(key: 'msg.trillion'),
+            $number >= 1000000000        => trimTrailingZeroes(number_format(divide($number, 1000000000), 2)) . ' ' . __(key: 'msg.billion'),
+            $number >= 1000000           => trimTrailingZeroes(number_format(divide($number, 1000000), 2)) . ' ' . __(key: 'msg.million'),
+            $number >= 1000              => trimTrailingZeroes(number_format(divide($number, 1000), 2)) . ' ' . __(key: 'msg.thousand'),
+            default                      => (float) $number,
         };
-    }
-}
-
-
-if (
-    !function_exists('resolveRequest')
-) {
-    function resolveRequest(
-        string $request,
-        array $data = [],
-        User|null $user = null
-    ) {
-        $req = new $request();
-
-        $req->merge($data);
-
-        if (
-            filled($user)
-        ) {
-            $req->setUserResolver(fn() => $user);
-        }
-
-        $container = app();
-        $req
-            ->setContainer($container)
-            ->setRedirector($container->make('redirect'))
-            ->validateResolved();
-
-        return $req;
     }
 }
 
@@ -356,6 +344,24 @@ if (
 }
 
 if (
+    !function_exists('prettifyCanonical')
+) {
+    function prettifyCanonical(string|int|float|null|array|bool $value): string|int|float|null|array|bool
+    {
+        return emptyToNullOrValue(replaceForbiddenCharacters(value: $value, excludes: ['/', '=', ':', '?', '&', '.']));
+    }
+}
+
+if (
+    !function_exists('prettifySlug')
+) {
+    function prettifySlug(string|int|float|null|array|bool $value): string|int|float|null|array|bool
+    {
+        return emptyToNullOrValue(replaceForbiddenCharacters(value: $value));
+    }
+}
+
+if (
     !function_exists('setUserTimezone')
 ) {
     function setUserTimezone(string $timezone): void
@@ -365,14 +371,41 @@ if (
 }
 
 if (
-    !function_exists('removeEmptyString')
+    !function_exists('getUserTimezone')
 ) {
-    function removeEmptyString(mixed $value): mixed
+    function getUserTimezone(): string
     {
-        return (\is_string($value) && filled($value)) ? str_replace(' ', '', $value) : $value;
+        return config('user-timezone', 'UTC');
     }
 }
 
+if (
+    !function_exists('resolveRequest')
+) {
+    function resolveRequest(
+        string $request,
+        array $data = [],
+        User|null $user = null
+    ) {
+        $req = new $request();
+
+        $req->merge($data);
+
+        if (
+            filled($user)
+        ) {
+            $req->setUserResolver(fn() => $user);
+        }
+
+        $container = app();
+        $req
+            ->setContainer($container)
+            ->setRedirector($container->make('redirect'))
+            ->validateResolved();
+
+        return $req;
+    }
+}
 
 if (
     !function_exists('jsonAttribute')
@@ -380,12 +413,11 @@ if (
     function jsonAttribute(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => filled($value) ? Json::decode($value, true) : [],
-            set: fn($value) => filled($value) ? Json::encode($value)       : null,
+            get: fn($value) => filled($value) ? Json::decodeToArray($value) : [],
+            set: fn($value) => filled($value) ? Json::encode($value)        : null,
         );
     }
 }
-
 
 if (
     !function_exists('userInfo')
@@ -405,10 +437,8 @@ if (
             'country_code'              => (string) $modelKey?->country_code ?? '',
             'phone_number'              => (string) $modelKey?->phone_number ?? '',
             'phone_number_original'     => (string) $modelKey?->getRawOriginal('phone_number', '') ?? '',
-            'email'                     => (string) $modelKey?->email ?? '',
-            'token'                     => (string) $modelKey?->getRawOriginal('token', '') ?? '',
             'type'                      => $type,
-            'type_translated'           => __(key: (filled($type) ? $type : 'unknown')),
+            'type_translated'           => __(key: 'msg.' . (filled($type) ? $type : 'unknown')),
         ];
     }
 }
