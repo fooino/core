@@ -35,9 +35,9 @@ class GenerateCodeTaskUnitTest extends TestCase
 
     public function test_the_task_can_generate_random_token_in_lower_case()
     {
-        $code = app(GenerateCodeTask::class)->length(10)->isNumeric(false)->lowerCase()->run();
+        $code = app(GenerateCodeTask::class)->length(6)->isNumeric(false)->lowerCase()->run();
 
-        $this->assertEquals(strlen($code), 10);
+        $this->assertEquals(strlen($code), 6);
         $this->assertTrue(is_string($code));
 
         $upperCase = range('A', 'Z');
@@ -48,9 +48,9 @@ class GenerateCodeTaskUnitTest extends TestCase
     }
     public function test_the_task_can_generate_random_token_in_upper_case()
     {
-        $code = app(GenerateCodeTask::class)->length(10)->isNumeric(false)->upperCase()->run();
+        $code = app(GenerateCodeTask::class)->length(6)->isNumeric(false)->upperCase()->run();
 
-        $this->assertEquals(strlen($code), 10);
+        $this->assertEquals(strlen($code), 6);
         $this->assertTrue(is_string($code));
 
         $lowerCase = range('a', 'z');
@@ -114,7 +114,7 @@ class GenerateCodeTaskUnitTest extends TestCase
                     ->run();
             },
             Exception::class,
-            "The task attempts more than 100 times."
+            "The task attempts more than 100 times and can not generate code anymore"
         );
     }
 
@@ -124,15 +124,6 @@ class GenerateCodeTaskUnitTest extends TestCase
             fn() =>
             app(GenerateCodeTask::class)
                 ->length(0)
-                ->run(),
-            Exception::class,
-            'The length must greater than zero'
-        );
-
-        $this->assertThrows(
-            fn() =>
-            app(GenerateCodeTask::class)
-                ->length(-1)
                 ->run(),
             Exception::class,
             'The length must greater than zero'

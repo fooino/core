@@ -227,6 +227,7 @@ class DateFacadeUnitTest extends TestCase
 
     public function test_convert_utc_to_gregorian_method()
     {
+        $this->assertThrows(fn() => Date::convert(date: 'test', to: new DateTimeZone('America/New_York'), throwException: true), CanNotConvertDateException::class);
         $this->assertEquals(Date::convert(date: '2022-12-24 04:00:00', format: 'Y/m/d H:i:s', to: new DateTimeZone('America/New_York')), '2022/12/23 23:00:00');
         $this->assertEquals(Date::convert(date: '2022-12-24 18:15:00', format: 'Y/m/d H:i:s', to: new DateTimeZone('Asia/Tokyo')), '2022/12/25 03:15:00');
         $this->assertEquals(Date::convert(date: '2022-12-24 07:45:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('America/New_York'), to: new DateTimeZone("Asia/Tokyo")), '2022/12/24 21:45:00');
@@ -234,6 +235,7 @@ class DateFacadeUnitTest extends TestCase
 
     public function test_convert_gregorian_to_utc_method()
     {
+        $this->assertThrows(fn() => Date::convert(date: 'test', from: new DateTimeZone('America/New_York'), throwException: true), CanNotConvertDateException::class);
         $this->assertEquals(Date::convert(date: '2022-12-24 23:00:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('America/New_York')), '2022/12/25 04:00:00');
         $this->assertEquals(Date::convert(date: '2022-12-24 03:15:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('Asia/Tokyo')), '2022/12/23 18:15:00');
     }
