@@ -2,6 +2,9 @@
 
 namespace Fooino\Core\Providers;
 
+use Fooino\Core\Concretes\{
+    Json\JsonResponse
+};
 use Illuminate\Support\ServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
@@ -56,9 +59,9 @@ class CoreServiceProvider extends ServiceProvider
 
     protected function registerSingletons(): self
     {
-        // $this->app->singleton('json-facade', function ($app) {
-        //     return new JsonResponse();
-        // });
+        $this->app->singleton('json-facade', function ($app) {
+            return new JsonResponse();
+        });
 
         // $this->app->singleton('math-facade', function ($app) {
         //     return new MathManger();
