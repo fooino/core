@@ -1,6 +1,6 @@
 <?php
 
-namespace Fooino\Core\Tasks\Tools\V1;
+namespace Fooino\Core\Tasks\Tools;
 
 class ReplaceForbiddenCharactersTask
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Fooino\Tasks\Tools\V1;
+namespace Fooino\Core\Tasks\Tools;
 
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
@@ -10,13 +10,15 @@ class GenerateCodeTask
 {
     private string $model = '';
     private string $field = 'code';
-    private int $length = 6;
+    private int $length = 5;
+
     private bool $isNumeric = true;
     private bool $lowerCase = false;
     private bool $upperCase = false;
+    private bool $timestampStyle = false;
+
     private int $attempts = 0;
     private int $maxAttempts = 100;
-    private bool $timestampStyle = false;
     private array $duplicateCodes = [];
 
     public function model(string|Model $model): self
@@ -61,7 +63,7 @@ class GenerateCodeTask
         return $this;
     }
 
-    public function run()
+    public function run(): string|int|Exception
     {
         if (
             $this->length <= 0
@@ -100,6 +102,7 @@ class GenerateCodeTask
             $this->duplicateCodes = array_merge($this->duplicateCodes, [$code]);
             return $this->run();
         }
+
         return $code;
     }
 

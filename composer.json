@@ -10,8 +10,11 @@
             "role": "owner"
         }
     ],
+    "require": {
+        "morilog/jalali": "^3.4"
+    },
     "require-dev": {
-        "orchestra/testbench": "^9.0"
+        "orchestra/testbench": "^10.0"
     },
     "autoload": {
         "psr-4": {
