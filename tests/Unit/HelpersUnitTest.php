@@ -287,4 +287,70 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(trimEmptyString('foobar ') == 'foobar');
         $this->assertTrue(trimEmptyString(' foobar ') == 'foobar');
     }
+
+
+    public function test_empty_to_null_or_value()
+    {
+        $this->assertTrue(emptyToNullOrValue([]) == null);
+        $this->assertTrue(emptyToNullOrValue('') == null);
+        $this->assertTrue(emptyToNullOrValue('      ') == null);
+        $this->assertTrue(emptyToNullOrValue(null) == null);
+        $this->assertTrue(emptyToNullOrValue('null') == null);
+        $this->assertTrue(emptyToNullOrValue('NULL') == null);
+        $this->assertTrue(emptyToNullOrValue('NULl') == null);
+        $this->assertTrue(emptyToNullOrValue(collect([])) == null);
+        $this->assertTrue(emptyToNullOrValue('foobar') == 'foobar');
+        $this->assertTrue(emptyToNullOrValue(1) == 1);
+        $this->assertTrue(emptyToNullOrValue(0) == 0);
+        $this->assertTrue(emptyToNullOrValue(0.0) == 0.0);
+        $this->assertTrue(emptyToNullOrValue("0") == "0");
+        $this->assertTrue(emptyToNullOrValue("0.0") == "0.0");
+        $this->assertTrue(emptyToNullOrValue(1.1) == 1.1);
+        $this->assertTrue(emptyToNullOrValue(true) == true);
+        $this->assertTrue(emptyToNullOrValue(false) == false);
+        $this->assertTrue(emptyToNullOrValue([1, 'foobar', true]) == [1, 'foobar', true]);
+        $this->assertTrue(emptyToNullOrValue(collect([1, 'foobar', true])) == collect([1, 'foobar', true]));
+    }
+    public function test_zero_to_null_or_value()
+    {
+        $this->assertTrue(zeroToNullOrValue([]) == null);
+        $this->assertTrue(zeroToNullOrValue('') == null);
+        $this->assertTrue(zeroToNullOrValue('      ') == null);
+        $this->assertTrue(zeroToNullOrValue(null) == null);
+        $this->assertTrue(zeroToNullOrValue('null') == null);
+        $this->assertTrue(zeroToNullOrValue('NULL') == null);
+        $this->assertTrue(zeroToNullOrValue('NULl') == null);
+        $this->assertTrue(zeroToNullOrValue(collect([])) == null);
+        $this->assertTrue(zeroToNullOrValue(0) == null);
+        $this->assertTrue(zeroToNullOrValue(0.0) == null);
+        $this->assertTrue(zeroToNullOrValue("0") == null);
+        $this->assertTrue(zeroToNullOrValue("0.0") == null);
+        $this->assertTrue(zeroToNullOrValue('foobar') == 'foobar');
+        $this->assertTrue(zeroToNullOrValue(1) == 1);
+        $this->assertTrue(zeroToNullOrValue(1.1) == 1.1);
+        $this->assertTrue(zeroToNullOrValue(true) == true);
+        $this->assertTrue(zeroToNullOrValue(false) == false);
+        $this->assertTrue(zeroToNullOrValue([1, 'foobar', true]) == [1, 'foobar', true]);
+        $this->assertTrue(zeroToNullOrValue(collect([1, 'foobar', true])) == collect([1, 'foobar', true]));
+    }
+
+
+    public function test_remove_comma_helper()
+    {
+        $this->assertTrue(removeComma(123) == 123);
+        $this->assertTrue(removeComma(123.11) == 123.11);
+        $this->assertTrue(removeComma('123,123') == '123123');
+        $this->assertTrue(removeComma('123,test') == '123test');
+        $this->assertTrue(removeComma(['123,123', '123,foobar']) == ['123123', '123foobar']);
+        $this->assertTrue(removeComma(null) == null);
+        $this->assertTrue(removeComma(true) == true);
+        $this->assertTrue(removeComma(false) == false);
+    }
+
+    public function test_replace_slash_to_dash()
+    {
+        $this->assertTrue(replaceSlashToDash(value: ['hi/hello', 'foobar']) == ['hi-hello', 'foobar']);
+        $this->assertTrue(replaceSlashToDash(value: '2023/01/02') == '2023-01-02');
+        $this->assertTrue(replaceSlashToDash(value: '') == '');
+    }
 }

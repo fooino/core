@@ -184,6 +184,51 @@ if (!function_exists('replaceForbiddenCharacters')) {
     }
 }
 
+
+if (
+    !function_exists('emptyToNullOrValue')
+) {
+    function emptyToNullOrValue(mixed $value = null): mixed
+    {
+        return (is_null($value) || blank($value) || (is_string($value) && strtolower($value) == 'null')) ? null : $value;
+    }
+}
+
+if (
+    !function_exists('zeroToNullOrValue')
+) {
+    function zeroToNullOrValue(mixed $value = null): mixed
+    {
+        $value = emptyToNullOrValue(value: $value);
+        return ((is_string($value) || is_numeric($value)) && in_array($value, [0, 0.0, '0', '0.0'])) ? null : $value;
+    }
+}
+
+if (
+    !function_exists('removeComma')
+) {
+    function removeComma($value)
+    {
+        return (\is_string($value) || \is_array($value)) ? \str_replace(',', '', $value) : $value;
+    }
+}
+
+
+if (
+    !function_exists('replaceSlashToDash')
+) {
+    function replaceSlashToDash(array|string $value): array|string
+    {
+        return \str_replace(
+            search: '/',
+            replace: '-',
+            subject: $value
+        );
+    }
+}
+
+
+
 if (
     !function_exists('trimEmptyString')
 ) {

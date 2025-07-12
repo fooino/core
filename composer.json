@@ -10,6 +10,9 @@
             "role": "owner"
         }
     ],
+    "require": {
+        "morilog/jalali": "^3.4"
+    },
     "require-dev": {
         "orchestra/testbench": "^10.0"
     },
