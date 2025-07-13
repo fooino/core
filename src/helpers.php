@@ -380,6 +380,15 @@ if (
 }
 
 if (
+    !function_exists('currentDate')
+) {
+    function currentDate(): string
+    {
+        return \date('Y-m-d H:i:s');
+    }
+}
+
+if (
     !function_exists('resolveRequest')
 ) {
     function resolveRequest(
