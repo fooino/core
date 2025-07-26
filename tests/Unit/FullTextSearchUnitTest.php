@@ -120,7 +120,7 @@ class FullTextSearchUnitTest extends TestCase
             'port'              => '3306',
             'database'          => env('TESTING_DB_DATABASE', 'fooino-testing'),
             'username'          => env('TESTING_DB_USERNAME', 'root'),
-            'password'          => env('TESTING_DB_PASSWORD', ''),
+            'password'          => env('TESTING_DB_PASSWORD', 'Fooino!123'),
             'unix_socket'       => '',
             'charset'           => 'utf8mb4',
             'collation'         => 'utf8mb4_unicode_ci',

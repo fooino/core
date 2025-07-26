@@ -1,11 +1,93 @@
 <?php
 
 use Fooino\Core\Facades\Json;
+use Illuminate\Http\JsonResponse;
 use Fooino\Core\Facades\Math;
 use Fooino\Core\Tasks\Tools\ReplaceForbiddenCharactersTask;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
+
+
+if (
+    !function_exists('isJson')
+) {
+    function isJson(mixed $string): bool
+    {
+        return Json::is($string);
+    }
+}
+
+if (
+    !function_exists('jsonEncode')
+) {
+
+    function jsonEncode(
+        mixed $mixed,
+        int $flags = 0,
+        int $depth = 512
+    ): mixed {
+
+        return Json::encode(
+            mixed: $mixed,
+            flags: $flags,
+            depth: $depth
+        );
+    }
+}
+
+if (
+    !function_exists('jsonDecode')
+) {
+
+    function jsonDecode(
+        mixed $json,
+        bool|null $associative = null,
+        int $depth = 512,
+        int $flags = 0
+    ): mixed {
+
+        return Json::decode(
+            json: $json,
+            associative: $associative,
+            depth: $depth,
+            flags: $flags
+        );
+    }
+}
+
+if (
+    !function_exists('jsonDecodeToArray')
+) {
+
+    function jsonDecodeToArray(mixed $json): array
+    {
+        return Json::decodeToArray(json: $json);
+    }
+}
+
+if (
+    !function_exists('jsonResponse')
+) {
+
+    function jsonResponse(
+        int $status = 200,
+        string $message = '',
+        array $data = [],
+        array $errors = [],
+        array $headers = []
+    ): JsonResponse {
+
+        return Json::response(
+            status: $status,
+            message: $message,
+            data: $data,
+            errors: $errors,
+            headers: $headers
+        );
+    }
+}
+
 
 if (
     !function_exists('math')
