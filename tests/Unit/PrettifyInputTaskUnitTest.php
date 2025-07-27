@@ -99,5 +99,93 @@ class PrettifyInputTaskUnitTest extends TestCase
         );
 
         $this->assertEquals(app(PrettifyInputTask::class)->run('description', '<script>alert("hi");</script> <h1>hi</h1>'), 'alert("hi"); <h1>hi</h1>');
+
+
+
+
+        $this->assertEquals(prettifyInput('phone', 123), 123);
+        $this->assertEquals(prettifyInput('phone', 123.123), 123.123);
+        $this->assertEquals(prettifyInput('phone', 'foobar'), 'foobar');
+        $this->assertEquals(prettifyInput('phone', 'foobar123'), 'foobar123');
+        $this->assertEquals(prettifyInput('phone', []), []);
+        $this->assertEquals(prettifyInput('phone', null), null);
+        $this->assertEquals(prettifyInput('phone', true), true);
+        $this->assertEquals(prettifyInput('phone', false), false);
+        $this->assertEquals(prettifyInput('phone', $object), $object);
+        $this->assertEquals(gettype(prettifyInput('phone', 123)), gettype(123));
+        $this->assertEquals(gettype(prettifyInput('phone', 123.123)), gettype(123.123));
+
+        $this->assertEquals(prettifyInput('phone', 'علیك سلام'), 'علیک سلام');
+        $this->assertEquals(prettifyInput('phone', 'عليك سلام'), 'علیک سلام');
+        $this->assertEquals(prettifyInput('phone', 'باي بای علیك'), 'بای بای علیک');
+        $this->assertEquals(prettifyInput('phone', '۰۱۲۳۴۵۶۷۸۹'), '0123456789');
+        $this->assertEquals(prettifyInput('phone', '۰۱۲۳٤٥٦۷۸۹'), '0123456789');
+        $this->assertEquals(prettifyInput('phone', 'foobar۰۱۲۳٤٥٦۷۸۹'), 'foobar0123456789');
+        $this->assertEquals(prettifyInput('phone', ['۰۱۲۳']), ['0123']);
+        $this->assertEquals(prettifyInput('phone', Json::encode(['۰۱۲۳'])), Json::encode(['0123']));
+        $this->assertEquals(prettifyInput('phone', Json::encode(['۰۱۲۳', 'foobar4567۸'])), Json::encode(['0123', 'foobar45678']));
+
+        $this->assertEquals(prettifyInput('phone', 'foobar '), 'foobar');
+        $this->assertEquals(prettifyInput('phone', ' foobar'), 'foobar');
+        $this->assertEquals(prettifyInput('phone', ' foobar '), 'foobar');
+
+        $this->assertEquals(prettifyInput('phone', 'Hello 👋🏼'), 'Hello 👋🏼');
+        $this->assertEquals(prettifyInput('phone', 'Hello <input name="password" value="123">'), 'Hello');
+        $this->assertEquals(prettifyInput('phone', 'Hello <script>alert("XSS");</script> World'), 'Hello alert("XSS"); World');
+        $this->assertEquals(prettifyInput('phone', ''), '');
+        $this->assertEquals(prettifyInput('phone', '😊😎👍'), '😊😎👍');
+        $this->assertEquals(prettifyInput('phone', '😊 <script>alert("XSS");</script> 😎'), '😊 alert("XSS"); 😎');
+        $this->assertEquals(prettifyInput('phone', '<script>alert("XSS");</script>'), 'alert("XSS");');
+
+        $this->assertEquals(
+            prettifyInput('phone', [
+                0       => 'bar۰۱۲۳',
+                1       => '۱.۰',
+                2       => true,
+                3       => false,
+                4       => null,
+                5       => '۱٤۰۱/۱۰/۱٤',
+                'foo'   => '۰۱۲۳',
+                '2d'    => [
+                    '123',
+                    '۰۱۲۳'
+                ],
+                'withKey'    => [
+                    'foo' => '123',
+                    'bar' => '۰۱۲۳',
+                    'third' => [
+                        'foo'   => '123',
+                        'bar'   => '۰۱۲۳',
+                        'john'  => null,
+                        'doe'   => true
+                    ]
+                ]
+            ]),
+            [
+                0       => 'bar0123',
+                1       => '1.0',
+                2       => true,
+                3       => false,
+                4       => null,
+                5       => '1401/10/14',
+                'foo'   => '0123',
+                '2d'    => [
+                    '123',
+                    '0123'
+                ],
+                'withKey'    => [
+                    'foo' => '123',
+                    'bar' => '0123',
+                    'third' => [
+                        'foo'   => '123',
+                        'bar'   => '0123',
+                        'john'  => null,
+                        'doe'   => true
+                    ]
+                ]
+            ]
+        );
+
+        $this->assertEquals(prettifyInput('description', '<script>alert("hi");</script> <h1>hi</h1>'), 'alert("hi"); <h1>hi</h1>');
     }
 }

@@ -2,7 +2,9 @@
 
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
+use Fooino\Core\Tasks\Tools\PrettifyInputTask;
 use Fooino\Core\Tasks\Tools\ReplaceForbiddenCharactersTask;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -266,6 +268,22 @@ if (
             value: $value,
             excludes: $excludes,
             replacementChar: $replacementChar
+        );
+    }
+}
+
+
+if (
+    !function_exists('prettifyInput')
+) {
+    function prettifyInput(
+        string $key,
+        mixed $value
+    ): mixed {
+
+        return app(PrettifyInputTask::class)->run(
+            key: $key,
+            value: $value
         );
     }
 }

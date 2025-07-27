@@ -107,7 +107,7 @@ class SeoableTraitUnitTest extends TestCase
             'meta_title'        => 'foobar',
             'meta_description'  => 'fooobar',
             'keywords'          => Json::encode(['foo', 'bar']),
-            'canonical'         => 'https://example.com?q=foo_bar&status=_foo',
+            'canonical'         => 'https://example.com?q=foo-bar&status=-foo',
         ]);
 
         $this->assertEquals($this->post->latest('id')->first()->seo_response, [
@@ -116,7 +116,7 @@ class SeoableTraitUnitTest extends TestCase
             'meta_description'              => 'fooobar',
             'keywords'                      => ['foo', 'bar'],
             'keywords_to_string'            => 'foo,bar',
-            'canonical'                     => 'https://example.com?q=foo_bar&status=_foo',
+            'canonical'                     => 'https://example.com?q=foo-bar&status=-foo',
         ]);
     }
 

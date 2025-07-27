@@ -5,8 +5,11 @@ namespace Fooino\Core\Tasks\Tools;
 
 class PrettifyInputTask
 {
-    public function run($key, $value): mixed
-    {
+    public function run(
+        string $key,
+        mixed $value
+    ): mixed {
+
         $isJson = isJson(string: $value);
         if (
             $isJson

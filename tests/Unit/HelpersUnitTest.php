@@ -178,7 +178,7 @@ class HelpersUnitTest extends TestCase
     {
         $this->assertEquals(
             prettifyCanonical("test / prettify canonical ? %& $ *"),
-            "test_/_prettify_canonical_?__&____"
+            "test-/-prettify-canonical-?--&----"
         );
         $this->assertEquals(
             prettifyCanonical("https://google.com"),
