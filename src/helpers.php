@@ -187,37 +187,6 @@ if (
 }
 
 if (
-    !function_exists('modulus')
-) {
-    function modulus(
-        string|int|float|null $a,
-        string|int|float|null $b
-    ): string {
-        return Math::modulus(a: $a, b: $b);
-    }
-}
-
-if (
-    !function_exists('square')
-) {
-    function square(string|int|float|null $number): string
-    {
-        return Math::sqrt(number: $number);
-    }
-}
-
-if (
-    !function_exists('power')
-) {
-    function power(
-        string|int|float|null $number,
-        string|int|float|null $exponent = 2
-    ): string {
-        return Math::power(number: $number, exponent: $exponent);
-    }
-}
-
-if (
     !function_exists('greaterThan')
 ) {
     function greaterThan(
