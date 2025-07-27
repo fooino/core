@@ -103,7 +103,7 @@ class SeoableTraitUnitTest extends TestCase
 
         $this->assertDatabaseHas('posts', [
             'title'             => 'My third post',
-            'slug'              => 'the__is___a_slug',
+            'slug'              => 'the--is---a-slug',
             'meta_title'        => 'foobar',
             'meta_description'  => 'fooobar',
             'meta_keywords'     => Json::encode(['foo', 'bar']),
@@ -111,7 +111,7 @@ class SeoableTraitUnitTest extends TestCase
         ]);
 
         $this->assertEquals($this->post->latest('id')->first()->seo_response, [
-            'slug'                          => 'the__is___a_slug',
+            'slug'                          => 'the--is---a-slug',
             'meta_title'                    => 'foobar',
             'meta_description'              => 'fooobar',
             'meta_keywords'                 => ['foo', 'bar'],

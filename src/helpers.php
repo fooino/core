@@ -421,7 +421,11 @@ if (
 ) {
     function prettifySlug(string|int|float|null|array|bool $value): string|int|float|null|array|bool
     {
-        return emptyToNullOrValue(replaceForbiddenCharacters(value: $value));
+        return emptyToNullOrValue(replaceForbiddenCharacters(
+            value: $value,
+            excludes: ['-'],
+            replacementChar: '-'
+        ));
     }
 }
 

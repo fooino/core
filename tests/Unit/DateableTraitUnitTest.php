@@ -210,16 +210,19 @@ class DateableTraitUnitTest extends TestCase
     public function test_this_year_created_scope()
     {
         $this->assertTrue($this->model->thisYearCreated()->count('id') == 1);
+        $this->assertTrue($this->model->thisYearCreatedDate()->count('id') == 1);
     }
 
     public function test_last_30_days_created_scope()
     {
         $this->assertTrue($this->model->last30DaysCreated()->count('id') == 1);
+        $this->assertTrue($this->model->last30DaysCreatedDate()->count('id') == 1);
     }
-    
+
     public function test_this_month_created_scope()
     {
         $this->assertTrue($this->model->thisMonthCreated()->count('id') == 1);
+        $this->assertTrue($this->model->thisMonthCreatedDate()->count('id') == 1);
     }
 
     public function test_where_date_between_scope()

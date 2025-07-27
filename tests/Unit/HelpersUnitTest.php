@@ -193,7 +193,12 @@ class HelpersUnitTest extends TestCase
     {
         $this->assertEquals(
             prettifySlug("test / prettify slug ? %& $ *"),
-            "test___prettify_slug_________"
+            "test---prettify-slug---------"
+        );
+
+        $this->assertEquals(
+            prettifySlug("laravel-tips-for-2025"),
+            "laravel-tips-for-2025"
         );
 
         $this->assertTrue(prettifySlug('') == null);
