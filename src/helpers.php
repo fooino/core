@@ -412,7 +412,11 @@ if (
 ) {
     function prettifyCanonical(string|int|float|null|array|bool $value): string|int|float|null|array|bool
     {
-        return emptyToNullOrValue(replaceForbiddenCharacters(value: $value, excludes: ['/', '=', ':', '?', '&', '.']));
+        return emptyToNullOrValue(replaceForbiddenCharacters(
+            value: $value,
+            excludes: ['/', '=', ':', '?', '&', '.', '-'],
+            replacementChar: '-'
+        ));
     }
 }
 

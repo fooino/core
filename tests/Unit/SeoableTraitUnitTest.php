@@ -21,13 +21,13 @@ class SeoableTraitUnitTest extends TestCase
     {
         parent::setUp();
 
-        Schema::create('posts', function (Blueprint $table) {
+        Schema::create('posts_table', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->string('slug')->nullable();
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
-            $table->json('meta_keywords')->nullable();
+            $table->json('keywords')->nullable();
             $table->string('canonical')->nullable();
             $table->timestamps();
         });
@@ -38,7 +38,7 @@ class SeoableTraitUnitTest extends TestCase
 
             protected $guarded = ['id'];
 
-            protected $table = 'posts';
+            protected $table = 'posts_table';
         };
     }
 
@@ -46,12 +46,12 @@ class SeoableTraitUnitTest extends TestCase
     {
         $this->post->create([
             'title'         => 'My first post',
-            'meta_keywords' => ['laravel', 'php', 'javascript'],
+            'keywords'      => ['laravel', 'php', 'javascript'],
         ]);
 
-        $this->assertDatabaseHas('posts', [
-            'title' => 'My first post',
-            'meta_keywords' => '["laravel","php","javascript"]',
+        $this->assertDatabaseHas('posts_table', [
+            'title'     => 'My first post',
+            'keywords'  => '["laravel","php","javascript"]',
         ]);
 
         $this->assertDatabaseHas('tags', [
@@ -65,30 +65,30 @@ class SeoableTraitUnitTest extends TestCase
         ]);
 
 
-        $this->assertTrue($this->post->find(1)->meta_keywords_to_string == 'laravel,php,javascript');
+        $this->assertTrue($this->post->find(1)->keywords_to_string == 'laravel,php,javascript');
 
         $this->post->create([
             'title'             => 'My second post',
-            'slug'              => null,
-            'meta_title'        => null,
-            'meta_description'  => null,
-            'meta_keywords'     => null,
-            'canonical'         => null,
+            'slug'              => '',
+            'meta_title'        => '',
+            'meta_description'  => '',
+            'keywords'          => '',
+            'canonical'         => '',
         ]);
 
-        $this->assertDatabaseHas('posts', [
+        $this->assertDatabaseHas('posts_table', [
             'title'             => 'My second post',
             'slug'              => null,
             'meta_title'        => null,
             'meta_description'  => null,
-            'meta_keywords'     => null,
+            'keywords'          => null,
             'canonical'         => null,
         ]);
 
         $this->assertTrue($this->post->find(2)->slug == '');
         $this->assertTrue($this->post->find(2)->meta_title == '');
         $this->assertTrue($this->post->find(2)->meta_description == '');
-        $this->assertTrue($this->post->find(2)->meta_keywords == []);
+        $this->assertTrue($this->post->find(2)->keywords == []);
         $this->assertTrue($this->post->find(2)->canonical == '');
 
 
@@ -97,16 +97,16 @@ class SeoableTraitUnitTest extends TestCase
             'slug'              => 'the !is / a slug',
             'meta_title'        => 'foobar',
             'meta_description'  => 'fooobar',
-            'meta_keywords'     => ['foo', 'bar'],
+            'keywords'          => ['foo', 'bar'],
             'canonical'         => 'https://example.com?q=foo bar&status=!foo',
         ]);
 
-        $this->assertDatabaseHas('posts', [
+        $this->assertDatabaseHas('posts_table', [
             'title'             => 'My third post',
             'slug'              => 'the--is---a-slug',
             'meta_title'        => 'foobar',
             'meta_description'  => 'fooobar',
-            'meta_keywords'     => Json::encode(['foo', 'bar']),
+            'keywords'          => Json::encode(['foo', 'bar']),
             'canonical'         => 'https://example.com?q=foo_bar&status=_foo',
         ]);
 
@@ -114,8 +114,8 @@ class SeoableTraitUnitTest extends TestCase
             'slug'                          => 'the--is---a-slug',
             'meta_title'                    => 'foobar',
             'meta_description'              => 'fooobar',
-            'meta_keywords'                 => ['foo', 'bar'],
-            'meta_keywords_to_string'       => 'foo,bar',
+            'keywords'                      => ['foo', 'bar'],
+            'keywords_to_string'            => 'foo,bar',
             'canonical'                     => 'https://example.com?q=foo_bar&status=_foo',
         ]);
     }
@@ -124,7 +124,17 @@ class SeoableTraitUnitTest extends TestCase
     {
         $this->post->create([
             'title'         => 'My first post',
-            'meta_keywords' => ['laravel', 'php', 'javascript'],
+            'keywords'      => ['laravel', 'php', 'javascript'],
+        ]);
+        $this->post->create([
+            'title'         => 'My second post',
+            'keywords'      => 'livewire',
+        ]);
+
+        $this->assertTrue($this->post->find(2)->keywords == ['livewire']);
+        $this->assertDatabaseHas('posts_table', [
+            'id'        => 2,
+            'keywords'  => Json::encode(['livewire']),
         ]);
 
         $this->assertEquals(Tag::search('laravel')->count(), 1);
