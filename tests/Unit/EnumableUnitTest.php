@@ -40,10 +40,11 @@ class EnumableUnitTest extends TestCase
             Foobar::maker()
                 ==
                 [
-                    'key'       => 'defaultKey',
-                    'name'      => 'unknown',
-                    'mui_icon'  => '',
-                    'color'     => ''
+                    'key'           => 'defaultKey',
+                    'name'          => 'unknown',
+                    'icon_style'    => 'material-symbols-outlined',
+                    'icon'          => '',
+                    'color'         => '',
                 ]
         );
 
@@ -52,7 +53,7 @@ class EnumableUnitTest extends TestCase
                 key: Foobar::ACTIVE->value,
                 query: 'status=' . Foobar::ACTIVE->value,
                 endpoint: "languages/1/activate",
-                mui_icon: 'icon',
+                icon: 'icon',
                 color: 'red',
                 additional: [
                     'foo'   => 'bar'
@@ -60,13 +61,14 @@ class EnumableUnitTest extends TestCase
             )
                 ==
                 [
-                    'key'       => 'ACTIVE',
-                    'name'      => __('msg.active'),
-                    'endpoint'  => 'languages/1/activate',
-                    'query'     => 'status=ACTIVE',
-                    'mui_icon'  => 'icon',
-                    'color'     => 'red',
-                    'foo'       => 'bar'
+                    'key'           => 'ACTIVE',
+                    'name'          => __('msg.active'),
+                    'endpoint'      => 'languages/1/activate',
+                    'query'         => 'status=ACTIVE',
+                    'icon_style'    => 'material-symbols-outlined',
+                    'icon'          => 'icon',
+                    'color'         => 'red',
+                    'foo'           => 'bar'
                 ]
         );
     }
@@ -90,18 +92,5 @@ enum Foobar: string
         return self::maker(
             key: self::INACTIVE->value
         );
-    }
-}
-
-enum Foobar2: string
-{
-    use Enumable;
-
-    case ACTIVE   = 'ACTIVE';
-    case INACTIVE = 'INACTIVE';
-
-    public static function namespaceKey(): string
-    {
-        return 'foobar';
     }
 }

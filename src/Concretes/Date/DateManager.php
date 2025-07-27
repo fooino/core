@@ -63,7 +63,7 @@ class DateManager extends DateHandler
 
             $log = 'CAN-NOT-CONVERT-' . $date . '-FROM-' . $from->getName() . '-TO-' . $to->getName() . '-IN-' . $format . '-FORMAT-ERROR: ' . $e->getMessage() . ' ' . $e;
 
-            logger($log);
+            logger()->error($log);
 
             throw_if(
                 $throwException,
