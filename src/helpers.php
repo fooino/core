@@ -1,9 +1,9 @@
 <?php
 
 use Fooino\Core\Facades\Json;
-use Illuminate\Http\JsonResponse;
 use Fooino\Core\Facades\Math;
 use Fooino\Core\Tasks\Tools\ReplaceForbiddenCharactersTask;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
@@ -276,7 +276,20 @@ if (
 ) {
     function emptyToNullOrValue(mixed $value = null): mixed
     {
-        return (is_null($value) || blank($value) || (is_string($value) && strtolower($value) == 'null')) ? null : $value;
+
+        if (
+            is_string($value)
+        ) {
+            $string = trim(
+                str_replace(
+                    ["'", '"'],
+                    '',
+                    trim($value)
+                )
+            );
+        }
+
+        return (is_null($value) || blank($value) || (is_string($value) && (strtolower($value) == 'null' || blank($string)))) ? null : $value;
     }
 }
 
@@ -473,8 +486,8 @@ if (
     function jsonAttribute(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => filled($value) ? Json::decodeToArray($value) : [],
-            set: fn($value) => filled($value) ? Json::encode($value)        : null,
+            get: fn($value) => filled(emptyToNullOrValue($value)) ? jsonDecodeToArray($value) : [],
+            set: fn($value) => filled(emptyToNullOrValue($value)) ? jsonEncode($value)        : null,
         );
     }
 }
@@ -487,16 +500,16 @@ if (
         string $key
     ): array {
 
-        $modelKey = $model?->{$key};
-        $type = filled($modelKey) ? str(class_basename($modelKey))->camel()->value() : '';
+        $user = $model?->{$key};
+        $type = filled($user) ? str(class_basename($user))->camel()->value() : '';
 
         return [
-            'id'                        => (float) $modelKey?->id ?? 0,
-            'country_id'                => (float) $modelKey?->country_id ?? 0,
-            'full_name'                 => (string) $modelKey?->full_name ?? $modelKey?->name ?? trim($modelKey?->first_name ?? '' . ' ' . $modelKey?->last_name ?? ''),
-            'country_code'              => (string) $modelKey?->country_code ?? '',
-            'phone_number'              => (string) $modelKey?->phone_number ?? '',
-            'phone_number_original'     => (string) $modelKey?->getRawOriginal('phone_number', '') ?? '',
+            'id'                        => (float) ($user?->id ?? 0),
+            'country_id'                => (float) ($user?->country_id ?? 0),
+            'full_name'                 => (string) ($user?->full_name ?? $user?->name ?? trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? ''))),
+            'country_code'              => (string) ($user?->country_code ?? ''),
+            'phone_number'              => (string) ($user?->phone_number ?? ''),
+            'phone_number_original'     => (string) ($user?->getRawOriginal('phone_number', '') ?? ''),
             'type'                      => $type,
             'type_translated'           => __(key: 'msg.' . (filled($type) ? $type : 'unknown')),
         ];
