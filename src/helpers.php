@@ -505,7 +505,16 @@ if (
 ) {
     function getUserTimezone(): string
     {
-        return config('user-timezone', 'UTC');
+        return (config('user-timezone', 'UTC')) ?: 'UTC';
+    }
+}
+
+if (
+    !function_exists('getDefaultLocale')
+) {
+    function getDefaultLocale(): string
+    {
+        return (config('app.locale', 'fa')) ?: 'fa';
     }
 }
 

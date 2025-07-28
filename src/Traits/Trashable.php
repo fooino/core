@@ -44,11 +44,6 @@ trait Trashable
         Trash::withTrashed()->where('trashable_id', $this->id)->where('trashable_type', get_class($this))->forceDelete();
     }
 
-    public function modelKeyName(): string
-    {
-        return 'name';
-    }
-
 
 
     // public function trashedList(): Collection|Exception

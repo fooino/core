@@ -51,9 +51,7 @@ class Trash extends Model
         return [
             'id'                => $this->trashable->id,
 
-            'name'              => $this->trashable?->{$this->trashable->modelKeyName()} ?? __(key: 'msg.unknown'),
-
-            'type'              => __(key: 'msg.' . str(class_basename($this->trashable_type))->camel()->value()),
+            ...$this->trashable->objectName(),
 
             'deleted_at'        => $this->trashable->deleted_at,
             'deleted_at_tz'     => $this->trashable->deleted_at_tz,

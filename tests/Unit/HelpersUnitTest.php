@@ -250,6 +250,12 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(getUserTimezone() == 'Asia/Tehran');
     }
 
+    public function test_get_default_locale()
+    {
+        config(['app.locale' => null]);
+        $this->assertTrue(getDefaultLocale() == 'fa');
+    }
+
     public function test_current_date()
     {
         $this->assertTrue(currentDate() == date('Y-m-d H:i:s'));
