@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 if (
     !function_exists('isJson')
@@ -552,6 +553,34 @@ if (
             ->validateResolved();
 
         return $req;
+    }
+}
+
+
+
+if (
+    !function_exists('dbTransaction')
+) {
+
+    function dbTransaction(callable $callback)
+    {
+        try {
+
+            DB::beginTransaction();
+
+            $result = $callback();
+
+            DB::commit();
+
+            return $result;
+
+            // 
+        } catch (Exception $e) {
+
+            DB::rollBack();
+
+            throw $e;
+        }
     }
 }
 

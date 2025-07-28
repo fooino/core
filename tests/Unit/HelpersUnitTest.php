@@ -2,16 +2,17 @@
 
 namespace Fooino\Core\Tests\Unit;
 
-use Exception;
 use Fooino\Core\Tests\TestCase;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Exception;
 use stdClass;
 
 class HelpersUnitTest extends TestCase
@@ -289,6 +290,56 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue($resolved->safe()->email == 'foobar@gmail.com');
         $this->assertTrue($resolved->getUserResolver()() == $user);
     }
+
+
+    public function test_db_transaction()
+    {
+
+        Schema::create('users_table', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        $user = new class extends User {
+
+            protected $guarded = ['id'];
+
+            protected $table = 'users_table';
+        };
+
+        $res = dbTransaction(
+            function () use ($user) {
+
+                $user->create([
+                    'name'  => 'foo'
+                ]);
+
+                return $user->find(1);
+
+                // 
+            }
+        );
+
+        $this->assertTrue($res instanceof User);
+        $this->assertTrue($res->name == 'foo');
+        $this->assertDatabaseHas('users_table', [
+            'id'    => 1,
+            'name'  => 'foo'
+        ]);
+
+        $user->find(1)->delete();
+
+        $this->assertThrows(
+            fn() => dbTransaction(
+                function () use ($user) {
+                    $user->findOrFail(1);
+                }
+            ),
+            ModelNotFoundException::class,
+        );
+    }
+
 
     public function test_json_attribute()
     {
