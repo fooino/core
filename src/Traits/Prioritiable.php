@@ -20,4 +20,19 @@ trait Prioritiable
     {
         return 'DESC';
     }
+
+
+    public function changePriorityPermission()
+    {
+        $can = ucfirst(class_basename($this)) . '-update';
+
+        if (
+            filled(request()->user()) &&
+            request()->user()->can($can)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 }
