@@ -136,6 +136,36 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(replaceSlashToDash(value: false == false));
     }
 
+
+    public function test_merge_arrays_by_key()
+    {
+        $a = ['created' => ['aa', 'bb']];
+        $b = ['created' => 'cc', 'updated' => 'gg'];
+        $c = ['created' => ['dd', 'ee']];
+        $d = ['updated' => ['ff']];
+        $e = ['deleted' => 'hh'];
+
+        $this->assertEquals(
+            mergeArraysByKey($a, $b, $c, $d, $e),
+            [
+                'created'   => [
+                    'aa',
+                    'bb',
+                    'cc',
+                    'dd',
+                    'ee'
+                ],
+                'updated'   => [
+                    'gg',
+                    'ff'
+                ],
+                'deleted'   => [
+                    'hh'
+                ]
+            ]
+        );
+    }
+
     public function test_change_percentage_helper()
     {
         $this->assertTrue(changePercentage(from: 200, to: 50) == 75);

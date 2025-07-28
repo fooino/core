@@ -360,6 +360,46 @@ if (
 
 
 if (
+    !function_exists('mergeArraysByKey')
+) {
+
+    function mergeArraysByKey(...$arrays): array
+    {
+        $merged = [];
+
+        foreach ($arrays as $array) {
+
+            foreach ($array as $key => $value) {
+
+                if (
+                    !isset($merged[$key])
+                ) {
+                    $merged[$key] = [];
+                }
+
+                if (
+                    is_array($value)
+                ) {
+
+                    $merged[$key] = array_merge($merged[$key], $value);
+
+                    // 
+                } else {
+
+                    $merged[$key][] = $value;
+
+                    // 
+                }
+            }
+        }
+
+        return $merged;
+    }
+}
+
+
+
+if (
     !function_exists('changePercentage')
 ) {
     function changePercentage(
