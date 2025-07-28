@@ -4,74 +4,155 @@ namespace Fooino\Core\Traits;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Auth\Access\AuthorizationException;
+use Fooino\Core\Models\Trash;
 use Exception;
 
 trait Trashable
 {
-    abstract public function modelKeyName(): string;
+    // abstract public function permission(): bool;
 
-    abstract public function permission(): bool;
+    // abstract public function restore();
 
-    abstract public function restore();
 
-    public function trashedList(): Collection|Exception
+    public static function bootTrashable()
     {
-        $this->checkPermission();
+        static::deleted(function ($model) {
+            $model->moveToTrash();
+        });
 
-        return $this
-            ->onlyTrashed()
-            ->select($this->makeSelectArray())
-            ->get();
+        // static::restored(function ($model) {
+        //     $model->restoreFromTrash();
+        // });
     }
 
-    public function getTrashById(int|float $id): self|Exception
+    public function moveToTrash(): void
     {
-        $this->checkPermission();
 
-        return $this
-            ->onlyTrashed()
-            ->select($this->makeSelectArray())
-            ->findOrFail($id);
+        Trash::create([
+            'trashable_type'    => get_class($this),
+            'trashable_id'      => $this->id,
+
+            ...getUserable(able: 'removerable'),
+        ]);
+
+        // 
     }
 
-    public function restoreFromTrash(): bool|null|Exception
+    public function modelKeyName(): string
     {
-        $this->checkPermission();
-        return $this->restore();
+        return 'name';
     }
 
-    public function trashedCount(): int|float|Exception
-    {
-        $this->checkPermission();
-        return $this->onlyTrashed()->count('id');
-    }
+    // public function restoreFromTrash()
+    // {
+    //     $trash = Trash::with('trashable')->where('trashable_id', $this->id)->where('trashable_type', get_class($this))->firstOrFail();
+    //     if ($this->deleted_at !== null) {
+    //         $this->restore();
+    //     }
+    //     $trash->delete();
+    // }
 
-    public function checkPermission(): bool|AuthorizationException
-    {
-        throw_if(
-            !$this->permission(),
-            AuthorizationException::class,
-            __(key: 'msg.notAuthorizedToPerformTrashActions')
-        );
+    // public function trashedList(): Collection|Exception
+    // {
+    //     $this->checkPermission();
 
-        return true;
-    }
+    //     return $this
+    //         ->onlyTrashed()
+    //         ->select($this->makeSelectArray())
+    //         ->with($this->makeWithArray())
+    //         ->get();
+    // }
 
-    public function checkPermissionByKey(string|null $key): bool
-    {
-        if (
-            filled($key) &&
-            filled(request()->user()) &&
-            request()->user()->can(str_replace('can:', '', $key))
-        ) {
-            return true;
-        }
+    // public function getTrashById(int|float $id): self|Exception
+    // {
+    //     $this->checkPermission();
 
-        return false;
-    }
+    //     return $this
+    //         ->onlyTrashed()
+    //         ->select($this->makeSelectArray())
+    //         ->with($this->makeWithArray())
+    //         ->findOrFail($id);
+    // }
 
-    public function makeSelectArray(): array
-    {
-        return ['id', $this->modelKeyName(), 'deleted_at'];
-    }
+    // // public function restoreFromTrash(): bool|null|Exception
+    // // {
+    // //     $this->checkPermission();
+    // //     return $this->restore();
+    // // }
+
+    // public function trashedCount(): int|float|Exception
+    // {
+    //     $this->checkPermission();
+    //     return $this->onlyTrashed()->count('id');
+    // }
+
+    // public function checkPermission(): bool|AuthorizationException
+    // {
+    //     throw_if(
+    //         !$this->permission(),
+    //         AuthorizationException::class,
+    //         __(key: 'core::messages.notAuthorizedToPerformTrashActions')
+    //     );
+
+    //     return true;
+    // }
+
+    // public function checkPermissionByKey(string|null $key): bool
+    // {
+    //     if (
+    //         filled($key) &&
+    //         filled(request()->user()) &&
+    //         request()->user()->can(str_replace('can:', '', $key))
+    //     ) {
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
+
+    // public function modelUseTranslatable(): bool
+    // {
+    //     return in_array(
+    //         'Astrotomic\Translatable\Translatable',
+    //         class_uses($this)
+    //     );
+    // }
+
+    // public function modelUseMediable(): bool
+    // {
+    //     return in_array(
+    //         'Fooino\Media\Traits\Mediable',
+    //         class_uses($this)
+    //     );
+    // }
+
+    // public function makeSelectArray(): array
+    // {
+    //     $select = ['id', 'deleted_at'];
+    //     if (
+    //         !$this->modelUseTranslatable()
+    //     ) {
+    //         $select[] = $this->modelKeyName();
+    //     }
+
+    //     return $select;
+    // }
+
+    // public function makeWithArray(): array
+    // {
+    //     $with = [];
+    //     if (
+    //         $this->modelUseTranslatable()
+    //     ) {
+    //         $with[] = 'translations:' . $this->getForeignKey() . ',locale,' . $this->modelKeyName();
+    //     }
+
+    //     if (
+    //         $this->modelUseMediable()
+    //     ) {
+    //         $with[] = 'media';
+    //     }
+
+    //     return $with;
+    // }
 }
