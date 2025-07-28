@@ -2,10 +2,8 @@
 
 namespace Fooino\Core\Traits;
 
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Auth\Access\AuthorizationException;
 use Fooino\Core\Models\Trash;
-use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 
 trait Trashable
 {
@@ -15,15 +13,15 @@ trait Trashable
     public static function bootTrashable()
     {
         static::deleted(function ($model) {
-            $model->moveToTrash();
+            $model->addToTrash();
         });
 
         static::restored(function ($model) {
-            $model->restoreFromTrash();
+            $model->removeFromTrash();
         });
     }
 
-    public function moveToTrash(): void
+    public function addToTrash(): void
     {
 
         Trash::withTrashed()->firstOrCreate(
@@ -37,12 +35,36 @@ trait Trashable
         // 
     }
 
-    public function restoreFromTrash()
+    public function removeFromTrash()
     {
         Trash::withTrashed()->where('trashable_id', $this->id)->where('trashable_type', get_class($this))->forceDelete();
     }
 
-    public function trashPermission()
+    public function moveToTrash(): void
+    {
+        $this->delete();
+    }
+
+    public function restoreFromTrash(): void
+    {
+        $this->restore();
+    }
+
+    public function restoreFromTrashPermission()
+    {
+        $can = ucfirst(class_basename($this)) . '-restore';
+
+        if (
+            filled(request()->user()) &&
+            request()->user()->can($can)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function moveToTrashPermission()
     {
         $can = ucfirst(class_basename($this)) . '-delete';
 
@@ -54,5 +76,16 @@ trait Trashable
         }
 
         return false;
+    }
+
+
+    public function checkPermission($key)
+    {
+        throw_if(
+            $this->{$key}() === false,
+            new AuthorizationException(
+                message: __(key: 'msg.unauthorizedToThisAction')
+            )
+        );
     }
 }

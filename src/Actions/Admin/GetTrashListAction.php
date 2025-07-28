@@ -26,7 +26,7 @@ class GetTrashListAction
 
 
         $models = array_filter($models, function ($model) {
-            return (new $model)->trashPermission();
+            return (new $model)->restoreFromTrashPermission();
         });
 
 

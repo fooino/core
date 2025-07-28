@@ -81,7 +81,7 @@ class TrashableTraitUnitTest extends TestCase
         // 
     }
 
-    public function test_move_to_trash_method()
+    public function test_add_to_trash_method()
     {
         $this->product->find(1)->delete();
 
@@ -111,7 +111,7 @@ class TrashableTraitUnitTest extends TestCase
         ]);
     }
 
-    public function test_restore_from_trash_method()
+    public function test_remove_from_trash_method()
     {
         $this->product->find(1)->delete();
 
