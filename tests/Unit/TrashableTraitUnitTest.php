@@ -90,6 +90,14 @@ class TrashableTraitUnitTest extends TestCase
             'removerable_id'    => null,
         ]);
 
+        $this->product->withTrashed()->find(1)->update([
+            'deleted_at'    => null
+        ]);
+        $this->product->find(1)->delete();
+
+        $this->assertTrue(Trash::where('trashable_id' , 1)->where('trashable_type' , get_class($this->product))->count('id') == 1); // the move to trash delete once the product since we used firstOrCreate
+
+
         request()->setUserResolver(fn() => $this->user->find(1));
         $this->product->find(2)->delete();
 
@@ -98,6 +106,36 @@ class TrashableTraitUnitTest extends TestCase
             'trashable_id'      => 2,
             'removerable_type'  => get_class($this->user),
             'removerable_id'    => 1,
+        ]);
+    }
+
+    public function test_restore_from_trash_method()
+    {
+        $this->product->find(1)->delete();
+
+        $this->assertDatabaseHas('products_table', [
+            'id'            => 1,
+            'name'          => 'CellPhone',
+            'deleted_at'    => currentDate(),
+        ]);
+
+        $this->assertDatabaseHas('trashes', [
+            'trashable_type'    => get_class($this->product),
+            'trashable_id'      => 1,
+        ]);
+
+        $this->product->withTrashed()->find(1)->restore();
+
+
+        $this->assertDatabaseHas('products_table', [
+            'id'            => 1,
+            'name'          => 'CellPhone',
+            'deleted_at'    => null,
+        ]);
+
+        $this->assertDatabaseMissing('trashes', [
+            'trashable_type'    => get_class($this->product),
+            'trashable_id'      => 1,
         ]);
     }
 

@@ -36,11 +36,11 @@ class Trash extends Model
     {
 
         if (
-            !$this->relationLoaded('trashable')
+            !$this->relationLoaded(key: 'trashable')
         ) {
             return [
                 'id'            => 0,
-                'name'          => __('msg.unknown'),
+                'name'          => __(key: 'msg.unknown'),
                 'type'          => '',
                 'deleted_at'    => '',
                 'deleted_at_tz' => '',
@@ -51,14 +51,14 @@ class Trash extends Model
         return [
             'id'                => $this->trashable->id,
 
-            'name'              => $this->trashable?->{$this->trashable->modelKeyName()} ?? __('msg.unknown'),
+            'name'              => $this->trashable?->{$this->trashable->modelKeyName()} ?? __(key: 'msg.unknown'),
 
-            'type'              => __('msg.' . str(class_basename($this->trashable_type))->camel()->value()),
+            'type'              => __(key: 'msg.' . str(class_basename($this->trashable_type))->camel()->value()),
 
             'deleted_at'        => $this->trashable->deleted_at,
             'deleted_at_tz'     => $this->trashable->deleted_at_tz,
 
-            'media'             => $this->trashable->relationLoaded('media') ? $this->trashable->media : [],
+            'media'             => $this->trashable->relationLoaded(key: 'media') ? $this->trashable->media : [],
         ];
     }
 

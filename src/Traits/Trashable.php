@@ -11,7 +11,7 @@ trait Trashable
 {
     // abstract public function permission(): bool;
 
-    // abstract public function restore();
+    abstract public function restore(); // the model must use the SoftDeletes
 
 
     public static function bootTrashable()
@@ -20,22 +20,28 @@ trait Trashable
             $model->moveToTrash();
         });
 
-        // static::restored(function ($model) {
-        //     $model->restoreFromTrash();
-        // });
+        static::restored(function ($model) {
+            $model->restoreFromTrash();
+        });
     }
 
     public function moveToTrash(): void
     {
 
-        Trash::create([
-            'trashable_type'    => get_class($this),
-            'trashable_id'      => $this->id,
-
-            ...getUserable(able: 'removerable'),
-        ]);
+        Trash::withTrashed()->firstOrCreate(
+            [
+                'trashable_type'    => get_class($this),
+                'trashable_id'      => $this->id,
+            ],
+            getUserable(able: 'removerable')
+        );
 
         // 
+    }
+
+    public function restoreFromTrash()
+    {
+        Trash::withTrashed()->where('trashable_id', $this->id)->where('trashable_type', get_class($this))->forceDelete();
     }
 
     public function modelKeyName(): string
@@ -43,14 +49,7 @@ trait Trashable
         return 'name';
     }
 
-    // public function restoreFromTrash()
-    // {
-    //     $trash = Trash::with('trashable')->where('trashable_id', $this->id)->where('trashable_type', get_class($this))->firstOrFail();
-    //     if ($this->deleted_at !== null) {
-    //         $this->restore();
-    //     }
-    //     $trash->delete();
-    // }
+
 
     // public function trashedList(): Collection|Exception
     // {
