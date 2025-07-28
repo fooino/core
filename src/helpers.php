@@ -9,7 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
-
+use Illuminate\Http\Request;
 
 if (
     !function_exists('isJson')
@@ -578,6 +578,37 @@ if (
             'phone_number_original'     => (string) ($user?->getRawOriginal('phone_number', '') ?? ''),
             'type'                      => $type,
             'type_translated'           => __(key: 'msg.' . (filled($type) ? $type : 'unknown')),
+        ];
+    }
+}
+
+
+if (
+    !function_exists('getUserable')
+) {
+
+    function getUserable(
+        string $able,
+        Request|Model|null $user = null,
+        bool $throwException = false,
+    ): array {
+
+        $user = is_null($user) ? request()->user() : (($user instanceof Request) ? $user->user() : $user);
+        $id = $user?->id ?? null;
+
+        if (
+            $throwException &&
+            (
+                blank($user) ||
+                blank($id)
+            )
+        ) {
+            throw new Exception('The user is empty');
+        }
+
+        return [
+            ($able . '_type') => (filled($user) && filled($id)) ? get_class($user) : null,
+            ($able . '_id')   => $id,
         ];
     }
 }

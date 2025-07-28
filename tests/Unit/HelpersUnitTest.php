@@ -2,6 +2,7 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use Exception;
 use Fooino\Core\Tests\TestCase;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -440,6 +441,125 @@ class HelpersUnitTest extends TestCase
                 'phone_number_original' => '',
                 'type'                  => '',
                 'type_translated'       => __('msg.unknown'),
+            ]
+        );
+    }
+
+
+    public function test_get_userable_helper()
+    {
+
+        $user = new class extends User {
+
+            protected $guarded = ['id'];
+
+            protected $table = 'users_table';
+        };
+
+        Schema::create('users_table', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
+
+
+        $this->assertEquals(
+            getUserable(able: 'removerable'),
+            [
+                'removerable_type'  => null,
+                'removerable_id'    => null,
+            ]
+        );
+        $this->assertThrows(
+            fn() => getUserable(
+                able: 'removerable',
+                throwException: true
+            ),
+            Exception::class,
+            'The user is empty'
+        );
+
+
+
+        request()->setUserResolver(fn() => $user);
+
+        $this->assertEquals(
+            getUserable(able: 'removerable'),
+            [
+                'removerable_type'  => null,
+                'removerable_id'    => null,
+            ]
+        );
+        $this->assertThrows(
+            fn() => getUserable(
+                able: 'removerable',
+                throwException: true
+            ),
+            Exception::class,
+            'The user is empty'
+        );
+
+
+
+        $user->create();
+
+        $this->assertEquals(
+            getUserable(
+                able: 'removerable',
+                user: $user->find(1)
+            ),
+            [
+                'removerable_type'  => get_class($user),
+                'removerable_id'    => 1,
+            ]
+        );
+        $this->assertEquals(
+            getUserable(
+                able: 'removerable',
+                user: $user->find(2)
+            ),
+            [
+                'removerable_type'  => null,
+                'removerable_id'    => null,
+            ]
+        );
+        $this->assertThrows(
+            fn() => getUserable(
+                able: 'removerable',
+                user: $user->find(2),
+                throwException: true
+            ),
+            Exception::class,
+            'The user is empty'
+        );
+
+        request()->setUserResolver(fn() => $user->find(1));
+
+        $this->assertEquals(
+            getUserable(able: 'removerable'),
+            [
+                'removerable_type'  => get_class($user),
+                'removerable_id'    => 1,
+            ]
+        );
+
+
+        $resolved = resolveRequest(
+            request: TestFormRequest::class,
+            data: [
+                'name'  => 'foobar',
+                'email' => 'foobar@gmail.com'
+            ],
+            user: $user->find(1)
+        );
+
+        $this->assertEquals(
+            getUserable(
+                able: 'removerable',
+                user: $resolved
+            ),
+            [
+                'removerable_type'  => get_class($user),
+                'removerable_id'    => 1,
             ]
         );
     }
