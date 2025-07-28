@@ -97,7 +97,7 @@ class TrashableTraitUnitTest extends TestCase
         ]);
         $this->product->find(1)->delete();
 
-        $this->assertTrue(Trash::where('trashable_id' , 1)->where('trashable_type' , get_class($this->product))->count('id') == 1); // the move to trash delete once the product since we used firstOrCreate
+        $this->assertTrue(Trash::where('trashable_id', 1)->where('trashable_type', get_class($this->product))->count('id') == 1); // the move to trash delete once the product since we used firstOrCreate
 
 
         request()->setUserResolver(fn() => $this->user->find(1));
@@ -178,5 +178,12 @@ class TrashableTraitUnitTest extends TestCase
         );
 
         $this->assertEquals($trash->remover, userInfo(model: $trash, key: 'removerable'));
+
+
+        $this->assertTrue(Trash::removedByAdmin()->count('id') == 0);
+        Trash::find(1)->update([
+            'removerable_type'  => 'Fooino\Admin\Models\Admin'
+        ]);
+        $this->assertTrue(Trash::removedByAdmin()->count('id') == 1);
     }
 }

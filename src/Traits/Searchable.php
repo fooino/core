@@ -39,4 +39,15 @@ trait Searchable
                 );
         }
     }
+
+    public function scopeInIds(Builder $query, array|int|null $ids = null): void
+    {
+        if (
+            !is_null($ids)
+        ) {
+            $ids = filled($ids) ? array_unique((array) $ids) : [0];
+
+            $query->whereIn('id', $ids);
+        }
+    }
 }
