@@ -520,6 +520,16 @@ if (
 }
 
 if (
+    !function_exists('pg')
+) {
+    function pg()
+    {
+        $pg = request()->input('per_page');
+        return (is_null($pg) || $pg <= 0 || $pg > 300) ? FOOINO_PER_PAGE : $pg;
+    }
+}
+
+if (
     !function_exists('currentDate')
 ) {
     function currentDate(): string

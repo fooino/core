@@ -15,7 +15,7 @@ class GetTrashListAction
             ->removedByAdmin()
             ->inIds($ids)
             ->with($this->getWith())
-            ->get();
+            ->paginate(pg());
     }
 
     private function getIds(): array
