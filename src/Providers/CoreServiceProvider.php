@@ -3,7 +3,7 @@
 namespace Fooino\Core\Providers;
 
 use Fooino\Core\Concretes\{
-    Json\JsonResponse,
+    Json\JsonManager,
     Math\MathManager,
     Date\DateManager
 };
@@ -61,8 +61,8 @@ class CoreServiceProvider extends ServiceProvider
 
     protected function registerSingletons(): self
     {
-        $this->app->singleton('json-facade', function ($app) {
-            return new JsonResponse();
+        $this->app->singleton('fooino-json-facade', function ($app) {
+            return new JsonManager();
         });
 
         $this->app->singleton('math-facade', function ($app) {

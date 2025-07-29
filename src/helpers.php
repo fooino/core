@@ -46,7 +46,7 @@ if (
 ) {
     function isJson(mixed $string): bool
     {
-        return Json::is($string);
+        return Json::is(string: $string);
     }
 }
 

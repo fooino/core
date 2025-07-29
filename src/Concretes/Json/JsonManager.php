@@ -2,10 +2,10 @@
 
 namespace Fooino\Core\Concretes\Json;
 
-use Illuminate\Http\JsonResponse as HttpJsonResponse;
+use Illuminate\Http\JsonResponse;
 use stdClass;
 
-class JsonResponse
+class JsonManager
 {
     /**
      * Check a variable is json or not.
@@ -90,7 +90,7 @@ class JsonResponse
         array $data = [],
         array $errors = [],
         array $headers = []
-    ): HttpJsonResponse {
+    ): JsonResponse {
 
         return response()
             ->json(

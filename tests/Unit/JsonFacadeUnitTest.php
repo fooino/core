@@ -212,7 +212,6 @@ class JsonFacadeUnitTest extends TestCase
 
     public function test_template_method()
     {
-        $this->assertEquals(gettype(Json::template()), 'array');
         $this->assertEquals(
             Json::template(),
             [
