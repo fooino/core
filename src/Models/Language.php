@@ -1,0 +1,164 @@
+<?php
+
+namespace Fooino\Core\Models;
+
+use Fooino\Core\{
+    Enums\Direction,
+    Enums\LanguageState,
+    Enums\LanguageStatus,
+    Traits\Infoable,
+    Traits\Searchable,
+    Traits\Dateable,
+    Traits\Loggable
+};
+use Illuminate\Database\Eloquent\{
+    Builder,
+    Model,
+    SoftDeletes,
+    Casts\Attribute
+};
+
+
+class Language extends Model
+{
+    use
+        Infoable,
+        Searchable,
+        Dateable,
+        Loggable,
+        SoftDeletes;
+
+    protected $guarded = ['id'];
+
+
+    /**
+     * relationships section
+     */
+
+    /**
+     * attributes section
+     */
+    protected function timezones(): Attribute
+    {
+        return jsonAttribute();
+    }
+
+    public function code(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => emptyToNullOrValue(strtolower((string) $value)),
+            set: fn($value) => emptyToNullOrValue(strtolower((string)$value))
+        );
+    }
+
+
+    public function getFlagAttribute()
+    {
+        return config('core_package_env') == 'testing' ? __DIR__ . "/../../assets/languages/{$this->code}.png" : asset("vendor/fooino/core/languages/{$this->code}.png");
+    }
+
+    public function getDirectionDetailAttribute()
+    {
+        return Direction::from(value: $this->direction)->detail();
+    }
+
+    public function getStatusDetailAttribute()
+    {
+        return LanguageStatus::from(value: $this->status)->detail();
+    }
+
+    public function getStatusesAttribute()
+    {
+        return LanguageStatus::statuses(id: $this->id);
+    }
+
+    public function getStateDetailAttribute()
+    {
+        return LanguageState::from(value: $this->state)->detail();
+    }
+
+    public function getEditableAttribute()
+    {
+        return (int) ($this->state == LanguageState::UNDEFAULT->value);
+    }
+
+    /**
+     * scopes section
+     */
+
+    public function scopeSearch(Builder $query, string|int|float|bool|null $search = null): void
+    {
+        if (filled($search)) {
+            $query->where(
+                fn($q) => $q
+                    ->orWhere('name', 'LIKE', "%{$search}%")
+                    ->orWhere('code', 'LIKE', "%{$search}%")
+            );
+        }
+    }
+
+    public function scopeCode(Builder $query, string|int|float|bool|null $code = null): void
+    {
+        if (filled($code)) {
+            $query->where('code', $code);
+        }
+    }
+
+    public function scopeDirection(Builder $query, Direction|string|null $direction = null): void
+    {
+        if (filled($direction)) {
+            $direction = ($direction instanceof Direction) ? $direction->value : $direction;
+            $query->where('direction', $direction);
+        }
+    }
+
+    public function scopeRTL(Builder $query): void
+    {
+        $query->direction(Direction::RTL);
+    }
+
+    public function scopeLTR(Builder $query): void
+    {
+        $query->direction(Direction::LTR);
+    }
+
+    public function scopeStatus(Builder $query, LanguageStatus|string|null $status = null): void
+    {
+        if (filled($status)) {
+            $status = ($status instanceof LanguageStatus) ? $status->value : $status;
+            $query->where('status', $status);
+        }
+    }
+
+    public function scopeActive(Builder $query): void
+    {
+        $query->status(LanguageStatus::ACTIVE);
+    }
+
+    public function scopeInactive(Builder $query): void
+    {
+        $query->status(LanguageStatus::INACTIVE);
+    }
+
+    public function scopeState(Builder $query, LanguageState|string|null $state = null): void
+    {
+        if (filled($state)) {
+            $state = ($state instanceof LanguageState) ? $state->value : $state;
+            $query->where('state', $state);
+        }
+    }
+
+    public function scopeDefault(Builder $query): void
+    {
+        $query->state(LanguageState::DEFAULT);
+    }
+
+    public function scopeUndefault(Builder $query): void
+    {
+        $query->state(LanguageState::UNDEFAULT);
+    }
+
+    /**
+     * custom functions section
+     */
+}

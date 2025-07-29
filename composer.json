@@ -12,7 +12,8 @@
     ],
     "require": {
         "morilog/jalali": "^3.4",
-        "astrotomic/laravel-translatable": "^11.16"
+        "astrotomic/laravel-translatable": "^11.16",
+        "spatie/laravel-activitylog": "^4.10"
     },
     "require-dev": {
         "orchestra/testbench": "^10.0"

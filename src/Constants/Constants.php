@@ -14,3 +14,6 @@ define('FOOINO_TEXT_SUCCESS', 'text-success');
 define('FOOINO_TEXT_INFO', 'text-info');
 define('FOOINO_TEXT_DANGER', 'text-danger');
 define('FOOINO_TEXT_WARNING', 'text-warning');
+
+
+define('FOOINO_ACTIVE_LANGUAGES_CACHE_KEY', 'fooino-active-languages');
