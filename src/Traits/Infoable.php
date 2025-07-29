@@ -26,11 +26,41 @@ trait Infoable
         return once(fn() => class_uses($this));
     }
 
+    public function objectUsedSoftDeletes(): bool
+    {
+        return once(
+            fn() => in_array(
+                'Illuminate\Database\Eloquent\SoftDeletes',
+                $this->objectUsedTraits()
+            )
+        );
+    }
+
     public function objectUsedTranslatable(): bool
     {
         return once(
             fn() => in_array(
                 'Astrotomic\Translatable\Translatable',
+                $this->objectUsedTraits()
+            )
+        );
+    }
+
+    public function objectUsedTrashable(): bool
+    {
+        return once(
+            fn() => in_array(
+                'Fooino\Core\Traits\Trashable',
+                $this->objectUsedTraits()
+            )
+        );
+    }
+
+    public function objectUsedPrioritiable(): bool
+    {
+        return once(
+            fn() => in_array(
+                'Fooino\Core\Traits\Prioritiable',
                 $this->objectUsedTraits()
             )
         );
@@ -54,6 +84,7 @@ trait Infoable
     public function objectName(): array
     {
         $unknown = __(key: 'msg.unknown');
+
         return [
             'name'  => $this->objectUsedTranslatable() ? (($this?->translateOrDefault(getDefaultLocale())?->{$this->objectKeyName()}) ?? $unknown) : (($this?->{$this->objectKeyName()}) ?? $unknown),
             'type'  => __(key: 'msg.' . lcfirst($this->objectClassName()))

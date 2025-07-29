@@ -4,9 +4,12 @@ namespace Fooino\Core\Tests\Unit;
 
 use Astrotomic\Translatable\Contracts\Translatable as ContractsTranslatable;
 use Astrotomic\Translatable\Translatable;
+use Fooino\Core\Traits\Trashable;
 use Fooino\Core\Tests\TestCase;
 use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Prioritiable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
@@ -26,33 +29,35 @@ class InfoableTraitUnitTest extends TestCase
 
         Schema::create('products_table', function (Blueprint $table) {
             $table->id();
+            $table->integer('priority')->default(0);
+            $table->softDeletes();
             $table->timestamps();
         });
 
         Schema::create('product_translations_table', function (Blueprint $table) {
             $table->id();
-            $table->integer('product_id');
+            $table->integer('infoable_product_id');
             $table->string('locale');
             $table->string('name');
             $table->timestamps();
         });
 
-        User::create([
+        InfoableUser::create([
             'name'  => 'John'
         ]);
 
-        Product::create();
+        InfoableProduct::create();
 
-        ProductTranslation::insert([
+        InfoableProductTranslation::insert([
             [
-                'product_id'    => 1,
-                'locale'        => 'en',
-                'name'          => 'foo'
+                'infoable_product_id'       => 1,
+                'locale'                    => 'en',
+                'name'                      => 'foo'
             ],
             [
-                'product_id'    => 1,
-                'locale'        => 'fa',
-                'name'          => 'bar'
+                'infoable_product_id'       => 1,
+                'locale'                    => 'fa',
+                'name'                      => 'bar'
             ],
         ]);
     }
@@ -60,35 +65,46 @@ class InfoableTraitUnitTest extends TestCase
 
     public function test_methods()
     {
-        $user = User::find(1);
-        $user2 = User2::find(1);
-        $product = Product::find(1);
-        $product2 = Product2::find(1);
+        $user = InfoableUser::find(1);
+        $user2 = InfoableUser2::find(1);
+        $product = InfoableProduct::find(1);
+        $product2 = InfoableProduct2::find(1);
 
-        $this->assertTrue($user->objectNamespace() == 'Fooino\Core\Tests\Unit\User');
+        $this->assertTrue($user->objectNamespace() == 'Fooino\Core\Tests\Unit\InfoableUser');
         $this->assertTrue($user->objectPackage() == 'Core');
-        $this->assertTrue($user->objectClassName() == 'User');
+        $this->assertTrue($user->objectClassName() == 'InfoableUser');
 
-        $this->assertTrue($product->objectNamespace() == 'Fooino\Core\Tests\Unit\Product');
-        $this->assertTrue($product->objectClassName() == 'Product');
+        $this->assertTrue($product->objectNamespace() == 'Fooino\Core\Tests\Unit\InfoableProduct');
+        $this->assertTrue($product->objectClassName() == 'InfoableProduct');
 
         $this->assertEquals(
             array_values($product->objectUsedTraits()),
             [
                 'Fooino\Core\Traits\Infoable',
-                'Astrotomic\Translatable\Translatable'
+                'Astrotomic\Translatable\Translatable',
+                'Illuminate\Database\Eloquent\SoftDeletes',
+                'Fooino\Core\Traits\Trashable',
+                'Fooino\Core\Traits\Prioritiable'
             ]
         );
 
+        $this->assertFalse($user->objectUsedSoftDeletes());
         $this->assertFalse($user->objectUsedTranslatable());
+        $this->assertFalse($user->objectUsedTrashable());
+        $this->assertFalse($user->objectUsedPrioritiable());
         $this->assertFalse($user->objectUsedMediable());
+
+        $this->assertTrue($product->objectUsedSoftDeletes());
         $this->assertTrue($product->objectUsedTranslatable());
+        $this->assertTrue($product->objectUsedTrashable());
+        $this->assertTrue($product->objectUsedPrioritiable());
+
 
         $this->assertEquals(
             $user->objectName(),
             [
                 'name'  => 'John',
-                'type'  => 'msg.user'
+                'type'  => 'msg.infoableUser'
             ]
         );
 
@@ -96,7 +112,7 @@ class InfoableTraitUnitTest extends TestCase
             $product->objectName(),
             [
                 'name'  => 'foo',
-                'type'  => 'msg.product'
+                'type'  => 'msg.infoableProduct'
             ]
         );
 
@@ -104,7 +120,7 @@ class InfoableTraitUnitTest extends TestCase
             $user2->objectName(),
             [
                 'name'  => 'msg.unknown',
-                'type'  => 'msg.user2'
+                'type'  => 'msg.infoableUser2'
             ]
         );
 
@@ -112,14 +128,14 @@ class InfoableTraitUnitTest extends TestCase
             $product2->objectName(),
             [
                 'name'  => 'msg.unknown',
-                'type'  => 'msg.product2'
+                'type'  => 'msg.infoableProduct2'
             ]
         );
     }
 }
 
 
-class User extends Model
+class InfoableUser extends Model
 {
     use Infoable;
 
@@ -128,7 +144,7 @@ class User extends Model
     protected $table = 'users_table';
 };
 
-class User2 extends User
+class InfoableUser2 extends InfoableUser
 {
     public function objectKeyName(): string
     {
@@ -137,11 +153,14 @@ class User2 extends User
 };
 
 
-class Product extends Model implements ContractsTranslatable
+class InfoableProduct extends Model implements ContractsTranslatable
 {
     use
         Infoable,
-        Translatable;
+        Translatable,
+        SoftDeletes,
+        Trashable,
+        Prioritiable;
 
     protected $guarded = ['id'];
 
@@ -150,7 +169,7 @@ class Product extends Model implements ContractsTranslatable
     public $translatedAttributes = ['name'];
 };
 
-class Product2 extends Product
+class InfoableProduct2 extends InfoableProduct
 {
     public function objectKeyName(): string
     {
@@ -158,7 +177,7 @@ class Product2 extends Product
     }
 };
 
-class ProductTranslation extends Model
+class InfoableProductTranslation extends Model
 {
     use Infoable;
 
@@ -167,4 +186,4 @@ class ProductTranslation extends Model
     protected $table = 'product_translations_table';
 };
 
-class Product2Translation extends ProductTranslation {};
+class InfoableProduct2Translation extends InfoableProductTranslation {};
