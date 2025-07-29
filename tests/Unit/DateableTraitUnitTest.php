@@ -166,15 +166,18 @@ class DateableTraitUnitTest extends TestCase
         $this->assertTrue($this->model->createdAt(null)->count('id') == 3);
         $this->assertTrue($this->model->createdAt($this->createdDate)->count('id') == 1);
     }
+
     public function test_created_date_scope()
     {
         $this->assertTrue($this->model->createdDate(null)->count('id') == 3);
         $this->assertTrue($this->model->createdDate($this->createdDate)->count('id') == 1);
     }
+
     public function test_where_field_between_scope()
     {
         $this->assertTrue($this->model->whereFieldBetween(field: 'id', from: 1, to: 2)->count('id') == 2);
     }
+
     public function test_today_created_scope()
     {
         $this->assertTrue($this->model->todayCreated()->count('id') == 1);
@@ -207,14 +210,19 @@ class DateableTraitUnitTest extends TestCase
     public function test_this_year_created_scope()
     {
         $this->assertTrue($this->model->thisYearCreated()->count('id') == 1);
+        $this->assertTrue($this->model->thisYearCreatedDate()->count('id') == 1);
     }
+
     public function test_last_30_days_created_scope()
     {
         $this->assertTrue($this->model->last30DaysCreated()->count('id') == 1);
+        $this->assertTrue($this->model->last30DaysCreatedDate()->count('id') == 1);
     }
+
     public function test_this_month_created_scope()
     {
         $this->assertTrue($this->model->thisMonthCreated()->count('id') == 1);
+        $this->assertTrue($this->model->thisMonthCreatedDate()->count('id') == 1);
     }
 
     public function test_where_date_between_scope()

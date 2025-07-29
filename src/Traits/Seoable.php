@@ -2,70 +2,61 @@
 
 namespace Fooino\Core\Traits;
 
-use Fooino\Core\Facades\Json;
 use Fooino\Core\Tasks\Tag\AddNewTagTask;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 trait Seoable
 {
-    public function getMetaKeywordsAttribute($value)
+    public function metaTitle(): Attribute
     {
-        return filled($value) ? Json::decodeToArray($value) : [];
+        return Attribute::make(
+            get: fn($value) => (string) $value,
+            set: fn($value) => emptyToNullOrValue($value)
+        );
     }
 
-    public function getMetaTitleAttribute($value)
+    public function metaDescription(): Attribute
     {
-        return (string) $value;
+        return Attribute::make(
+            get: fn($value) => (string) $value,
+            set: fn($value) => emptyToNullOrValue($value)
+        );
     }
 
-    public function getMetaDescriptionAttribute($value)
+    public function canonical(): Attribute
     {
-        return (string) $value;
+        return Attribute::make(
+            get: fn($value) => (string) $value,
+            set: fn($value) => prettifyCanonical($value)
+        );
     }
 
-    public function getCanonicalAttribute($value)
+    public function slug(): Attribute
     {
-        return (string) $value;
+        return Attribute::make(
+            get: fn($value) => (string) $value,
+            set: fn($value) => prettifySlug($value)
+        );
     }
 
-    public function getSlugAttribute($value)
+    public function getKeywordsAttribute($value)
     {
-        return (string) $value;
+        return filled($value) ? jsonDecodeToArray($value) : [];
     }
 
-    public function setMetaTitleAttribute($value)
+
+    public function setKeywordsAttribute($value)
     {
-        $this->attributes['meta_title'] = $value ?: null;
+        $value = \array_unique((array) emptyToNullOrValue($value));
+
+        app(AddNewTagTask::class)->run(tags: $value);
+
+        $this->attributes['keywords'] = filled($value) ? jsonEncode($value) : null;
     }
 
-    public function setMetaDescriptionAttribute($value)
+    public function getKeywordsToStringAttribute()
     {
-        $this->attributes['meta_description'] = $value ?: null;
-    }
-
-    public function setMetaKeywordsAttribute($value)
-    {
-        if (
-            \is_array($value)
-        ) {
-            $value = \array_unique($value);
-            app(AddNewTagTask::class)->run(tags: $value);
-        }
-        $this->attributes['meta_keywords'] = filled($value) ? Json::encode($value) : null;
-    }
-
-    public function setCanonicalAttribute($value)
-    {
-        $this->attributes['canonical'] = prettifyCanonical($value);
-    }
-
-    public function setSlugAttribute($value)
-    {
-        $this->attributes['slug'] = prettifySlug($value);
-    }
-
-    public function getMetaKeywordsToStringAttribute()
-    {
-        return \implode(',', (array) $this->meta_keywords);
+        return \implode(',', (array) $this->keywords);
     }
 
     public function getSeoResponseAttribute()
@@ -74,8 +65,8 @@ trait Seoable
             'slug'                      => $this->slug,
             'meta_title'                => $this->meta_title,
             'meta_description'          => $this->meta_description,
-            'meta_keywords'             => $this->meta_keywords,
-            'meta_keywords_to_string'   => $this->meta_keywords_to_string,
+            'keywords'                  => $this->keywords,
+            'keywords_to_string'        => $this->keywords_to_string,
             'canonical'                 => $this->canonical,
         ];
     }

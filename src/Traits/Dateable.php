@@ -145,6 +145,7 @@ trait Dateable
     {
         $query->where('created_date', \date('Y-m-d'));
     }
+    
     public function scopeYesterdayCreatedDate(Builder $query): void
     {
         $query->where('created_date', \date('Y-m-d', \strtotime('yesterday')));

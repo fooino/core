@@ -3,8 +3,16 @@
 namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Tests\TestCase;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Exception;
 use stdClass;
 
 class HelpersUnitTest extends TestCase
@@ -14,6 +22,11 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(emptyToNullOrValue([]) == null);
         $this->assertTrue(emptyToNullOrValue('') == null);
         $this->assertTrue(emptyToNullOrValue('      ') == null);
+        $this->assertTrue(emptyToNullOrValue('  "" ') == null);
+        $this->assertTrue(emptyToNullOrValue('  " ') == null);
+        $this->assertTrue(emptyToNullOrValue("  ' ") == null);
+        $this->assertTrue(emptyToNullOrValue("  '' ") == null);
+        $this->assertTrue(emptyToNullOrValue("  ' \" ' ") == null);
         $this->assertTrue(emptyToNullOrValue(null) == null);
         $this->assertTrue(emptyToNullOrValue('null') == null);
         $this->assertTrue(emptyToNullOrValue('NULL') == null);
@@ -37,6 +50,11 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(zeroToNullOrValue([]) == null);
         $this->assertTrue(zeroToNullOrValue('') == null);
         $this->assertTrue(zeroToNullOrValue('      ') == null);
+        $this->assertTrue(zeroToNullOrValue('  "" ') == null);
+        $this->assertTrue(zeroToNullOrValue('  " ') == null);
+        $this->assertTrue(zeroToNullOrValue("  ' ") == null);
+        $this->assertTrue(zeroToNullOrValue("  '' ") == null);
+        $this->assertTrue(zeroToNullOrValue("  ' \" ' ") == null);
         $this->assertTrue(zeroToNullOrValue(null) == null);
         $this->assertTrue(zeroToNullOrValue('null') == null);
         $this->assertTrue(zeroToNullOrValue('NULL') == null);
@@ -57,11 +75,14 @@ class HelpersUnitTest extends TestCase
 
     public function test_remove_comma_helper()
     {
+        $stdClass = new stdClass;
         $this->assertTrue(removeComma(123) == 123);
         $this->assertTrue(removeComma(123.11) == 123.11);
         $this->assertTrue(removeComma('123,123') == '123123');
         $this->assertTrue(removeComma('123,test') == '123test');
         $this->assertTrue(removeComma(['123,123', '123,foobar']) == ['123123', '123foobar']);
+        $this->assertTrue(removeComma(collect([1, 2])) == collect([1, 2]));
+        $this->assertTrue(removeComma($stdClass) == $stdClass);
         $this->assertTrue(removeComma(null) == null);
         $this->assertTrue(removeComma(true) == true);
         $this->assertTrue(removeComma(false) == false);
@@ -74,6 +95,7 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(trimEmptyString(12.12) == 12.12);
         $this->assertTrue(trimEmptyString(true) == true);
         $this->assertTrue(trimEmptyString(false) == false);
+        $this->assertTrue(trimEmptyString(null) == null);
         $this->assertTrue(trimEmptyString([1, 2]) == [1, 2]);
         $this->assertTrue(trimEmptyString(collect([1, 2])) == collect([1, 2]));
         $this->assertTrue(trimEmptyString($stdClass) == $stdClass);
@@ -91,7 +113,7 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(removeEmptyString(true) == true);
         $this->assertTrue(removeEmptyString(false) == false);
         $this->assertTrue(removeEmptyString([1, 2]) == [1, 2]);
-        $this->assertTrue(trimEmptyString(collect([1, 2])) == collect([1, 2]));
+        $this->assertTrue(removeEmptyString(collect([1, 2])) == collect([1, 2]));
         $this->assertTrue(removeEmptyString($stdClass) == $stdClass);
         $this->assertTrue(removeEmptyString('foobar') == 'foobar');
         $this->assertTrue(removeEmptyString(' foobar') == 'foobar');
@@ -102,6 +124,7 @@ class HelpersUnitTest extends TestCase
 
     public function test_replace_slash_to_dash()
     {
+        $object = new stdClass;
         $this->assertTrue(replaceSlashToDash(value: ['hi/hello', 'foobar']) == ['hi-hello', 'foobar']);
         $this->assertTrue(replaceSlashToDash(value: '2023/01/02') == '2023-01-02');
         $this->assertTrue(replaceSlashToDash(value: '') == '');
@@ -109,9 +132,40 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(replaceSlashToDash(value: 123.123) == 123.123);
         $this->assertTrue(replaceSlashToDash(value: [123]) == [123]);
         $this->assertTrue(replaceSlashToDash(value: collect([123])) == collect([123]));
+        $this->assertTrue(replaceSlashToDash(value: $object) == $object);
         $this->assertTrue(replaceSlashToDash(value: null == null));
         $this->assertTrue(replaceSlashToDash(value: true == true));
         $this->assertTrue(replaceSlashToDash(value: false == false));
+    }
+
+
+    public function test_merge_arrays_by_key()
+    {
+        $a = ['created' => ['aa', 'bb']];
+        $b = ['created' => 'cc', 'updated' => 'gg'];
+        $c = ['created' => ['dd', 'ee']];
+        $d = ['updated' => ['ff']];
+        $e = ['deleted' => 'hh'];
+
+        $this->assertEquals(
+            mergeArraysByKey($a, $b, $c, $d, $e),
+            [
+                'created'   => [
+                    'aa',
+                    'bb',
+                    'cc',
+                    'dd',
+                    'ee'
+                ],
+                'updated'   => [
+                    'gg',
+                    'ff'
+                ],
+                'deleted'   => [
+                    'hh'
+                ]
+            ]
+        );
     }
 
     public function test_change_percentage_helper()
@@ -156,7 +210,7 @@ class HelpersUnitTest extends TestCase
     {
         $this->assertEquals(
             prettifyCanonical("test / prettify canonical ? %& $ *"),
-            "test_/_prettify_canonical_?__&____"
+            "test-/-prettify-canonical-?--&----"
         );
         $this->assertEquals(
             prettifyCanonical("https://google.com"),
@@ -171,7 +225,12 @@ class HelpersUnitTest extends TestCase
     {
         $this->assertEquals(
             prettifySlug("test / prettify slug ? %& $ *"),
-            "test___prettify_slug_________"
+            "test---prettify-slug---------"
+        );
+
+        $this->assertEquals(
+            prettifySlug("laravel-tips-for-2025"),
+            "laravel-tips-for-2025"
         );
 
         $this->assertTrue(prettifySlug('') == null);
@@ -192,9 +251,23 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(getUserTimezone() == 'Asia/Tehran');
     }
 
+    public function test_get_default_locale()
+    {
+        config(['app.locale' => null]);
+        $this->assertTrue(getDefaultLocale() == 'fa');
+    }
+
+    public function test_current_date()
+    {
+        $this->assertTrue(currentDate() == date('Y-m-d H:i:s'));
+    }
+
 
     public function test_resolve_request()
     {
+
+        $user = new class extends User {};
+
         $this->assertThrows(
             fn() => resolveRequest(
                 request: TestFormRequest::class
@@ -208,13 +281,346 @@ class HelpersUnitTest extends TestCase
             data: [
                 'name'  => 'foobar',
                 'email' => 'foobar@gmail.com'
-            ]
+            ],
+            user: $user
         );
 
         $this->assertTrue($resolved instanceof TestFormRequest);
         $this->assertTrue($resolved->safe()->name == 'foobar');
         $this->assertTrue($resolved->safe()->email == 'foobar@gmail.com');
+        $this->assertTrue($resolved->getUserResolver()() == $user);
     }
+
+
+    public function test_db_transaction()
+    {
+
+        Schema::create('users_table', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        $user = new class extends User {
+
+            protected $guarded = ['id'];
+
+            protected $table = 'users_table';
+        };
+
+        $res = dbTransaction(
+            function () use ($user) {
+
+                $user->create([
+                    'name'  => 'foo'
+                ]);
+
+                return $user->find(1);
+
+                // 
+            }
+        );
+
+        $this->assertTrue($res instanceof User);
+        $this->assertTrue($res->name == 'foo');
+        $this->assertDatabaseHas('users_table', [
+            'id'    => 1,
+            'name'  => 'foo'
+        ]);
+
+        $user->find(1)->delete();
+
+        $this->assertThrows(
+            fn() => dbTransaction(
+                function () use ($user) {
+                    $user->findOrFail(1);
+                }
+            ),
+            ModelNotFoundException::class,
+        );
+    }
+
+
+    public function test_json_attribute()
+    {
+
+        Schema::create('users_table', function (Blueprint $table) {
+            $table->id();
+            $table->json('info')->nullable();
+            $table->timestamps();
+        });
+
+        $model = new class extends Model
+        {
+            protected $guarded = ['id'];
+
+            protected $table = 'users_table';
+
+            public function info(): Attribute
+            {
+                return jsonAttribute();
+            }
+        };
+
+        $model->create([
+            'info'  => ''
+        ]);
+        $this->assertTrue($model->find(1)->info == []);
+        $this->assertTrue($model->find(1)->getRawOriginal('info') == null);
+        $this->assertDatabaseHas('users_table', [
+            'id'    => 1,
+            'info'  => null
+        ]);
+
+
+
+        $model->create([
+            'info'  => ['foo' => 'bar', 123]
+        ]);
+        $this->assertTrue($model->find(2)->info == ['foo' => 'bar', 123]);
+        $this->assertTrue($model->find(2)->getRawOriginal('info') == json_encode(['foo' => 'bar', 123]));
+        $this->assertDatabaseHas('users_table', [
+            'id'    => 2,
+            'info'  => json_encode(['foo' => 'bar', 123])
+        ]);
+    }
+
+
+    public function test_user_info()
+    {
+
+        Schema::create('blogs_table', function (Blueprint $table) {
+            $table->id();
+            $table->nullableMorphs('creatorable');
+            $table->timestamps();
+        });
+
+        Schema::create('users_table', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedBigInteger('country_id')->nullable();
+
+            $table->string('country_code')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->string('full_name')->nullable();
+
+            $table->string('phone_number')->nullable();
+            $table->timestamps();
+        });
+
+        $blog = new class extends Model {
+
+            protected $guarded = ['id'];
+
+            protected $table = 'blogs_table';
+
+            public function creatorable(): MorphTo
+            {
+                return $this->morphTo('creatorable');
+            }
+        };
+
+        $user = new class extends User {
+
+            protected $guarded = ['id'];
+
+            protected $table = 'users_table';
+        };
+
+        $type = str(class_basename($user))->camel()->value();
+
+        $user->create([]);
+
+        $blog->create([
+            'creatorable_type'  => get_class($user),
+            'creatorable_id'    => 1
+        ]);
+
+        $b = $blog->with('creatorable')->find(1);
+        $this->assertEquals(
+            userInfo($b, 'creatorable'),
+            [
+                'id'                    => 1,
+                'country_id'            => 0,
+                'full_name'             => '',
+                'country_code'          => '',
+                'phone_number'          => '',
+                'phone_number_original' => '',
+                'type'                  => $type,
+                'type_translated'       => __('msg.' . $type),
+            ]
+        );
+
+
+        $user->create([
+            'country_id'    => 105,
+            'country_code'  => 'IR',
+            'first_name'    => 'foo',
+            'last_name'     => 'ino',
+            'phone_number'  => '09121231234',
+        ]);
+
+        $blog->create([
+            'creatorable_type'  => get_class($user),
+            'creatorable_id'    => 2
+        ]);
+
+        $b = $blog->with('creatorable')->find(2);
+
+        $this->assertEquals(
+            userInfo($b, 'creatorable'),
+            [
+                'id'                    => 2,
+                'country_id'            => 105,
+                'full_name'             => 'foo ino',
+                'country_code'          => 'IR',
+                'phone_number'          => '09121231234',
+                'phone_number_original' => '09121231234',
+                'type'                  => $type,
+                'type_translated'       => __('msg.' . $type),
+            ]
+        );
+
+
+        $user->find(2)->delete();
+
+        $b = $blog->with('creatorable')->find(2);
+
+        $this->assertEquals(
+            userInfo($b, 'creatorable'),
+            [
+                'id'                    => 0,
+                'country_id'            => 0,
+                'full_name'             => '',
+                'country_code'          => '',
+                'phone_number'          => '',
+                'phone_number_original' => '',
+                'type'                  => '',
+                'type_translated'       => __('msg.unknown'),
+            ]
+        );
+    }
+
+
+    public function test_get_userable_helper()
+    {
+
+        $user = new class extends User {
+
+            protected $guarded = ['id'];
+
+            protected $table = 'users_table';
+        };
+
+        Schema::create('users_table', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
+
+
+        $this->assertEquals(
+            getUserable(able: 'removerable'),
+            [
+                'removerable_type'  => null,
+                'removerable_id'    => null,
+            ]
+        );
+        $this->assertThrows(
+            fn() => getUserable(
+                able: 'removerable',
+                throwException: true
+            ),
+            Exception::class,
+            'The user is empty'
+        );
+
+
+
+        request()->setUserResolver(fn() => $user);
+
+        $this->assertEquals(
+            getUserable(able: 'removerable'),
+            [
+                'removerable_type'  => null,
+                'removerable_id'    => null,
+            ]
+        );
+        $this->assertThrows(
+            fn() => getUserable(
+                able: 'removerable',
+                throwException: true
+            ),
+            Exception::class,
+            'The user is empty'
+        );
+
+
+
+        $user->create();
+
+        $this->assertEquals(
+            getUserable(
+                able: 'removerable',
+                user: $user->find(1)
+            ),
+            [
+                'removerable_type'  => get_class($user),
+                'removerable_id'    => 1,
+            ]
+        );
+        $this->assertEquals(
+            getUserable(
+                able: 'removerable',
+                user: $user->find(2)
+            ),
+            [
+                'removerable_type'  => null,
+                'removerable_id'    => null,
+            ]
+        );
+        $this->assertThrows(
+            fn() => getUserable(
+                able: 'removerable',
+                user: $user->find(2),
+                throwException: true
+            ),
+            Exception::class,
+            'The user is empty'
+        );
+
+        request()->setUserResolver(fn() => $user->find(1));
+
+        $this->assertEquals(
+            getUserable(able: 'removerable'),
+            [
+                'removerable_type'  => get_class($user),
+                'removerable_id'    => 1,
+            ]
+        );
+
+
+        $resolved = resolveRequest(
+            request: TestFormRequest::class,
+            data: [
+                'name'  => 'foobar',
+                'email' => 'foobar@gmail.com'
+            ],
+            user: $user->find(1)
+        );
+
+        $this->assertEquals(
+            getUserable(
+                able: 'removerable',
+                user: $resolved
+            ),
+            [
+                'removerable_type'  => get_class($user),
+                'removerable_id'    => 1,
+            ]
+        );
+    }
+
 
     public function test_remove_emoji()
     {

@@ -2,17 +2,19 @@
 
 namespace Fooino\Core\Tasks\Tools;
 
-use Fooino\Core\Facades\Json;
 
 class PrettifyInputTask
 {
-    public function run($key, $value): mixed
-    {
-        $isJson = Json::is(string: $value);
+    public function run(
+        string $key,
+        mixed $value
+    ): mixed {
+
+        $isJson = isJson(string: $value);
         if (
             $isJson
         ) {
-            $value = Json::decodeToArray(json: $value);
+            $value = jsonDecodeToArray(json: $value);
         }
 
         if (
@@ -29,7 +31,7 @@ class PrettifyInputTask
             return $this->replace(value: $value);
         }
 
-        return ($isJson) ? Json::encode($value) : $value;
+        return ($isJson) ? jsonEncode($value) : $value;
     }
 
 

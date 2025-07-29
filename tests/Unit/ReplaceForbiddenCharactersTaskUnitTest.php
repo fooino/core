@@ -65,5 +65,25 @@ class ReplaceForbiddenCharactersTaskUnitTest extends TestCase
             replacementChar: 'X'
         );
         $this->assertEquals($result, '-aXa!aXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXXXaX');
+
+        
+
+        $this->assertTrue(replaceForbiddenCharacters(value: 123) == 123);
+        $this->assertTrue(replaceForbiddenCharacters(value: null) == null);
+        $this->assertTrue(replaceForbiddenCharacters(value: '') == '');
+        $this->assertTrue(replaceForbiddenCharacters(value: true) == true);
+        $this->assertTrue(replaceForbiddenCharacters(value: false) == false);
+        $this->assertTrue(replaceForbiddenCharacters(value: []) == []);
+        $this->assertTrue(replaceForbiddenCharacters(value: [123]) == [123]);
+
+        $result = replaceForbiddenCharacters(value: implode('a', $forbidden));
+        $this->assertEquals($result, '_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a_a___a_');
+
+        $result = replaceForbiddenCharacters(
+            value: implode('a', $forbidden),
+            excludes: ['-', '!'],
+            replacementChar: 'X'
+        );
+        $this->assertEquals($result, '-aXa!aXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXaXXXaX');
     }
 }

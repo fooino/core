@@ -2,6 +2,7 @@
 
 namespace Fooino\Core\Tests;
 
+use Astrotomic\Translatable\TranslatableServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
 use Fooino\Core\Providers\CoreServiceProvider;
 
@@ -11,6 +12,7 @@ class TestCase extends TestbenchTestCase
     {
         return [
             CoreServiceProvider::class,
+            TranslatableServiceProvider::class
         ];
     }
 

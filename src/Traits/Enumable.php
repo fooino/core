@@ -39,17 +39,19 @@ trait Enumable
         string $name        = '',
         string $query       = '',
         string $endpoint    = '',
-        string $mui_icon    = '',
+        string $iconStyle   = 'material-symbols-outlined',
+        string $icon        = '',
         string $color       = '',
         array $additional   = [],
     ): array {
 
         $made = array_merge(
             [
-                'key'       => $key,
-                'name'      => filled($name) ? $name : ($key == 'defaultKey' ? 'unknown' :  __("msg." . \strtolower($key))),
-                'mui_icon'  => $mui_icon,
-                'color'     => $color
+                'key'           => $key,
+                'name'          => filled($name) ? $name : ($key == 'defaultKey' ? 'unknown' :  __("msg." . \strtolower($key))),
+                'icon_style'    => $iconStyle,
+                'icon'          => $icon,
+                'color'         => $color
             ],
             $additional
         );

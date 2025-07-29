@@ -2,67 +2,61 @@
 
 namespace Fooino\Core\Traits;
 
-use Illuminate\Database\Eloquent\Collection;
+use Fooino\Core\Models\Trash;
 use Illuminate\Auth\Access\AuthorizationException;
-use Exception;
 
 trait Trashable
 {
-    abstract public function modelKeyName(): string;
+    abstract public function restore(); // the model must use the SoftDeletes
 
-    abstract public function permission(): bool;
 
-    abstract public function restore();
-
-    public function trashedList(): Collection|Exception
+    public static function bootTrashable()
     {
-        $this->checkPermission();
+        static::deleted(function ($model) {
+            $model->addToTrash();
+        });
 
-        return $this
-            ->onlyTrashed()
-            ->select($this->makeSelectArray())
-            ->get();
+        static::restored(function ($model) {
+            $model->removeFromTrash();
+        });
     }
 
-    public function getTrashById(int|float $id): self|Exception
+    public function addToTrash(): void
     {
-        $this->checkPermission();
 
-        return $this
-            ->onlyTrashed()
-            ->select($this->makeSelectArray())
-            ->findOrFail($id);
-    }
-
-    public function restoreFromTrash(): bool|null|Exception
-    {
-        $this->checkPermission();
-        return $this->restore();
-    }
-
-    public function trashedCount(): int|float|Exception
-    {
-        $this->checkPermission();
-        return $this->onlyTrashed()->count('id');
-    }
-
-    public function checkPermission(): bool|AuthorizationException
-    {
-        throw_if(
-            !$this->permission(),
-            AuthorizationException::class,
-            __(key: 'msg.notAuthorizedToPerformTrashActions')
+        Trash::withTrashed()->firstOrCreate(
+            [
+                'trashable_type'    => get_class($this),
+                'trashable_id'      => $this->id,
+            ],
+            getUserable(able: 'removerable')
         );
 
-        return true;
+        // 
     }
 
-    public function checkPermissionByKey(string|null $key): bool
+    public function removeFromTrash()
     {
+        Trash::withTrashed()->where('trashable_id', $this->id)->where('trashable_type', get_class($this))->forceDelete();
+    }
+
+    public function moveToTrash(): void
+    {
+        $this->delete();
+    }
+
+    public function restoreFromTrash(): void
+    {
+        $this->restore();
+    }
+
+    public function restoreFromTrashPermission()
+    {
+        $can = ucfirst(class_basename($this)) . '-restore';
+
         if (
-            filled($key) &&
             filled(request()->user()) &&
-            request()->user()->can(str_replace('can:', '', $key))
+            request()->user()->can($can)
         ) {
             return true;
         }
@@ -70,8 +64,28 @@ trait Trashable
         return false;
     }
 
-    public function makeSelectArray(): array
+    public function moveToTrashPermission()
     {
-        return ['id', $this->modelKeyName(), 'deleted_at'];
+        $can = ucfirst(class_basename($this)) . '-delete';
+
+        if (
+            filled(request()->user()) &&
+            request()->user()->can($can)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    public function checkPermission($key)
+    {
+        throw_if(
+            $this->{$key}() === false,
+            new AuthorizationException(
+                message: __(key: 'msg.unauthorizedToThisAction')
+            )
+        );
     }
 }

@@ -2,10 +2,95 @@
 
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
+use Fooino\Core\Tasks\Tools\PrettifyInputTask;
 use Fooino\Core\Tasks\Tools\ReplaceForbiddenCharactersTask;
+
+use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+if (
+    !function_exists('isJson')
+) {
+    function isJson(mixed $string): bool
+    {
+        return Json::is($string);
+    }
+}
+
+if (
+    !function_exists('jsonEncode')
+) {
+
+    function jsonEncode(
+        mixed $mixed,
+        int $flags = 0,
+        int $depth = 512
+    ): mixed {
+
+        return Json::encode(
+            mixed: $mixed,
+            flags: $flags,
+            depth: $depth
+        );
+    }
+}
+
+if (
+    !function_exists('jsonDecode')
+) {
+
+    function jsonDecode(
+        mixed $json,
+        bool|null $associative = null,
+        int $depth = 512,
+        int $flags = 0
+    ): mixed {
+
+        return Json::decode(
+            json: $json,
+            associative: $associative,
+            depth: $depth,
+            flags: $flags
+        );
+    }
+}
+
+if (
+    !function_exists('jsonDecodeToArray')
+) {
+
+    function jsonDecodeToArray(mixed $json): array
+    {
+        return Json::decodeToArray(json: $json);
+    }
+}
+
+if (
+    !function_exists('jsonResponse')
+) {
+
+    function jsonResponse(
+        int $status = 200,
+        string $message = '',
+        array $data = [],
+        array $errors = [],
+        array $headers = []
+    ): JsonResponse {
+
+        return Json::response(
+            status: $status,
+            message: $message,
+            data: $data,
+            errors: $errors,
+            headers: $headers
+        );
+    }
+}
+
 
 if (
     !function_exists('math')
@@ -105,37 +190,6 @@ if (
 }
 
 if (
-    !function_exists('modulus')
-) {
-    function modulus(
-        string|int|float|null $a,
-        string|int|float|null $b
-    ): string {
-        return Math::modulus(a: $a, b: $b);
-    }
-}
-
-if (
-    !function_exists('square')
-) {
-    function square(string|int|float|null $number): string
-    {
-        return Math::sqrt(number: $number);
-    }
-}
-
-if (
-    !function_exists('power')
-) {
-    function power(
-        string|int|float|null $number,
-        string|int|float|null $exponent = 2
-    ): string {
-        return Math::power(number: $number, exponent: $exponent);
-    }
-}
-
-if (
     !function_exists('greaterThan')
 ) {
     function greaterThan(
@@ -221,11 +275,40 @@ if (
 
 
 if (
+    !function_exists('prettifyInput')
+) {
+    function prettifyInput(
+        string $key,
+        mixed $value
+    ): mixed {
+
+        return app(PrettifyInputTask::class)->run(
+            key: $key,
+            value: $value
+        );
+    }
+}
+
+
+if (
     !function_exists('emptyToNullOrValue')
 ) {
     function emptyToNullOrValue(mixed $value = null): mixed
     {
-        return (is_null($value) || blank($value) || (is_string($value) && strtolower($value) == 'null')) ? null : $value;
+
+        if (
+            is_string($value)
+        ) {
+            $string = trim(
+                str_replace(
+                    ["'", '"'],
+                    '',
+                    trim($value)
+                )
+            );
+        }
+
+        return (is_null($value) || blank($value) || (is_string($value) && (strtolower($value) == 'null' || blank($string)))) ? null : $value;
     }
 }
 
@@ -275,6 +358,46 @@ if (
         return (\is_string($value) || \is_array($value)) ? \str_replace('/', '-', $value) : $value;
     }
 }
+
+
+if (
+    !function_exists('mergeArraysByKey')
+) {
+
+    function mergeArraysByKey(...$arrays): array
+    {
+        $merged = [];
+
+        foreach ($arrays as $array) {
+
+            foreach ($array as $key => $value) {
+
+                if (
+                    !isset($merged[$key])
+                ) {
+                    $merged[$key] = [];
+                }
+
+                if (
+                    is_array($value)
+                ) {
+
+                    $merged[$key] = array_merge($merged[$key], $value);
+
+                    // 
+                } else {
+
+                    $merged[$key][] = $value;
+
+                    // 
+                }
+            }
+        }
+
+        return $merged;
+    }
+}
+
 
 
 if (
@@ -348,7 +471,11 @@ if (
 ) {
     function prettifyCanonical(string|int|float|null|array|bool $value): string|int|float|null|array|bool
     {
-        return emptyToNullOrValue(replaceForbiddenCharacters(value: $value, excludes: ['/', '=', ':', '?', '&', '.']));
+        return emptyToNullOrValue(replaceForbiddenCharacters(
+            value: $value,
+            excludes: ['/', '=', ':', '?', '&', '.', '-'],
+            replacementChar: '-'
+        ));
     }
 }
 
@@ -357,7 +484,11 @@ if (
 ) {
     function prettifySlug(string|int|float|null|array|bool $value): string|int|float|null|array|bool
     {
-        return emptyToNullOrValue(replaceForbiddenCharacters(value: $value));
+        return emptyToNullOrValue(replaceForbiddenCharacters(
+            value: $value,
+            excludes: ['-'],
+            replacementChar: '-'
+        ));
     }
 }
 
@@ -375,7 +506,26 @@ if (
 ) {
     function getUserTimezone(): string
     {
-        return config('user-timezone', 'UTC');
+        return (config('user-timezone', 'UTC')) ?: 'UTC';
+    }
+}
+
+if (
+    !function_exists('getDefaultLocale')
+) {
+    function getDefaultLocale(): string
+    {
+        return (config('app.locale', 'fa')) ?: 'fa';
+    }
+}
+
+if (
+    !function_exists('pg')
+) {
+    function pg()
+    {
+        $pg = request()->input('per_page');
+        return (is_null($pg) || $pg <= 0 || $pg > 300) ? FOOINO_PER_PAGE : $pg;
     }
 }
 
@@ -416,14 +566,42 @@ if (
     }
 }
 
+
+
+if (
+    !function_exists('dbTransaction')
+) {
+
+    function dbTransaction(callable $callback)
+    {
+        try {
+
+            DB::beginTransaction();
+
+            $result = $callback();
+
+            DB::commit();
+
+            return $result;
+
+            // 
+        } catch (Exception $e) {
+
+            DB::rollBack();
+
+            throw $e;
+        }
+    }
+}
+
 if (
     !function_exists('jsonAttribute')
 ) {
     function jsonAttribute(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => filled($value) ? Json::decodeToArray($value) : [],
-            set: fn($value) => filled($value) ? Json::encode($value)        : null,
+            get: fn($value) => filled(emptyToNullOrValue($value)) ? jsonDecodeToArray($value) : [],
+            set: fn($value) => filled(emptyToNullOrValue($value)) ? jsonEncode($value)        : null,
         );
     }
 }
@@ -436,18 +614,49 @@ if (
         string $key
     ): array {
 
-        $modelKey = $model?->{$key};
-        $type = filled($modelKey) ? str(class_basename($modelKey))->camel()->value() : '';
+        $user = $model?->{$key};
+        $type = filled($user) ? str(class_basename($user))->camel()->value() : '';
 
         return [
-            'id'                        => (float) $modelKey?->id ?? 0,
-            'country_id'                => (float) $modelKey?->country_id ?? 0,
-            'full_name'                 => (string) $modelKey?->full_name ?? $modelKey?->name ?? trim($modelKey?->first_name ?? '' . ' ' . $modelKey?->last_name ?? ''),
-            'country_code'              => (string) $modelKey?->country_code ?? '',
-            'phone_number'              => (string) $modelKey?->phone_number ?? '',
-            'phone_number_original'     => (string) $modelKey?->getRawOriginal('phone_number', '') ?? '',
+            'id'                        => (float) ($user?->id ?? 0),
+            'country_id'                => (float) ($user?->country_id ?? 0),
+            'full_name'                 => (string) ($user?->full_name ?? $user?->name ?? trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? ''))),
+            'country_code'              => (string) ($user?->country_code ?? ''),
+            'phone_number'              => (string) ($user?->phone_number ?? ''),
+            'phone_number_original'     => (string) ($user?->getRawOriginal('phone_number', '') ?? ''),
             'type'                      => $type,
             'type_translated'           => __(key: 'msg.' . (filled($type) ? $type : 'unknown')),
+        ];
+    }
+}
+
+
+if (
+    !function_exists('getUserable')
+) {
+
+    function getUserable(
+        string $able,
+        Request|Model|null $user = null,
+        bool $throwException = false,
+    ): array {
+
+        $user = is_null($user) ? request()->user() : (($user instanceof Request) ? $user->user() : $user);
+        $id = $user?->id ?? null;
+
+        if (
+            $throwException &&
+            (
+                blank($user) ||
+                blank($id)
+            )
+        ) {
+            throw new Exception('The user is empty');
+        }
+
+        return [
+            ($able . '_type') => (filled($user) && filled($id)) ? get_class($user) : null,
+            ($able . '_id')   => $id,
         ];
     }
 }

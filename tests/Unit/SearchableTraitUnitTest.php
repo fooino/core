@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class SearchableUnitTest extends TestCase
+class SearchableTraitUnitTest extends TestCase
 {
 
     public $user;
@@ -83,5 +83,14 @@ class SearchableUnitTest extends TestCase
         $this->assertTrue($users[2]->name == 'fourth');
         $this->assertTrue($users[3]->name == 'first');
 
+    }
+
+    public function test_inids_scope()
+    {
+        $this->assertTrue($this->user->inIds(null)->count('id') == 4);
+        $this->assertTrue($this->user->inIds(0)->count('id') == 0);
+        $this->assertTrue($this->user->inIds(1)->count('id') == 1);
+        $this->assertTrue($this->user->inIds([])->count('id') == 0);
+        $this->assertTrue($this->user->inIds([1, 2, 3])->count('id') == 3);
     }
 }

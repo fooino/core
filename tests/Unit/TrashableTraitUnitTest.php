@@ -2,26 +2,30 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use Fooino\Core\Models\Trash;
 use Fooino\Core\Tests\TestCase;
+use Fooino\Core\Traits\Dateable;
+use Fooino\Core\Traits\Infoable;
 use Fooino\Core\Traits\Trashable;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 
 class TrashableTraitUnitTest extends TestCase
 {
     use DatabaseMigrations;
 
-    public Model|null $model = null;
+
+    public $user;
+    public $product;
 
     public function setUp(): void
     {
         parent::setUp();
+
 
         Schema::create('users_table', function (Blueprint $table) {
             $table->id();
@@ -30,110 +34,156 @@ class TrashableTraitUnitTest extends TestCase
             $table->timestamps();
         });
 
-        $this->model = new class extends User
+        Schema::create('products_table', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->softDeletes();
+            $table->timestamps();
+        });
+
+
+        $this->user = new class extends User
         {
-            use
-                SoftDeletes,
-                Trashable;
+            use SoftDeletes, Infoable;
 
             protected $guarded = ['id'];
 
             protected $table = 'users_table';
-
-            public function modelKeyName(): string
-            {
-                return 'name';
-            }
-
-            public function permission(): bool
-            {
-                return true;
-            }
         };
 
-        $this->model->insert([
+        $this->product = new class extends Model
+        {
+
+            use
+                SoftDeletes,
+                Trashable,
+                Infoable,
+                Dateable;
+
+            protected $guarded = ['id'];
+
+            protected $table = 'products_table';
+        };
+
+        $this->user->create([
+            'name'  => 'John'
+        ]);
+
+        $this->product->insert([
             [
-                'id'        => 1,
-                'name'      => 'foo',
+                'name'  => 'CellPhone'
             ],
             [
-                'id'        => 2,
-                'name'      => 'bar',
-            ],
+                'name'  => 'TV'
+            ]
+        ]);
+
+        // 
+    }
+
+    public function test_add_to_trash_method()
+    {
+        $this->product->find(1)->delete();
+
+        $this->assertDatabaseHas('trashes', [
+            'trashable_type'    => get_class($this->product),
+            'trashable_id'      => 1,
+            'removerable_type'  => null,
+            'removerable_id'    => null,
+        ]);
+
+        $this->product->withTrashed()->find(1)->update([
+            'deleted_at'    => null
+        ]);
+        $this->product->find(1)->delete();
+
+        $this->assertTrue(Trash::where('trashable_id', 1)->where('trashable_type', get_class($this->product))->count('id') == 1); // the move to trash delete once the product since we used firstOrCreate
+
+
+        request()->setUserResolver(fn() => $this->user->find(1));
+        $this->product->find(2)->delete();
+
+        $this->assertDatabaseHas('trashes', [
+            'trashable_type'    => get_class($this->product),
+            'trashable_id'      => 2,
+            'removerable_type'  => get_class($this->user),
+            'removerable_id'    => 1,
         ]);
     }
 
-    public function test_get_trahsed_list_method()
+    public function test_remove_from_trash_method()
     {
-        $this->model->find(1)->delete();
+        $this->product->find(1)->delete();
 
-        $this->assertCount(1, $this->model->trashedList());
-        $this->assertEquals('foo', $this->model->trashedList()->first()->name);
-        $this->assertEquals(1, $this->model->trashedCount());
-        $this->assertSoftDeleted('users_table', ['id' => 1]);
+        $this->assertDatabaseHas('products_table', [
+            'id'            => 1,
+            'name'          => 'CellPhone',
+            'deleted_at'    => currentDate(),
+        ]);
+
+        $this->assertDatabaseHas('trashes', [
+            'trashable_type'    => get_class($this->product),
+            'trashable_id'      => 1,
+        ]);
+
+        $this->product->withTrashed()->find(1)->restore();
+
+
+        $this->assertDatabaseHas('products_table', [
+            'id'            => 1,
+            'name'          => 'CellPhone',
+            'deleted_at'    => null,
+        ]);
+
+        $this->assertDatabaseMissing('trashes', [
+            'trashable_type'    => get_class($this->product),
+            'trashable_id'      => 1,
+        ]);
     }
 
-    public function test_restore_method()
+
+    public function test_trash_model_accessor_and_relations()
     {
-        $model = $this->model->find(1);
-        $model->delete();
+        request()->setUserResolver(fn() => $this->user->find(1));
 
-        $deletedModel = $this->model->getTrashById(1);
-        $this->assertEquals($deletedModel->id, $model->id);
+        $this->product->find(1)->delete();
 
-        $this->assertSoftDeleted('users_table', ['id' => 1]);
+        $trash = Trash::find(1);
 
-        $deletedModel->restoreFromTrash();
-        $this->assertNotSoftDeleted('users_table', ['id' => 1]);
-    }
+        $this->assertEquals(
+            $trash->trashed,
+            [
+                'id'            => 0,
+                'name'          => 'msg.unknown',
+                'type'          => '',
+                'deleted_at'    => '',
+                'deleted_at_tz' => '',
+                'media'         => [],
+            ]
+        );
 
-    public function test_permission_method()
-    {
-        $model = new class extends Model
-        {
-            use
-                SoftDeletes,
-                Trashable;
+        $trash = Trash::with('trashable', 'removerable')->find(1);
 
-            protected $guarded = ['id'];
 
-            protected $table = 'users_table';
+        $this->assertEquals(
+            $trash->trashed,
+            [
+                'id'                => 1,
+                'name'              => 'CellPhone',
+                'type'              => __('msg.' . str(class_basename($this->product))->camel()->value()),
+                'deleted_at'        => $trash->trashable->deleted_at,
+                'deleted_at_tz'     => $trash->trashable->deleted_at_tz,
+                'media'             => [],
+            ]
+        );
 
-            public function modelKeyName(): string
-            {
-                return 'name';
-            }
+        $this->assertEquals($trash->remover, userInfo(model: $trash, key: 'removerable'));
 
-            public function permission(): bool
-            {
-                return false;
-            }
-        };
 
-        $this->assertThrows(fn() => $model->trashedList(), AuthorizationException::class);
-        $this->assertThrows(fn() =>  $model->trashedCount(), AuthorizationException::class);
-
-        $model->delete();
-        $this->assertThrows(fn() => $model->restoreFromTrash(), AuthorizationException::class);
-    }
-
-    public function test_check_permission_by_key_method()
-    {
-        $this->assertFalse($this->model->checkPermissionByKey(null));
-        $this->assertFalse($this->model->checkPermissionByKey('test'));
-
-        request()->setUserResolver(fn() => $this->model->first());
-        $this->assertFalse($this->model->checkPermissionByKey('test'));
-
-        Gate::define('test', function ($user) {
-            return false;
-        });
-        $this->assertFalse($this->model->checkPermissionByKey('test'));
-
-        Gate::define('test', function ($user) {
-            return true;
-        });
-        $this->assertTrue($this->model->checkPermissionByKey('test'));
-        $this->assertTrue($this->model->checkPermissionByKey('can:test'));
+        $this->assertTrue(Trash::removedByAdmin()->count('id') == 0);
+        Trash::find(1)->update([
+            'removerable_type'  => 'Fooino\Admin\Models\Admin'
+        ]);
+        $this->assertTrue(Trash::removedByAdmin()->count('id') == 1);
     }
 }

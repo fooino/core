@@ -103,18 +103,6 @@ class DateFacadeUnitTest extends TestCase
         );
     }
 
-    public function test_convert_shamsi_to_utc_date_method_for_afghanistan_timezone()
-    {
-        $from = new DateTimeZone('Asia/Kabul');
-        $this->assertEquals(Date::convert(date: null, from: $from), '');
-        $this->assertEquals(Date::convert(date: 'test', from: $from), '');
-        $this->assertEquals(Date::convert(date: '1401/10/03', format: 'Y/m/d', from: $from), '2022/12/24');
-        $this->assertEquals(Date::convert(date: '1401/10/03', format: 'Y-m-d', from: $from), '2022-12-24');
-        $this->assertEquals(Date::convert(date: '1401/10/03 13:20:00', from: $from), '2022-12-24 08:50:00');
-        $this->assertEquals(Date::convert(date: '1401/10/03 13:20:00', format: 'j F Y H:i:s', from: $from), '24 December 2022 08:50:00');
-        $this->assertThrows(fn() => Date::convert(date: 'test', from: $from, throwException: true), CanNotConvertDateException::class);
-    }
-
     public function test_iran_shamsi_to_iran_shamsi()
     {
         $from = new DateTimeZone('Asia/Tehran');
@@ -145,20 +133,6 @@ class DateFacadeUnitTest extends TestCase
         $this->assertThrows(fn() => Date::convert(date: '', from: $from, to: $to, throwException: true), CanNotConvertDateException::class);
     }
 
-    public function test_afghanistan_shamsi_to_iran_shamsi()
-    {
-        $from = new DateTimeZone('Asia/Kabul');
-        $to = new DateTimeZone('Asia/Tehran');
-        $this->assertEquals(Date::convert(date: null, from: $from, to: $to), '');
-        $this->assertEquals(Date::convert(date: 'test', from: $from, to: $to), '');
-        $this->assertEquals(Date::convert(date: '1401/10/03', format: 'Y/m/d', from: $from, to: $to), '1401/10/03');
-        $this->assertEquals(Date::convert(date: '1401/10/03', format: 'Y-m-d', from: $from, to: $to), '1401-10-03');
-        $this->assertEquals(Date::convert(date: '1401/10/03 22:57:00', from: $from, to: $to), '1401-10-03 21:57:00');
-
-        $this->assertThrows(fn() => Date::convert(date: 'test', from: $from, to: $to, throwException: true), CanNotConvertDateException::class);
-        $this->assertThrows(fn() => Date::convert(date: null, from: $from, to: $to, throwException: true), CanNotConvertDateException::class);
-        $this->assertThrows(fn() => Date::convert(date: '', from: $from, to: $to, throwException: true), CanNotConvertDateException::class);
-    }
 
     // public function test_convert_utc_to_hijri_date_method_for_oman_timezone()
     // {

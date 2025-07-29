@@ -11,19 +11,8 @@ class Tag extends Model
     use
         FullTextSearch;
 
-    /**
-     * The attributes that aren't mass assignable.
-     *
-     * @var string[]|bool
-     */
     protected $guarded = ['id'];
 
-
-    /**
-     * The columns that are translatable.
-     *
-     * @var array<string>
-     */
     public $searchable = ['name'];
 
 
