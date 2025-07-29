@@ -16,6 +16,7 @@ class GenerateCodeTask
     private bool $lowerCase = false;
     private bool $upperCase = false;
     private bool $timestampStyle = false;
+    private bool $easyNumericOtpStyle = false;
 
     private int $attempts = 0;
     private int $maxAttempts = 100;
@@ -45,25 +46,70 @@ class GenerateCodeTask
         return $this;
     }
 
-    public function lowerCase(bool $lowerCase = true): self
+    public function lowerCase(): self
     {
-        $this->lowerCase = $lowerCase;
+        $this->lowerCase = true;
         return $this;
     }
 
-    public function upperCase(bool $upperCase = true): self
+    public function upperCase(): self
     {
-        $this->upperCase = $upperCase;
+        $this->upperCase = true;
         return $this;
     }
 
-    public function timestampStyle(bool $timestampStyle = true): self
+    public function timestampStyle(): self
     {
-        $this->timestampStyle = $timestampStyle;
+        $this->timestampStyle = true;
+        return $this;
+    }
+
+    public function easyNumericOtpStyle(): self
+    {
+        $this->isNumeric(true);
+
+        $this->easyNumericOtpStyle = true;
+
         return $this;
     }
 
     public function run(): string|int
+    {
+        $this->attempted();
+
+        $this->validateSettings();
+
+        $code = $this->generateCode();
+
+        if (
+            filled($this->model) &&
+            (
+                in_array($code, $this->duplicateCodes) ||
+                app($this->model)->where($this->field, $code)->exists()
+            )
+        ) {
+
+            $this->duplicateCodes = array_merge($this->duplicateCodes, [$code]);
+
+            return $this->run();
+        }
+
+        return $code;
+    }
+
+
+    private function attempted(): void
+    {
+        $this->attempts++;
+
+        if (
+            $this->attempts > $this->maxAttempts
+        ) {
+            throw new Exception("The task attempts more than {$this->maxAttempts} times and can not generate code anymore");
+        }
+    }
+
+    private function validateSettings(): void
     {
         if (
             $this->length <= 0
@@ -84,61 +130,61 @@ class GenerateCodeTask
         ) {
             throw new Exception('No more than 1000 characters can be produced');
         }
+    }
 
-        $this->attempts++;
+    private function generateCode(): int|string
+    {
+        return match (true) {
+
+            $this->timestampStyle               => $this->generateInTimestampStyle(),
+
+            $this->easyNumericOtpStyle          => $this->generateEasyNumericOtpStyle(),
+
+            $this->isNumeric                    => $this->generateInNumeric(),
+
+            default                             => $this->generateInAlphanumeric()
+        };
+    }
+
+
+    private function generateInTimestampStyle(): string
+    {
+        return replaceForbiddenCharacters(value: strtolower(Str::random($this->length) . time() . Str::random($this->length)));
+    }
+
+    private function generateEasyNumericOtpStyle(): string
+    {
+        $code = $this->generateInNumeric();
+
         if (
-            $this->attempts > $this->maxAttempts
+            $this->length > 1
         ) {
-            throw new Exception("The task attempts more than {$this->maxAttempts} times and can not generate code anymore");
-        }
 
-        $code = $this->generateCode();
+            $randomChar = rand(1, ($this->length - 1));
 
-        if (
-            filled($this->model) &&
-            (
-                in_array($code, $this->duplicateCodes) ||
-                app($this->model)->where($this->field, $code)->exists()
-            )
-        ) {
-            $this->duplicateCodes = array_merge($this->duplicateCodes, [$code]);
-            return $this->run();
+            $code[$randomChar - 1] = $code[$randomChar];
         }
 
         return $code;
     }
 
-    private function generateCode(): int|string
+    private function generateInNumeric(): string
     {
-        if (
-            $this->timestampStyle
-        ) {
+        $code = "";
 
-            return replaceForbiddenCharacters(
-                strtolower(
-                    Str::random($this->length) . time() . Str::random($this->length)
-                )
-            );
+        $code .= random_int(1, 9); // the first digit must not be 0 to prevent unwanted problems
 
-            // 
-        } elseif (
-            $this->isNumeric
-        ) {
-            $code = "";
-
-            for ($i = 0; $i < $this->length; $i++) {
-                $code .= ($i == 0) ? rand(1, 9) : rand(0, 9);
-            }
-
-            return $code;
-
-            //
-        } else {
-
-            return replaceForbiddenCharacters($this->prettifyCode(Str::random($this->length)));
-
-            // 
+        for ($i = 0; $i < ($this->length - 1); $i++) {
+            $code .= random_int(0, 9);
         }
+
+        return $code;
+    }
+
+
+    private function generateInAlphanumeric(): string
+    {
+        return replaceForbiddenCharacters(value: $this->prettifyCode(Str::random($this->length)));
     }
 
     private function prettifyCode(string $code): string
@@ -146,15 +192,13 @@ class GenerateCodeTask
         if (
             $this->lowerCase
         ) {
-            $code = strtolower($code);
-            return $code;
+            return strtolower($code);
         }
 
         if (
             $this->upperCase
         ) {
-            $code = strtoupper($code);
-            return $code;
+            return strtoupper($code);
         }
 
         return $code;
