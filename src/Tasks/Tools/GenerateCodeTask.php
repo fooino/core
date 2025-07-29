@@ -63,7 +63,7 @@ class GenerateCodeTask
         return $this;
     }
 
-    public function run(): string|int|Exception
+    public function run(): string|int
     {
         if (
             $this->length <= 0

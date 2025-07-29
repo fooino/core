@@ -16,7 +16,7 @@
         "spatie/laravel-activitylog": "^4.10"
     },
     "require-dev": {
-        "orchestra/testbench": "^10.0"
+        "orchestra/testbench": "^10.4"
     },
     "autoload": {
         "psr-4": {

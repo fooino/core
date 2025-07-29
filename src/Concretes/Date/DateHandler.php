@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Validator;
 use Assert\Assertion;
 use DateTime;
 use DateTimeZone;
-use Exception;
 use IntlDateFormatter;
+use Exception;
 
 class DateHandler
 {
@@ -261,21 +261,7 @@ class DateHandler
         if (
             $isDateAndTime
         ) {
-            try {
-                $timeSection = \explode(":", $section[1]);
-
-                $hour =   (int) $timeSection[0];
-                $minute = (int) $timeSection[1];
-                $second = (int) $timeSection[2];
-
-                Assertion::between($hour, 0, 24);
-                Assertion::between($minute, 0, 59);
-                Assertion::between($second, 0, 59);
-
-                //
-            } catch (Exception $e) {
-                return false;
-            }
+            return $this->validateTime(time: $section[1]);
         }
 
         return true;
@@ -303,22 +289,10 @@ class DateHandler
             return false;
         }
 
-        if ($isDateAndTime) {
-            try {
-                $timeSection = \explode(":", $section[1]);
-
-                $hour =   (int) $timeSection[0];
-                $minute = (int) $timeSection[1];
-                $second = (int) $timeSection[2];
-
-                Assertion::between($hour, 0, 24);
-                Assertion::between($minute, 0, 59);
-                Assertion::between($second, 0, 59);
-
-                //
-            } catch (Exception $e) {
-                return false;
-            }
+        if (
+            $isDateAndTime
+        ) {
+            return $this->validateTime(time: $section[1]);
         }
 
         return true;
@@ -334,6 +308,28 @@ class DateHandler
             ['date' => "date_format:" . ($isDateAndTime ? 'Y-m-d H:i:s' : 'Y-m-d')]
         );
         return !$validator->fails();
+    }
+
+    private function validateTime(string $time): bool
+    {
+        try {
+
+            $time = explode(":", $time);
+
+            $hour =   (int) $time[0];
+            $minute = (int) $time[1];
+            $second = (int) $time[2];
+
+            Assertion::between($hour, 0, 24);
+            Assertion::between($minute, 0, 59);
+            Assertion::between($second, 0, 59);
+
+            return true;
+
+            //
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     private function convertFormatToPattern(string $format): string

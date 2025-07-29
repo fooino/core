@@ -1,9 +1,14 @@
 <?php
 
-use Fooino\Core\Facades\Json;
-use Fooino\Core\Facades\Math;
-use Fooino\Core\Tasks\Tools\PrettifyInputTask;
-use Fooino\Core\Tasks\Tools\ReplaceForbiddenCharactersTask;
+use Fooino\Core\{
+    Facades\Date,
+    Facades\Math,
+    Facades\Json,
+
+    Tasks\Tools\PrettifyInputTask,
+    Tasks\Tools\ReplaceForbiddenCharactersTask
+};
+
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -11,6 +16,30 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
+if (
+    !function_exists('dateConvert')
+) {
+
+    function dateConvert(
+        string|null $date,
+        string $format = 'Y-m-d H:i:s',
+        DateTimeZone $from = new DateTimeZone('UTC'),
+        DateTimeZone $to = new DateTimeZone('UTC'),
+        bool $throwException = false
+    ): string {
+
+        return Date::convert(
+            date: $date,
+            format: $format,
+            from: $from,
+            to: $to,
+            throwException: $throwException
+        );
+
+        // 
+    }
+}
 
 if (
     !function_exists('isJson')

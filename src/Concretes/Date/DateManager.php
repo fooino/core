@@ -18,7 +18,7 @@ class DateManager extends DateHandler
      * @param  DateTimeZone  $to
      * @param bool $throwException
      * 
-     * @return string|Exception
+     * @return string
      */
     public function convert(
         string|null $date,
@@ -26,19 +26,17 @@ class DateManager extends DateHandler
         DateTimeZone $from = new DateTimeZone('UTC'),
         DateTimeZone $to = new DateTimeZone('UTC'),
         bool $throwException = false
-    ): string|Exception {
+    ): string {
 
         try {
 
-            $date = emptyToNullOrValue(value: $date);
+            $date = emptyToNullOrValue(value: replaceSlashToDash(value: (string) $date));
 
             throw_if(
-                ($throwException && (\is_null($date) || blank($date))),
+                ($throwException && blank($date)),
                 CanNotConvertDateException::class,
                 'Can not convert date. The date is empty'
             );
-
-            $date = replaceSlashToDash(value: (string) $date);
 
             if (blank($date)) return ''; // since we checked the throwException before, we return empty string
 
@@ -48,6 +46,7 @@ class DateManager extends DateHandler
             );
 
             foreach ($methods as $method) {
+
                 $date = $this->{$method}(
                     date: $date,
                     format: $format,
@@ -117,11 +116,11 @@ class DateManager extends DateHandler
 
 
             $methods[] = $fromMethod . 'ToUTC';
-            $methods[] = 'UTCTo' .  \ucfirst(str($toMethod)->camel()->value());
+            $methods[] = 'UTCTo' .  \ucfirst($toMethod);
 
             // 
         } else {
-            $methods[] = $fromMethod . 'To' . \ucfirst(str($toMethod)->camel()->value());
+            $methods[] = $fromMethod . 'To' . \ucfirst($toMethod);
         }
 
 

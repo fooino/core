@@ -69,7 +69,7 @@ class CoreServiceProvider extends ServiceProvider
             return new MathManager();
         });
 
-        $this->app->singleton('date-facade', function ($app) {
+        $this->app->singleton('fooino-date-facade', function ($app) {
             return new DateManager();
         });
 
