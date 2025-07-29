@@ -2,7 +2,6 @@
 
 namespace Fooino\Core\Tasks\Tools;
 
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Exception;
 
@@ -149,7 +148,7 @@ class GenerateCodeTask
 
     private function generateInTimestampStyle(): string
     {
-        return replaceForbiddenCharacters(value: strtolower(Str::random($this->length) . time() . Str::random($this->length)));
+        return replaceForbiddenCharacters(value: strtolower(str()->random($this->length) . time() . str()->random($this->length)));
     }
 
     private function generateEasyNumericOtpStyle(): string
@@ -184,7 +183,7 @@ class GenerateCodeTask
 
     private function generateInAlphanumeric(): string
     {
-        return replaceForbiddenCharacters(value: $this->prettifyCode(Str::random($this->length)));
+        return replaceForbiddenCharacters(value: $this->prettifyCode(str()->random($this->length)));
     }
 
     private function prettifyCode(string $code): string

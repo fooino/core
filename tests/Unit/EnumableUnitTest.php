@@ -9,35 +9,35 @@ class EnumableUnitTest extends TestCase
 {
     public function test_values()
     {
-        $this->assertTrue(Foobar::values() == ['ACTIVE', 'INACTIVE']);
+        $this->assertTrue(FoobarEnum::values() == ['ACTIVE', 'INACTIVE']);
     }
 
     public function test_random_value()
     {
-        $random = Foobar::randomValue();
+        $random = FoobarEnum::randomValue();
         $this->assertTrue($random == 'ACTIVE' || $random == 'INACTIVE');
     }
 
     public function test_info_method()
     {
         $this->assertTrue(
-            Foobar::info() == [
-                Foobar::maker(key: 'ACTIVE'),
-                Foobar::maker(key: 'INACTIVE')
+            FoobarEnum::info() == [
+                FoobarEnum::maker(key: 'ACTIVE'),
+                FoobarEnum::maker(key: 'INACTIVE')
             ]
         );
     }
 
     public function test_detail_method()
     {
-        $this->assertTrue(Foobar::from(value: 'ACTIVE')->detail() == Foobar::maker(key: 'ACTIVE'));
-        $this->assertTrue(Foobar::from(value: 'INACTIVE')->detail() == Foobar::maker(key: 'INACTIVE'));
+        $this->assertTrue(FoobarEnum::from(value: 'ACTIVE')->detail() == FoobarEnum::maker(key: 'ACTIVE'));
+        $this->assertTrue(FoobarEnum::from(value: 'INACTIVE')->detail() == FoobarEnum::maker(key: 'INACTIVE'));
     }
 
     public function test_maker()
     {
         $this->assertTrue(
-            Foobar::maker()
+            FoobarEnum::maker()
                 ==
                 [
                     'key'           => 'defaultKey',
@@ -49,9 +49,9 @@ class EnumableUnitTest extends TestCase
         );
 
         $this->assertTrue(
-            Foobar::maker(
-                key: Foobar::ACTIVE->value,
-                query: 'status=' . Foobar::ACTIVE->value,
+            FoobarEnum::maker(
+                key: FoobarEnum::ACTIVE->value,
+                query: 'status=' . FoobarEnum::ACTIVE->value,
                 endpoint: "languages/1/activate",
                 icon: 'icon',
                 color: 'red',
@@ -74,7 +74,7 @@ class EnumableUnitTest extends TestCase
     }
 }
 
-enum Foobar: string
+enum FoobarEnum: string
 {
     use Enumable;
 

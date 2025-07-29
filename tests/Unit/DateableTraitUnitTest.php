@@ -21,18 +21,14 @@ class DateableTraitUnitTest extends TestCase
     private string $dateAsTimezone = '';
     private string $humanReadable = '';
 
-    /**
-     * Setup the test environment.
-     *
-     * @return void
-     */
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $timezone = 'Asia/Tehran';
         Carbon::setLocale('fa');
-        config(['app.locale' => 'fa']);
+        setDefaultLocale('fa');
         setUserTimezone($timezone);
 
         $this->date = '2022-12-24 09:50:00';
@@ -181,29 +177,18 @@ class DateableTraitUnitTest extends TestCase
     public function test_today_created_scope()
     {
         $this->assertTrue($this->model->todayCreated()->count('id') == 1);
+        $this->assertTrue($this->model->todayCreatedDate()->count('id') == 1);
     }
 
     public function test_yesterday_created_scope()
     {
         $this->model->find(3)->update([
-            'created_at'    => date('Y-m-d H:i:s', strtotime('yesterday'))
+            'created_at'    => date('Y-m-d H:i:s', strtotime('yesterday')),
+            'created_date'  => date('Y-m-d', strtotime('yesterday'))
         ]);
 
         $this->assertTrue($this->model->yesterdayCreated()->first()->id == 3);
-    }
-
-    public function test_today_created_date_scope()
-    {
-        $this->assertTrue($this->model->todayCreatedDate()->count('id') == 1);
-    }
-
-    public function test_yesterday_created_date_scope()
-    {
-        $this->model->find(3)->update([
-            'created_date'    => date('Y-m-d', strtotime('yesterday'))
-        ]);
-
-        $this->assertTrue(filled($this->model->yesterdayCreatedDate()->first()));
+        $this->assertTrue($this->model->yesterdayCreatedDate()->first()->id == 3);
     }
 
 
