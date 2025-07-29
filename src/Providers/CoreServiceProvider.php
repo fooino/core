@@ -65,7 +65,7 @@ class CoreServiceProvider extends ServiceProvider
             return new JsonManager();
         });
 
-        $this->app->singleton('math-facade', function ($app) {
+        $this->app->singleton('fooino-math-facade', function ($app) {
             return new MathManager();
         });
 

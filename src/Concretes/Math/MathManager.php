@@ -85,7 +85,10 @@ class MathManager
      */
     public function convertScientificNumber(string|int|float|null $number): string
     {
-        $number = \is_null($number) ? 0 : $number;
+        if (is_null($number)) {
+            return '0';
+        }
+
         return (string) \preg_match(pattern: '/-?\d*\.?\d+[Ee][+-]?\d+/', subject: $number) ? \sprintf("%.10f", \floatval($number)) : $number;
     }
 
@@ -168,7 +171,7 @@ class MathManager
         string|int|float|null $b
     ): string {
 
-        return (string) $this->number(
+        return $this->number(
             number: \bcadd(
                 $this->convertScientificNumber(number: $a),
                 $this->convertScientificNumber(number: $b),
@@ -189,7 +192,7 @@ class MathManager
         string|int|float|null $b
     ): string {
 
-        return (string) $this->number(
+        return $this->number(
             number: \bcsub(
                 $this->convertScientificNumber(number: $a),
                 $this->convertScientificNumber(number: $b),
@@ -210,7 +213,7 @@ class MathManager
         string|int|float|null $b
     ): string {
 
-        return (string) $this->number(
+        return $this->number(
             number: \bcmul(
                 $this->convertScientificNumber(number: $a),
                 $this->convertScientificNumber(number: $b),
@@ -231,7 +234,7 @@ class MathManager
         string|int|float|null $b
     ): string {
 
-        return (string) $this->number(
+        return $this->number(
             number: \bcdiv(
                 $this->convertScientificNumber(number: $a),
                 $this->convertScientificNumber(number: $b),
@@ -252,7 +255,7 @@ class MathManager
         string|int|float|null $b
     ): string {
 
-        return (string) $this->number(
+        return $this->number(
             number: \bcmod(
                 $this->convertScientificNumber(number: $a),
                 $this->convertScientificNumber(number: $b),
@@ -272,7 +275,7 @@ class MathManager
         string|int|float|null $number,
         string|int|float|null $exponent = 2
     ): string {
-        return (string) $this->number(
+        return $this->number(
             number: \bcpow(
                 $this->convertScientificNumber(number: $number),
                 $this->convertScientificNumber(number: $exponent),
@@ -289,10 +292,55 @@ class MathManager
      */
     public function sqrt(string|int|float|null $number): string
     {
-        return (string) $this->number(
+        return $this->number(
             number: \bcsqrt(
                 $this->convertScientificNumber(number: $number),
             )
+        );
+    }
+
+
+    /**
+     * TODO[epic=upgrade] after updating to php 8.4 , replace the rounds function with bcMath functions
+     * 
+     * Round the number up
+     * 
+     * @param string|int|float|null $number
+     * 
+     * @return string
+     */
+    public function roundUp(string|int|float|null $number): string
+    {
+        return $this->number(
+            number: \ceil($this->convertScientificNumber(number: $number))
+        );
+    }
+
+    /**
+     * Round the number down
+     * 
+     * @param string|int|float|null $number
+     * 
+     * @return string
+     */
+    public function roundDown(string|int|float|null $number): string
+    {
+        return $this->number(
+            number: \floor($this->convertScientificNumber(number: $number))
+        );
+    }
+
+    /**
+     * Round the number to the nearest integer
+     * 
+     * @param string|int|float|null $number
+     * 
+     * @return string
+     */
+    public function roundClose(string|int|float|null $number): string
+    {
+        return $this->number(
+            number: \round($this->convertScientificNumber(number: $number))
         );
     }
 

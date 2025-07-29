@@ -219,6 +219,31 @@ if (
 }
 
 if (
+    !function_exists('roundUp')
+) {
+    function roundUp(string|int|float|null $number): string {
+        return Math::roundUp(number: $number);
+    }
+}
+
+if (
+    !function_exists('roundDown')
+) {
+    function roundDown(string|int|float|null $number): string {
+        return Math::roundDown(number: $number);
+    }
+}
+
+if (
+    !function_exists('roundClose')
+) {
+    function roundClose(string|int|float|null $number): string {
+        return Math::roundClose(number: $number);
+    }
+}
+
+
+if (
     !function_exists('greaterThan')
 ) {
     function greaterThan(
