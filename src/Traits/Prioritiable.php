@@ -3,12 +3,18 @@
 namespace Fooino\Core\Traits;
 
 use Fooino\Core\Scopes\OrderByPriorityScope;
+use Illuminate\Database\Eloquent\Builder;
 
 trait Prioritiable
 {
-    protected static function booted(): void
+    protected static function bootPrioritiable(): void
     {
-        static::addGlobalScope(new OrderByPriorityScope());
+        static::addGlobalScope(OrderByPriorityScope::class);
+    }
+
+    public function scopeDisablePrioritiable(Builder $query): void
+    {
+        $query->withoutGlobalScope(OrderByPriorityScope::class);
     }
 
     public function getPrioritySort(): string

@@ -675,11 +675,11 @@ if (
             // 
         } catch (Exception $e) {
 
-            DB::rollBack();
-
             if ($useLogBatch) {
                 LogBatch::endBatch();
             }
+
+            DB::rollBack();
 
             throw $e;
         }

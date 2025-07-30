@@ -10,9 +10,6 @@ use Illuminate\Database\Eloquent\{
 
 class OrderByPriorityScope implements Scope
 {
-    /**
-     * Apply the scope to a given Eloquent query builder.
-     */
     public function apply(Builder $builder, Model $model): void
     {
         $table = $model->getTable();
