@@ -28,9 +28,9 @@ trait Prioritiable
     }
 
 
-    public function changePriorityPermission()
+    public function changePriorityPermission(): bool
     {
-        $can = ucfirst(class_basename($this)) . '-update';
+        $can = lcfirst(class_basename($this)) . '-update';
 
         if (
             filled(request()->user()) &&

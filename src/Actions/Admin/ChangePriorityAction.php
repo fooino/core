@@ -17,8 +17,6 @@ class ChangePriorityAction
 
             $oldPriority = $model->priority;
 
-            $model->changePriorityPermission();
-
             $model->update([
                 'priority' => $request->safe()->priority
             ]);
