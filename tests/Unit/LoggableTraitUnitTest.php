@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Activitylog\Models\Activity;
@@ -18,7 +19,7 @@ use Spatie\Activitylog\Models\Activity;
 class LoggableTraitUnitTest extends TestCase
 {
 
-
+    use DatabaseMigrations;
 
     public function setUp(): void
     {
@@ -44,6 +45,7 @@ class LoggableTraitUnitTest extends TestCase
 
             $table->string('name');
             $table->string('email');
+            $table->string('nickname')->nullable();
             $table->string('email_verified_at')->nullable();
             $table->string('password')->nullable();
 
@@ -95,6 +97,7 @@ class LoggableTraitUnitTest extends TestCase
             {
                 return [
                     'info->url->0',
+                    'info->url->1->foo',
                     'info->url->style',
                     'info->url->position->top'
                 ];
@@ -118,8 +121,9 @@ class LoggableTraitUnitTest extends TestCase
         $this->assertEquals($log->causer_type, null);
         $this->assertEquals($log->causer_id, null);
 
+        // it removes info since it is empty
         $this->assertEquals(
-            $log->properties->toArray(), // it removes info since it is empty
+            $log->properties->toArray(),
             [
                 'attributes'    => [
                     'id'    => 1,
@@ -128,6 +132,65 @@ class LoggableTraitUnitTest extends TestCase
                 ]
             ]
         );
+
+
+        $user->find(1)->update([
+            'info'  => ['foobar']
+        ]);
+
+        $log = Activity::latest('id')->first();
+
+        $this->assertEquals(
+            $log->properties->toArray(),
+            [
+                'attributes'    => [
+                    'info'      => ['foobar']
+                ],
+                'old'           => [
+                    'info'      => []
+                ]
+            ]
+        );
+
+
+        $user->find(1)->update([
+            'name'  => 'foobar2',
+            'info'  => ['foobar']
+        ]);
+
+        $log = Activity::latest('id')->first();
+
+        // we used logOnDirty so the info not saved
+        $this->assertEquals(
+            $log->properties->toArray(),
+            [
+                'attributes'    => [
+                    'name'      => 'foobar2'
+                ],
+                'old'           => [
+                    'name'      => 'foobar'
+                ]
+            ]
+        );
+
+        $user->find(1)->update([
+            'info'  => null
+        ]);
+
+        $log = Activity::latest('id')->first();
+
+        $this->assertEquals(
+            $log->properties->toArray(),
+            [
+                'attributes'    => [
+                    'info'      => []
+                ],
+                'old'           => [
+                    'info'      => ['foobar']
+                ]
+            ]
+        );
+
 
 
         Auth::login($user->first());
@@ -139,7 +202,7 @@ class LoggableTraitUnitTest extends TestCase
             'password'          => '123456',
             'info'              => [
                 'url'   => [
-                    'href'      => 'https://www.google.com',
+                    'href'      => 'https://google.com',
                     'style'     => 'color: red',
                     'position'  => [
                         'top'   => 100,
@@ -147,6 +210,10 @@ class LoggableTraitUnitTest extends TestCase
                     ],
                     [
                         'additional' => 'foobar'
+                    ],
+                    [
+                        'foo'       => 'bar',
+                        'john'      => 'wick'
                     ]
                 ],
                 'status' => 'active'
@@ -161,43 +228,47 @@ class LoggableTraitUnitTest extends TestCase
         // it removes email_verified_at since added to getLogExceptions()
         // it removes password since it is hidden
         // it removes the json data that is added to getJsonLogExceptions()
-        $this->assertEquals(
-            $log->properties->toArray(),
-            [
-                'attributes'    => [
-                    'id'                => 2,
-                    'name'              => 'foobar2',
-                    'email'             => 'foobar2@gmail.com',
-                    // 'email_verified_at' => now(),
-                    // 'password'          => '123456',
-                    'info'              => [
-                        'url' => [
-                            'href' => 'https://www.google.com',
-                            // 'style' => 'color: red',
-                            'position' => [
-                                // 'top' => 100,
-                                'left' => 200
-                            ],
-                            // [
-                            //     'additional' => 'foobar'
-                            // ]
+        $this->assertTrue(
+            $log->properties->toArray() ==
+                [
+                    'attributes'    => [
+                        'id'                => 2,
+                        'name'              => 'foobar2',
+                        'email'             => 'foobar2@gmail.com',
+                        // 'email_verified_at' => now(),
+                        // 'password'          => '123456',
+                        'info'              => [
+                            'url' => [
+                                'href' => 'https://google.com',
+                                // 'style' => 'color: red',
+                                'position' => [
+                                    // 'top' => 100,
+                                    'left' => 200
+                                ],
+                                // [
+                                //     'additional' => 'foobar'
+                                // ],
+                                1 => [
+                                    // 'foo'   => 'bar',
+                                    'john'  => 'wick'
+                                ]
 
-                        ],
-                        'status' => 'active'
+                            ],
+                            'status' => 'active'
+                        ]
                     ]
                 ]
-            ]
         );
 
 
         $user->find(2)->update([
             'name'              => 'foobar3',
             'email'             => 'foobar2@gmail.com',
-            'email_verified_at' => '2025-01-01 00:00:00',
+            'email_verified_at' => '1999-01-01 00:00:00',
             'password'          => '123456',
             'info'              => [
                 'url'   => [
-                    'href'      => 'https://www.youtube.com',
+                    'href'      => 'https://youtube.com',
                     'style'     => 'color: red',
                     'position'  => [
                         'top'   => 100,
@@ -205,6 +276,10 @@ class LoggableTraitUnitTest extends TestCase
                     ],
                     [
                         'additional' => 'foobar'
+                    ],
+                    [
+                        'foo'       => 'bar',
+                        'john'      => 'cena'
                     ]
                 ],
                 'status' => 'active'
@@ -218,64 +293,67 @@ class LoggableTraitUnitTest extends TestCase
 
         $this->assertEquals($log->event, 'updated');
 
-
-
         // it removes email_verified_at since added to getLogExceptions()
         // it removes password since it is hidden
         // it removes the json data that is added to getJsonLogExceptions()
         // does not log email since it is not changed logOnlyDirty
-        $this->assertEquals(
-            $log->properties->toArray(),
-            [
-                'old'    => [
-                    'name'              => 'foobar2',
-                    // 'email'             => 'foobar2@gmail.com',
-                    // 'email_verified_at' => '2025-01-01 00:00:00',
-                    // 'password'          => '123456',
-                    'info'              => [
-                        'url' => [
-                            'href' => 'https://www.google.com',
-                            // 'style' => 'color: red',
-                            'position' => [
-                                // 'top' => 100,
-                                'left' => 200
-                            ],
-                            // [
-                            //     'additional' => 'foobar'
-                            // ]
+        $this->assertTrue(
+            $log->properties->toArray() ==
+                [
+                    'old'    => [
+                        'name'              => 'foobar2',
+                        // 'email'             => 'foobar2@gmail.com',
+                        // 'email_verified_at' => '1999-01-01 00:00:00',
+                        // 'password'          => '123456',
+                        'info'              => [
+                            'url' => [
+                                'href' => 'https://google.com',
+                                // 'style' => 'color: red',
+                                'position' => [
+                                    // 'top' => 100,
+                                    'left' => 200
+                                ],
+                                // [
+                                //     'additional' => 'foobar'
+                                // ],
+                                1 => [
+                                    'john'      => 'wick'
+                                ]
 
-                        ],
-                        'status' => 'active'
-                    ]
-                ],
-                'attributes'    => [
-                    'name'              => 'foobar3',
-                    // 'email'             => 'foobar2@gmail.com',
-                    // 'email_verified_at' => '2025-01-01 00:00:00',
-                    // 'password'          => '123456',
-                    'info'              => [
-                        'url' => [
-                            'href' => 'https://www.youtube.com',
-                            // 'style' => 'color: red',
-                            'position' => [
-                                // 'top' => 100,
-                                'left' => 150
                             ],
-                            // [
-                            //     'additional' => 'foobar'
-                            // ]
+                            'status' => 'active'
+                        ]
+                    ],
+                    'attributes'    => [
+                        'name'              => 'foobar3',
+                        // 'email'             => 'foobar2@gmail.com',
+                        // 'email_verified_at' => '1999-01-01 00:00:00',
+                        // 'password'          => '123456',
+                        'info'              => [
+                            'url' => [
+                                'href' => 'https://youtube.com',
+                                // 'style' => 'color: red',
+                                'position' => [
+                                    // 'top' => 100,
+                                    'left' => 150
+                                ],
+                                // [
+                                //     'additional' => 'foobar'
+                                // ],
+                                1 => [
+                                    'john'      => 'cena'
+                                ]
 
-                        ],
-                        'status' => 'active'
-                    ]
-                ],
-            ]
+                            ],
+                            'status' => 'active'
+                        ]
+                    ],
+                ]
         );
 
 
 
         // it does log since we used dontSubmitEmptyLogs
-
         $user->find(2)->update([
             'email_verified_at' => '2000-01-01 00:00:00',
         ]);
@@ -283,5 +361,65 @@ class LoggableTraitUnitTest extends TestCase
         $log = Activity::latest('id')->first();
 
         $this->assertEquals($log->id, $lastLogId);
+
+
+
+        $user->find(2)->delete();
+
+        $log = Activity::latest('id')->first();
+
+        $this->assertEquals($log->event, 'deleted');
+
+        $this->assertTrue(
+            $log->properties->toArray() == [
+                'old'   => [
+                    'id'    => 2,
+                    'name'  => 'foobar3',
+                    'email' => 'foobar2@gmail.com',
+                    'info'  => [
+                        'url'  => [
+                            'href'  => 'https://youtube.com',
+                            'position'  => [
+                                'left'  => 150
+                            ],
+                            1           => [
+                                'john'  => 'cena'
+                            ],
+                        ],
+                        'status'    => 'active'
+                    ],
+                ]
+            ]
+        );
+
+
+        $user->withTrashed()->find(2)->restore();
+
+        $log = Activity::latest('id')->first();
+
+        $this->assertEquals($log->event, 'restored');
+
+
+        $this->assertTrue(
+            $log->properties->toArray() == [
+                'attributes'   => [
+                    'id'    => 2,
+                    'name'  => 'foobar3',
+                    'email' => 'foobar2@gmail.com',
+                    'info'  => [
+                        'url'  => [
+                            'href'  => 'https://youtube.com',
+                            'position'  => [
+                                'left'  => 150
+                            ],
+                            1           => [
+                                'john'  => 'cena'
+                            ],
+                        ],
+                        'status'    => 'active'
+                    ],
+                ]
+            ]
+        );
     }
 }

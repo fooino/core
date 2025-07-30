@@ -54,6 +54,7 @@ trait Loggable
     {
         return [
             // 'info->url->0',
+            // 'info->url->1->data',
             // 'info->url->style',
             // 'info->url->position->top'
         ];
@@ -76,7 +77,7 @@ trait Loggable
     {
 
         if (
-            $event != 'created'
+            !in_array($event, ['created', 'deleted', 'restored'])
         ) {
             return $data;
         }
@@ -103,7 +104,9 @@ trait Loggable
     {
         $jsonExceptions = $this->getJsonLogExceptions();
 
-        if (blank($jsonExceptions)) {
+        if (
+            blank($jsonExceptions)
+        ) {
             return $data;
         }
 
