@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Facades\LogBatch;
 
 if (
     !function_exists('dateConvert')
@@ -651,13 +652,21 @@ if (
     !function_exists('dbTransaction')
 ) {
 
-    function dbTransaction(callable $callback): mixed
+    function dbTransaction(callable $callback, bool $useLogBatch = true): mixed
     {
         try {
 
             DB::beginTransaction();
 
+            if ($useLogBatch) {
+                LogBatch::startBatch();
+            }
+
             $result = $callback();
+
+            if ($useLogBatch) {
+                LogBatch::endBatch();
+            }
 
             DB::commit();
 
@@ -667,6 +676,10 @@ if (
         } catch (Exception $e) {
 
             DB::rollBack();
+
+            if ($useLogBatch) {
+                LogBatch::endBatch();
+            }
 
             throw $e;
         }

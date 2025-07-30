@@ -12,9 +12,11 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
-use Exception;
 use Fooino\Core\Traits\Infoable;
+use Spatie\Activitylog\Models\Activity;
 use stdClass;
+use Exception;
+use Fooino\Core\Traits\Loggable;
 
 class HelpersUnitTest extends TestCase
 {
@@ -355,6 +357,21 @@ class HelpersUnitTest extends TestCase
     public function test_db_transaction()
     {
 
+        Schema::create('activity_log', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('log_name')->nullable();
+            $table->text('description');
+            $table->nullableMorphs('subject', 'subject');
+            $table->string('event')->nullable();
+            $table->nullableMorphs('causer', 'causer');
+            $table->json('properties')->nullable();
+            $table->uuid('batch_uuid')->nullable();
+            $table->timestamps();
+            $table->index('log_name');
+        });
+
+        activity()->enableLogging();
+
         Schema::create('users_table', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -362,6 +379,10 @@ class HelpersUnitTest extends TestCase
         });
 
         $user = new class extends User {
+
+            use
+                Infoable,
+                Loggable;
 
             protected $guarded = ['id'];
 
@@ -375,6 +396,10 @@ class HelpersUnitTest extends TestCase
                     'name'  => 'foo'
                 ]);
 
+                $user->find(1)->update([
+                    'name'  => 'foobar'
+                ]);
+
                 return $user->find(1);
 
                 // 
@@ -382,13 +407,23 @@ class HelpersUnitTest extends TestCase
         );
 
         $this->assertTrue($res instanceof User);
-        $this->assertTrue($res->name == 'foo');
+        $this->assertTrue($res->name == 'foobar');
         $this->assertDatabaseHas('users_table', [
             'id'    => 1,
-            'name'  => 'foo'
+            'name'  => 'foobar'
         ]);
 
-        $user->find(1)->delete();
+        $logs = Activity::select(['id', 'event', 'batch_uuid'])->get()->groupBy('batch_uuid')->toArray();
+        $this->assertTrue(count($logs) == 1); // the batching heppend
+
+        dbTransaction(function () use ($user) {
+            $user->find(1)->update([
+                'name'  => 'foo'
+            ]);
+            $user->find(1)->delete();
+        }, false);
+
+        $this->assertTrue(Activity::whereNull('batch_uuid')->count('id') == 2); // the batching not heppend
 
         $this->assertThrows(
             fn() => dbTransaction(
@@ -484,7 +519,7 @@ class HelpersUnitTest extends TestCase
         $user = new class extends User {
 
             use Infoable;
-            
+
             protected $guarded = ['id'];
 
             protected $table = 'users_table';
@@ -640,7 +675,7 @@ class HelpersUnitTest extends TestCase
                 'removerable_id'    => 1,
             ]
         );
-        
+
         $this->assertEquals(
             getUserable(
                 able: 'removerable',
