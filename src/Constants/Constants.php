@@ -17,3 +17,13 @@ define('FOOINO_TEXT_WARNING', 'text-warning');
 
 
 define('FOOINO_ACTIVE_LANGUAGES_CACHE_KEY', 'fooino-active-languages');
+define('FOOINO_MODELS_CACHE_KEY', 'fooino-models');
+
+
+
+
+define('FOOINO_VERY_LOW_TTL_TIME', (60 * 5)); // 5 minutes
+define('FOOINO_LOW_TTL_TIME', (60 * 60)); // 1 hour
+define('FOOINO_MEDIUM_TTL_TIME', (60 * 60 * 24)); // 1 day
+define('FOOINO_HIGH_TTL_TIME', (60 * 60 * 24 * 7)); // 1 week
+define('FOOINO_VERY_HIGH_TTL_TIME', (60 * 60 * 24 * 30));// 1 month

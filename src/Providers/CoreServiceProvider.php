@@ -7,6 +7,7 @@ use Fooino\Core\Concretes\{
     Math\MathManager,
     Date\DateManager
 };
+use Fooino\Core\Tasks\Tools\GetFooinoModelsFromCacheTask;
 use Illuminate\Support\ServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
@@ -72,6 +73,18 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton('fooino-date-facade', function ($app) {
             return new DateManager();
         });
+
+
+        $singletons = [
+            GetFooinoModelsFromCacheTask::class
+        ];
+
+        foreach ($singletons as $singleton) {
+
+            $this->app->singleton($singleton, function ($app) use ($singleton) {
+                return new $singleton;
+            });
+        }
 
         return $this;
     }

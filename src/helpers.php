@@ -8,8 +8,7 @@ use Fooino\Core\{
     Tasks\Tools\PrettifyInputTask,
     Tasks\Tools\ReplaceForbiddenCharactersTask
 };
-
-
+use Fooino\Core\Tasks\Tools\GetFooinoModelsFromCacheTask;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -771,6 +770,24 @@ if (
     }
 }
 
+
+if (
+    !function_exists('getFooinoModelByName')
+) {
+    function getFooinoModelByName(string $name): string|null
+    {
+        return getFooinoModels()[$name] ?? null;
+    }
+}
+
+if (
+    !function_exists('getFooinoModels')
+) {
+    function getFooinoModels(): array
+    {
+        return app(GetFooinoModelsFromCacheTask::class)->run();
+    }
+}
 
 if (
     !function_exists('isDriverSqlite')
