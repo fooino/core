@@ -102,6 +102,17 @@ class ChangePriorityActionUnitTest extends TestCase
             fn() => resolveRequest(
                 request: ChangePriorityRequest::class,
                 data: [
+                    'model' => '   '
+                ]
+            ),
+            ValidationException::class,
+            'The model field is required'
+        );
+
+        $this->assertThrows(
+            fn() => resolveRequest(
+                request: ChangePriorityRequest::class,
+                data: [
                     'model' => 'foobar'
                 ]
             ),

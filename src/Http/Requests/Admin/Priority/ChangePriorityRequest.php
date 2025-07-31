@@ -38,6 +38,17 @@ class ChangePriorityRequest extends FormRequest
     }
 
 
+    public function prepareForValidation(): void
+    {
+        $merge = [
+            'model' => emptyToNullOrValue(value: getFooinoModelByName(name: $this?->model ?? '') ?? $this?->model ?? null)
+        ];
+
+        $this->merge($merge);
+        request()->merge($merge);
+    }
+
+
     public function passedValidation(): void
     {
         if (

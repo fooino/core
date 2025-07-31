@@ -10,7 +10,6 @@ class ChangePriorityAction
 {
     public function run(Request $request): Model
     {
-
         return dbTransaction(function () use ($request) {
 
             $model = app($request->safe()->model)->findOrFail($request->safe()->model_id);
