@@ -47,7 +47,7 @@ trait Seoable
 
     public function setKeywordsAttribute($value)
     {
-        $value = \array_unique((array) emptyToNullOrValue($value));
+        $value = \array_unique((array) emptyToNullOrValue(value: $value));
 
         app(AddNewTagTask::class)->run(tags: $value);
 

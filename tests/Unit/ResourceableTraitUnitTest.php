@@ -45,9 +45,10 @@ class ResourceableTraitUnitTest extends TestCase
 
         $this->model = $model;
     }
+
     public function test_custom_method()
     {
-        $resource = new UserResource($this->model->first());
+        $resource = new ResourceableUserResource($this->model->first());
 
         $resource->custom([
             'message' => 'foo bar'
@@ -58,7 +59,7 @@ class ResourceableTraitUnitTest extends TestCase
 
     public function test_get_date_method()
     {
-        $resource = new UserResource($this->model->first());
+        $resource = new ResourceableUserResource($this->model->first());
 
         $this->assertEquals($resource->getDates(), $resource->toArray(request())[0]->data);
 
@@ -71,7 +72,7 @@ class ResourceableTraitUnitTest extends TestCase
 
     public function test_get_date_with_ignore_dates_method()
     {
-        $resource = new UserResourceWithIgnore($this->model->first());
+        $resource = new ResourceableUserResourceWithIgnore($this->model->first());
 
         $this->assertEquals($resource->getDates(), $resource->toArray(request())[0]->data);
 
@@ -84,7 +85,7 @@ class ResourceableTraitUnitTest extends TestCase
 }
 
 
-class UserResource extends JsonResource
+class ResourceableUserResource extends JsonResource
 {
     use Resourceable;
 
@@ -97,7 +98,7 @@ class UserResource extends JsonResource
     }
 }
 
-class UserResourceWithIgnore extends JsonResource
+class ResourceableUserResourceWithIgnore extends JsonResource
 {
     use Resourceable;
 
