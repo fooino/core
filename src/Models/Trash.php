@@ -2,6 +2,8 @@
 
 namespace Fooino\Core\Models;
 
+use Fooino\Core\Traits\Dateable;
+use Fooino\Core\Traits\Infoable;
 use Fooino\Core\Traits\Searchable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +15,8 @@ class Trash extends Model
 
     use
         SoftDeletes,
+        Dateable,
+        Infoable,
         Searchable;
 
     protected $guarded = ['id'];
@@ -77,9 +81,13 @@ class Trash extends Model
         $query->where('removerable_type', 'Fooino\Admin\Models\Admin');
     }
 
-    public function scopeInTrashableType(Builder $query, array $types): void
+    public function scopeInTrashableType(Builder $query, array|string|null $types = null): void
     {
-        $query->whereIn('trashable_type', $types);
+        if (
+            filled($types)
+        ) {
+            $query->whereIn('trashable_type', (array) $types);
+        }
     }
 
 

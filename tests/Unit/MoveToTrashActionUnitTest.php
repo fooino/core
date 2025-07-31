@@ -1,80 +1,98 @@
 <?php
 
-
 namespace Fooino\Core\Tests\Unit;
 
-use Fooino\Core\Actions\Admin\ChangePriorityAction;
-use Fooino\Core\Events\ModelPriorityChangedEvent;
-use Fooino\Core\Http\Requests\Admin\Priority\ChangePriorityRequest;
+use Fooino\Core\Actions\Admin\MoveToTrashAction;
+use Fooino\Core\Http\Requests\Admin\Trash\MoveToTrashRequest;
 use Fooino\Core\Tests\TestCase;
 use Fooino\Core\Traits\Infoable;
-use Fooino\Core\Traits\Prioritiable;
+use Fooino\Core\Traits\Trashable;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
-class ChangePriorityActionUnitTest extends TestCase
+class MoveToTrashActionUnitTest extends TestCase
 {
+    use DatabaseMigrations;
 
+    public $product;
     public $user;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        Schema::create('users_table', function (Blueprint $table) {
-
+        Schema::create('products_table', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('priority')->default(0);
-
+            $table->softDeletes();
             $table->timestamps();
         });
 
 
-        $this->user = new class extends User
-        {
-            use
+        Schema::create('users_table', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->softDeletes();
+            $table->timestamps();
+        });
+
+        $this->product = new class extends Model {
+
+            use SoftDeletes,
                 Infoable,
-                Prioritiable;
+                Trashable;
+
+            protected $table = 'products_table';
 
             protected $guarded = ['id'];
+        };
+
+        $this->user = new class extends User {
+
+            use SoftDeletes,
+                Infoable,
+                Trashable;
+
             protected $table = 'users_table';
+
+            protected $guarded = ['id'];
         };
 
 
-        $this->user->insert([
-            [
-                'name'      => 'first',
-                'priority'  => 0,
-            ],
-            [
-                'name'      => 'second',
-                'priority'  => 10,
-            ],
+        $this->product->create([
+            'name' => 'Product 1',
+        ]);
+
+        $this->user->create([
+            'name' => 'John Wick',
         ]);
     }
 
 
-    public function test_the_change_priority_request_validation()
+    public function test_the_move_to_trash_request_validation()
     {
 
         $withoutInfoable = new class extends User
         {
             use
-                Prioritiable;
+                SoftDeletes,
+                Trashable;
 
             protected $guarded = ['*'];
             protected $table = 'users_table';
         };
 
-        $withoutPrioritiable = new class extends User
+        $withoutTrashable = new class extends User
         {
             use
+                SoftDeletes,
                 Infoable;
 
             protected $guarded = ['*'];
@@ -84,8 +102,9 @@ class ChangePriorityActionUnitTest extends TestCase
         $withoutPermission = new class extends User
         {
             use
+                SoftDeletes,
                 Infoable,
-                Prioritiable;
+                Trashable;
 
             protected $guarded = ['*'];
             protected $table = 'users_table';
@@ -93,14 +112,14 @@ class ChangePriorityActionUnitTest extends TestCase
 
 
         $this->assertThrows(
-            fn() => resolveRequest(ChangePriorityRequest::class),
+            fn() => resolveRequest(MoveToTrashRequest::class),
             ValidationException::class,
             'The model field is required'
         );
 
         $this->assertThrows(
             fn() => resolveRequest(
-                request: ChangePriorityRequest::class,
+                request: MoveToTrashRequest::class,
                 data: [
                     'model' => '   '
                 ]
@@ -111,7 +130,7 @@ class ChangePriorityActionUnitTest extends TestCase
 
         $this->assertThrows(
             fn() => resolveRequest(
-                request: ChangePriorityRequest::class,
+                request: MoveToTrashRequest::class,
                 data: [
                     'model' => 'foobar'
                 ]
@@ -122,7 +141,7 @@ class ChangePriorityActionUnitTest extends TestCase
 
         $this->assertThrows(
             fn() => resolveRequest(
-                request: ChangePriorityRequest::class,
+                request: MoveToTrashRequest::class,
                 data: [
                     'model' => get_class($withoutInfoable)
                 ]
@@ -133,9 +152,9 @@ class ChangePriorityActionUnitTest extends TestCase
 
         $this->assertThrows(
             fn() => resolveRequest(
-                request: ChangePriorityRequest::class,
+                request: MoveToTrashRequest::class,
                 data: [
-                    'model' => get_class($withoutPrioritiable)
+                    'model' => get_class($withoutTrashable)
                 ]
             ),
             ValidationException::class,
@@ -144,7 +163,7 @@ class ChangePriorityActionUnitTest extends TestCase
 
         $this->assertThrows(
             fn() => resolveRequest(
-                request: ChangePriorityRequest::class,
+                request: MoveToTrashRequest::class,
                 data: [
                     'model'     => get_class($withoutPermission),
                     'model_id'  => 1,
@@ -152,82 +171,77 @@ class ChangePriorityActionUnitTest extends TestCase
                 ]
             ),
             AuthorizationException::class,
-            'msg.unauthorizedToChangePriority'
+            'msg.unauthorizedToMoveToTrash'
         );
 
         $user = $this->user->first();
         request()->setUserResolver(fn() => $user);
 
-        Gate::define((lcfirst(class_basename($withoutPermission))) . '-update', function ($user) {
+        Gate::define((lcfirst(class_basename($withoutPermission))) . '-delete', function ($user) {
             return true;
         });
 
         $this->assertTrue(resolveRequest(
-            request: ChangePriorityRequest::class,
+            request: MoveToTrashRequest::class,
             data: [
                 'model'     => get_class($withoutPermission),
                 'model_id'  => 1,
-                'priority'  => 100
             ],
             user: $user
-        ) instanceof ChangePriorityRequest);
+        ) instanceof MoveToTrashRequest);
 
 
-        Gate::define((lcfirst(class_basename($withoutPermission))) . '-update', function ($user) {
+        Gate::define((lcfirst(class_basename($withoutPermission))) . '-delete', function ($user) {
             return false;
         });
 
         $this->assertThrows(
             fn() => resolveRequest(
-                request: ChangePriorityRequest::class,
+                request: MoveToTrashRequest::class,
                 data: [
                     'model'     => get_class($withoutPermission),
                     'model_id'  => 1,
-                    'priority'  => 100
                 ]
             ),
             AuthorizationException::class,
-            'msg.unauthorizedToChangePriority'
+            'msg.unauthorizedToMoveToTrash'
         );
     }
 
 
-
-    public function test_the_change_priority_action()
+    public function test_the_move_to_trash_action()
     {
         $user = $this->user->first();
         request()->setUserResolver(fn() => $user);
 
-        Gate::define((lcfirst(class_basename($this->user))) . '-update', function ($user) {
+        Gate::define((lcfirst(class_basename($this->product))) . '-delete', function ($user) {
             return true;
         });
 
         $request = resolveRequest(
-            request: ChangePriorityRequest::class,
+            request: MoveToTrashRequest::class,
             data: [
-                'model'     => get_class($this->user),
+                'model'     => get_class($this->product),
                 'model_id'  => 1,
-                'priority'  => 100
             ],
             user: $user
         );
 
 
-        Event::fake();
+        $this->assertTrue(app(MoveToTrashAction::class)->run(request: $request));
 
-        app(ChangePriorityAction::class)->run(request: $request);
 
-        Event::assertDispatched(ModelPriorityChangedEvent::class);
-
-        $this->assertDatabaseHas('users_table', [
-            'id'    => 1,
-            'priority'  => 100
+        $this->assertDatabaseHas('products_table', [
+            'id'                    => 1,
+            'deleted_at'            => currentDate()
         ]);
 
-        Event::fake();
-
-        app(ChangePriorityAction::class)->run(request: $request);
-
-        Event::assertNotDispatched(ModelPriorityChangedEvent::class);
+        $this->assertDatabaseHas('trashes', [
+            'id'                    => 1,
+            'trashable_type'        => get_class($this->product),
+            'trashable_id'          => 1,
+            'removerable_type'      => get_class($this->user),
+            'removerable_id'        => 1,
+        ]);
     }
 }

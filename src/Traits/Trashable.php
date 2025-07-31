@@ -52,7 +52,7 @@ trait Trashable
 
     public function restoreFromTrashPermission()
     {
-        $can = ucfirst(class_basename($this)) . '-restore';
+        $can = lcfirst(class_basename($this)) . '-restore';
 
         if (
             filled(request()->user()) &&
@@ -66,7 +66,7 @@ trait Trashable
 
     public function moveToTrashPermission()
     {
-        $can = ucfirst(class_basename($this)) . '-delete';
+        $can = lcfirst(class_basename($this)) . '-delete';
 
         if (
             filled(request()->user()) &&
@@ -76,16 +76,5 @@ trait Trashable
         }
 
         return false;
-    }
-
-
-    public function checkPermission($key)
-    {
-        throw_if(
-            $this->{$key}() === false,
-            new AuthorizationException(
-                message: __(key: 'msg.unauthorizedToThisAction')
-            )
-        );
     }
 }

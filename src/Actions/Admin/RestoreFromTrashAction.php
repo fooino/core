@@ -3,16 +3,24 @@
 namespace Fooino\Core\Actions\Admin;
 
 use Fooino\Core\Models\Trash;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class RestoreFromTrashAction
 {
-    public function run(Trash $trash)
+    public function run(Trash $trash): bool
     {
-        dbTransaction(function () use ($trash) {
+        return dbTransaction(function () use ($trash) {
 
-            $trash->trashable->checkPermission(key: 'restoreFromTrashPermission');
+            throw_if(
+                !$trash->trashable->restoreFromTrashPermission(),
+                new AuthorizationException(
+                    message: __(key: 'msg.unauthorizedToRestoreFromTrash')
+                )
+            );
 
             $trash->trashable->restoreFromTrash();
+
+            return true;
         });
     }
 }
