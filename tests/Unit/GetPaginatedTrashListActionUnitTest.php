@@ -6,6 +6,7 @@ namespace Fooino\Core\Tests\Unit;
 use Fooino\Core\Actions\Admin\GetPaginatedTrashListAction;
 use Fooino\Core\Models\Trash;
 use Fooino\Core\Tests\TestCase;
+use Fooino\Core\Traits\Dateable;
 use Fooino\Core\Traits\Infoable;
 use Fooino\Core\Traits\Trashable;
 use Illuminate\Database\Eloquent\Model;
@@ -36,6 +37,7 @@ class GetPaginatedTrashListActionUnitTest extends TestCase
         {
             use
                 SoftDeletes,
+                Dateable,
                 Trashable,
                 Infoable;
 

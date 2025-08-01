@@ -75,7 +75,7 @@ class RestoreFromTrashActionUnitTest extends TestCase
     }
 
 
-    public function test_the_move_to_trash_action()
+    public function test_the_restore_from_trash_action()
     {
         $user = $this->user->first();
         request()->setUserResolver(fn() => $user);
@@ -84,20 +84,29 @@ class RestoreFromTrashActionUnitTest extends TestCase
             return false;
         });
 
+
+        $this->assertFalse($this->product->hasRestoreFromTrashPermission);
+
         $this->product->find(1)->delete();
 
-        $this->assertDatabaseHas('trashes', [
-            'id'                    => 1,
-            'trashable_type'        => get_class($this->product),
-            'trashable_id'          => 1,
-            'removerable_type'      => get_class($this->user),
-            'removerable_id'        => 1,
-        ]);
+        $this->assertDatabaseHas(
+            'trashes',
+            [
+                'id'                    => 1,
+                'trashable_type'        => get_class($this->product),
+                'trashable_id'          => 1,
+                'removerable_type'      => get_class($this->user),
+                'removerable_id'        => 1,
+            ]
+        );
 
-        $this->assertDatabaseHas('products_table', [
-            'id'                    => 1,
-            'deleted_at'            => currentDate()
-        ]);
+        $this->assertDatabaseHas(
+            'products_table',
+            [
+                'id'                    => 1,
+                'deleted_at'            => currentDate()
+            ]
+        );
 
         $trash = Trash::find(1);
 
@@ -111,20 +120,29 @@ class RestoreFromTrashActionUnitTest extends TestCase
             return true;
         });
 
+        $this->assertFalse($this->product->hasRestoreFromTrashPermission); // !!! since we used once changing gate can not change accessor in runtime
+
+
         $this->assertTrue(app(RestoreFromTrashAction::class)->run(trash: $trash));
 
 
-        $this->assertDatabaseHas('products_table', [
-            'id'                    => 1,
-            'deleted_at'            => null
-        ]);
+        $this->assertDatabaseHas(
+            'products_table',
+            [
+                'id'                    => 1,
+                'deleted_at'            => null
+            ]
+        );
 
-        $this->assertDatabaseMissing('trashes', [
-            'id'                    => 1,
-            'trashable_type'        => get_class($this->product),
-            'trashable_id'          => 1,
-            'removerable_type'      => get_class($this->user),
-            'removerable_id'        => 1,
-        ]);
+        $this->assertDatabaseMissing(
+            'trashes',
+            [
+                'id'                    => 1,
+                'trashable_type'        => get_class($this->product),
+                'trashable_id'          => 1,
+                'removerable_type'      => get_class($this->user),
+                'removerable_id'        => 1,
+            ]
+        );
     }
 }

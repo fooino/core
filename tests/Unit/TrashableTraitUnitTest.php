@@ -205,6 +205,8 @@ class TrashableTraitUnitTest extends TestCase
         $user->find(1)->delete();
 
         $this->assertTrue(Trash::inTrashableType(null)->count('id') == 2);
+        $this->assertTrue(Trash::inTrashableType([])->count('id') == 0);
+        $this->assertTrue(Trash::inTrashableType('foobar')->count('id') == 0);
         $this->assertTrue(Trash::inTrashableType([get_class($user), get_class($this->product)])->count('id') == 2);
         $this->assertTrue(Trash::inTrashableType(get_class($user))->count('id') == 1);
     }

@@ -8,7 +8,6 @@ use Closure;
 
 class CheckModelForMoveToTrashRule implements ValidationRule
 {
-
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (

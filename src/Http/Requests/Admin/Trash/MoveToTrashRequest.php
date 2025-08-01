@@ -9,6 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class MoveToTrashRequest extends FormRequest
 {
+    protected $stopOnFirstFailure = true;
 
     public string $unauthorizedMessage = '';
 
@@ -16,7 +17,6 @@ class MoveToTrashRequest extends FormRequest
     {
         throw new AuthorizationException($this->unauthorizedMessage);
     }
-
 
     public function rules(): array
     {

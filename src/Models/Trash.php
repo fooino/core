@@ -84,8 +84,9 @@ class Trash extends Model
     public function scopeInTrashableType(Builder $query, array|string|null $types = null): void
     {
         if (
-            filled($types)
+            !is_null($types)
         ) {
+            $types = filled($types) ? array_unique((array) $types) : [0];
             $query->whereIn('trashable_type', (array) $types);
         }
     }

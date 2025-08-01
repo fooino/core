@@ -167,7 +167,6 @@ class MoveToTrashActionUnitTest extends TestCase
                 data: [
                     'model'     => get_class($withoutPermission),
                     'model_id'  => 1,
-                    'priority'  => 100
                 ]
             ),
             AuthorizationException::class,
@@ -180,6 +179,8 @@ class MoveToTrashActionUnitTest extends TestCase
         Gate::define((lcfirst(class_basename($withoutPermission))) . '-delete', function ($user) {
             return true;
         });
+
+        $this->assertTrue($withoutPermission->hasMoveToTrashPermission);
 
         $this->assertTrue(resolveRequest(
             request: MoveToTrashRequest::class,
@@ -194,6 +195,9 @@ class MoveToTrashActionUnitTest extends TestCase
         Gate::define((lcfirst(class_basename($withoutPermission))) . '-delete', function ($user) {
             return false;
         });
+
+
+        $this->assertTrue($withoutPermission->hasMoveToTrashPermission); // !! since we used once the changing gate in runtime does not change the accessor
 
         $this->assertThrows(
             fn() => resolveRequest(
