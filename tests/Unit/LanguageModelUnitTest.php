@@ -27,7 +27,7 @@ class LanguageModelUnitTest extends TestCase
             'code'      => 'AF',
             'direction' => 'RTL',
             'status'    => 'ACTIVE',
-            'state'     => 'UNDEFAULT'
+            'state'     => 'NON_DEFAULT'
         ]);
 
         $this->assertEquals(Language::latest('id')->first()->code, 'af');
@@ -36,7 +36,7 @@ class LanguageModelUnitTest extends TestCase
             'code'      => 'af',
             'direction' => 'RTL',
             'status'    => 'ACTIVE',
-            'state'     => 'UNDEFAULT'
+            'state'     => 'NON_DEFAULT'
         ]);
 
         Language::insert([
@@ -45,7 +45,7 @@ class LanguageModelUnitTest extends TestCase
                 'code'      => 'AN',
                 'direction' => 'RTL',
                 'status'    => 'ACTIVE',
-                'state'     => 'UNDEFAULT'
+                'state'     => 'NON_DEFAULT'
             ]
         ]);
         $this->assertDatabaseHas('languages', [
@@ -53,7 +53,7 @@ class LanguageModelUnitTest extends TestCase
             'code'      => 'AN',
             'direction' => 'RTL',
             'status'    => 'ACTIVE',
-            'state'     => 'UNDEFAULT'
+            'state'     => 'NON_DEFAULT'
         ]);
 
         $this->assertEquals(Language::latest('id')->first()->code, 'an');
@@ -88,7 +88,7 @@ class LanguageModelUnitTest extends TestCase
 
     public function test_editable_accessor()
     {
-        $this->assertTrue(Language::undefault()->first()->editable == 1);
+        $this->assertTrue(Language::nonDefault()->first()->editable == 1);
         $this->assertTrue(Language::default()->first()->editable == 0);
     }
 
@@ -141,10 +141,10 @@ class LanguageModelUnitTest extends TestCase
         ]);
 
         $this->assertEquals(Language::state('DEFAULT')->first()->id, 1);
-        $this->assertEquals(Language::state('UNDEFAULT')->first()->id, 2);
+        $this->assertEquals(Language::state('NON_DEFAULT')->first()->id, 2);
         $this->assertEquals(Language::state(null)->count(), Language::count());
 
         $this->assertEquals(Language::default()->first()->id, 1);
-        $this->assertEquals(Language::undefault()->first()->id, 2);
+        $this->assertEquals(Language::nonDefault()->first()->id, 2);
     }
 }

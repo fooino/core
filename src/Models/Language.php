@@ -83,7 +83,7 @@ class Language extends Model
 
     public function getEditableAttribute()
     {
-        return (int) ($this->state == LanguageState::UNDEFAULT->value);
+        return (int) ($this->state == LanguageState::NON_DEFAULT->value);
     }
 
     /**
@@ -160,9 +160,9 @@ class Language extends Model
         $query->state(LanguageState::DEFAULT);
     }
 
-    public function scopeUndefault(Builder $query): void
+    public function scopeNonDefault(Builder $query): void
     {
-        $query->state(LanguageState::UNDEFAULT);
+        $query->state(LanguageState::NON_DEFAULT);
     }
 
     /**

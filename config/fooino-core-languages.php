@@ -16,7 +16,7 @@ return [
         'code'                  => 'en',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'America/New_York',
             'America/Detroit',
@@ -131,7 +131,7 @@ return [
         'code'                  => 'ar',
         'direction'             => 'RTL',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Africa/Algiers',
             'Asia/Bahrain',
@@ -164,7 +164,7 @@ return [
         'code'                  => 'zh',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             =>  [
             'Asia/Shanghai',
             'Asia/Taipei',
@@ -176,7 +176,7 @@ return [
         'code'                  => 'es',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'America/Mexico_City',
             'America/Cancun',
@@ -226,7 +226,7 @@ return [
         'code'                  => 'hi',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Asia/Karachi',
             'Asia/Kolkata',
@@ -237,7 +237,7 @@ return [
         'code'                  => 'pt',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Africa/Luanda',
             'America/Araguaina',
@@ -269,7 +269,7 @@ return [
         'code'                  => 'bn',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Asia/Dhaka',
             'Asia/Thimphu',
@@ -280,7 +280,7 @@ return [
         'code'                  => 'ru',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Europe/Moscow',
             'Europe/Simferopol',
@@ -313,7 +313,7 @@ return [
         'code'                  => 'ja',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Asia/Tokyo',
         ]
@@ -323,7 +323,7 @@ return [
         'code'                  => 'vi',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Asia/Ho_Chi_Minh',
         ]
@@ -333,7 +333,7 @@ return [
         'code'                  => 'tr',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Europe/Istanbul',
             'Asia/Baku',
@@ -344,7 +344,7 @@ return [
         'code'                  => 'ko',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Asia/Seoul',
             'Asia/Pyongyang',
@@ -355,7 +355,7 @@ return [
         'code'                  => 'fr',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Africa/Porto-Novo',
             'Africa/Ouagadougou',
@@ -373,7 +373,7 @@ return [
         'code'                  => 'de',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Europe/Berlin',
             'Europe/Brussels',
@@ -388,7 +388,7 @@ return [
         'code'                  => 'it',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             => [
             'Europe/Zurich',
             'Europe/Rome',
@@ -401,7 +401,7 @@ return [
         'code'                  => 'ku',
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             =>  [
             'Europe/Istanbul',
             'Asia/Damascus',
@@ -414,7 +414,7 @@ return [
         'code'                  => 'ku-so',
         'direction'             => 'RTL',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             =>  [
             'Asia/Baghdad',
             'Asia/Tehran',
@@ -425,7 +425,7 @@ return [
         'code'                  => 'ku-su',
         'direction'             => 'RTL',
         'status'                => 'INACTIVE',
-        'state'                 => 'UNDEFAULT',
+        'state'                 => 'NON_DEFAULT',
         'timezones'             =>  [
             'Asia/Baghdad',
             'Asia/Tehran',

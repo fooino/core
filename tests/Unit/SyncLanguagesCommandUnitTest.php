@@ -38,7 +38,7 @@ class SyncLanguagesCommandUnitTest extends TestCase
                 'name'      => 'English',
                 'direction' => 'LTR',
                 'status'    => 'INACTIVE',
-                'state'     => 'UNDEFAULT'
+                'state'     => 'NON_DEFAULT'
             ]
         );
 

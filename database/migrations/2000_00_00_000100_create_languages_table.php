@@ -20,7 +20,7 @@ return new class extends Migration
 
             $table->enum('direction', Direction::values())->default(Direction::LTR->value);
             $table->enum('status', LanguageStatus::values())->default(LanguageStatus::INACTIVE->value)->index();
-            $table->enum('state', LanguageState::values())->default(LanguageState::UNDEFAULT->value);
+            $table->enum('state', LanguageState::values())->default(LanguageState::NON_DEFAULT->value);
             $table->bigInteger('priority')->default(0);
 
             $table->json('timezones')->nullable();

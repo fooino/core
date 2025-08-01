@@ -21,7 +21,7 @@ class SearchableTraitUnitTest extends TestCase
         Schema::create('users_table', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('state', ['DEFAULT', 'UNDEFAULT']);
+            $table->enum('state', ['DEFAULT', 'NON_DEFAULT']);
             $table->enum('status', ['ACTIVE', 'INACTIVE']);
             $table->integer('priority')->default(0);
             $table->timestamps();
@@ -40,7 +40,7 @@ class SearchableTraitUnitTest extends TestCase
         $this->user->insert([
             [
                 'name'      => 'first',
-                'state'     => 'UNDEFAULT',
+                'state'     => 'NON_DEFAULT',
                 'status'    => 'INACTIVE',
                 'priority'  => 300
             ],
@@ -52,13 +52,13 @@ class SearchableTraitUnitTest extends TestCase
             ],
             [
                 'name'      => 'third',
-                'state'     => 'UNDEFAULT',
+                'state'     => 'NON_DEFAULT',
                 'status'    => 'ACTIVE',
                 'priority'  => 300
             ],
             [
                 'name'      => 'fourth',
-                'state'     => 'UNDEFAULT',
+                'state'     => 'NON_DEFAULT',
                 'status'    => 'ACTIVE',
                 'priority'  => 100
             ],

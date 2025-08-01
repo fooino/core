@@ -62,7 +62,7 @@ class EnumableUnitTest extends TestCase
                 ==
                 [
                     'key'           => 'ACTIVE',
-                    'name'          => __('msg.active'),
+                    'name'          => __(key: 'msg.active'),
                     'endpoint'      => 'languages/1/activate',
                     'query'         => 'status=ACTIVE',
                     'icon_style'    => 'material-symbols-outlined',
