@@ -369,6 +369,15 @@ if (
     }
 }
 
+if (
+    !function_exists('enumOrValue')
+) {
+    function enumOrValue(mixed $object): mixed
+    {
+        return ($object instanceof \UnitEnum) ? $object->value : $object;
+    }
+}
+
 
 if (
     !function_exists('valueOrDefault')
@@ -606,6 +615,15 @@ if (
     {
         $pg = request()->input('per_page');
         return (is_null($pg) || $pg <= 0 || $pg > 300) ? FOOINO_PER_PAGE : $pg;
+    }
+}
+
+if (
+    !function_exists('ef')
+) {
+    function ef(string $key): mixed
+    {
+        return emptyToNullOrValue(request()->input($key));
     }
 }
 

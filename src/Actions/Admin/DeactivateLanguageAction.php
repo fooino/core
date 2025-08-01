@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Fooino\Core\Actions;
+namespace Fooino\Core\Actions\Admin;
 
 use Fooino\Core\Models\Language;
 use Fooino\Core\Enums\LanguageStatus;

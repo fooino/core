@@ -5,14 +5,24 @@ namespace Fooino\Core\Tasks\Seeder;
 
 class LoadSeederConfigTask
 {
-    public function run(string $key): void
+    public function run(string $path): void
     {
+        $path = $this->prettifyPath($path);
+
+        $file = str_replace('.php', '', basename($path));
+
         $config = app('config');
 
-        if ($config->has($key)) {
+        if ($config->has($file)) {
             return;
         }
 
-        $config->set($key, require __DIR__ . "/../../config/{$key}.php");
+        $config->set($file, require $path);
+    }
+
+
+    private function prettifyPath(string $path): string
+    {
+        return str_replace('/vendor/orchestra/testbench-core/laravel', '', $path);
     }
 }

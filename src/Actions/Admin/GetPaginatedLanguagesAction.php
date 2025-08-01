@@ -1,6 +1,6 @@
 <?php
 
-namespace Fooino\Core\Actions;
+namespace Fooino\Core\Actions\Admin;
 
 use Fooino\Core\Models\Language;
 
@@ -12,9 +12,9 @@ class GetPaginatedLanguagesAction
         array|string $withCount = []
     ) {
         return Language::select($select)
-            ->search(request()->input('search'))
-            ->direction(request()->input('direction'))
-            ->status(request()->input('status'))
+            ->search(ef('search'))
+            ->direction(ef('direction'))
+            ->status(ef('status'))
             ->with($with)
             ->withCount($withCount)
             ->paginate(pg())

@@ -2,11 +2,13 @@
 
 namespace Fooino\Core\Providers;
 
+use Fooino\Core\Commands\SyncLanguagesCommand;
 use Fooino\Core\Concretes\{
     Json\JsonManager,
     Math\MathManager,
     Date\DateManager
 };
+use Fooino\Core\Tasks\Language\GetActiveLanguagesFromCacheTask;
 use Fooino\Core\Tasks\Tools\GetFooinoModelsFromCacheTask;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +24,7 @@ class CoreServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerSingletons();
+        $this->loadCommands();
     }
 
     protected function registerPublishes(): self
@@ -76,7 +79,8 @@ class CoreServiceProvider extends ServiceProvider
 
 
         $singletons = [
-            GetFooinoModelsFromCacheTask::class
+            GetFooinoModelsFromCacheTask::class,
+            GetActiveLanguagesFromCacheTask::class,
         ];
 
         foreach ($singletons as $singleton) {
@@ -85,6 +89,16 @@ class CoreServiceProvider extends ServiceProvider
                 return new $singleton;
             });
         }
+
+        return $this;
+    }
+
+
+    protected function loadCommands(): self
+    {
+        $this->commands([
+            SyncLanguagesCommand::class,
+        ]);
 
         return $this;
     }

@@ -8,7 +8,7 @@ class SetLanguageTask
     public function run(string|null $language = null): void
     {
         $default = app(GetDefaultLanguageTask::class)->run()?->code ?? 'fa';
-        $locales = collect(app(GetActiveLanguagesTask::class)->run())->pluck('code')->toArray();
+        $locales = collect(app(GetActiveLanguagesFromCacheTask::class)->run())->pluck('code')->toArray();
 
         $update = [
             'locales'                                   => filled($locales) ? $locales : ['en', 'fa', 'ar', 'zh', 'es', 'hi', 'pt', 'bn', 'ru', 'ja', 'vi', 'tr', 'ko', 'fr', 'de', 'it', 'ku', 'ku-so', 'ku-su'],
