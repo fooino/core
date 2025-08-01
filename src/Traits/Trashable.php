@@ -50,7 +50,7 @@ trait Trashable
 
     public function restoreFromTrashPermission(): bool
     {
-        $can = lcfirst(class_basename($this)) . '-restore';
+        $can = lcfirst($this->objectClassName()) . '-restore';
 
         if (
             filled(request()->user()) &&
@@ -64,7 +64,7 @@ trait Trashable
 
     public function moveToTrashPermission(): bool
     {
-        $can = lcfirst(class_basename($this)) . '-delete';
+        $can = lcfirst($this->objectClassName()) . '-delete';
 
         if (
             filled(request()->user()) &&

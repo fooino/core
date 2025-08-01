@@ -48,6 +48,24 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(emptyToNullOrValue(collect([1, 'foobar', true])) == collect([1, 'foobar', true]));
     }
 
+
+    public function test_enum_or_value()
+    {
+        $object = new stdClass;
+        $this->assertTrue(enumOrValue(false) == false);
+        $this->assertTrue(enumOrValue(true) == true);
+        $this->assertTrue(enumOrValue(0) == 0);
+        $this->assertTrue(enumOrValue(123) == 123);
+        $this->assertTrue(enumOrValue(123.123) == 123.123);
+        $this->assertTrue(enumOrValue(null) == null);
+        $this->assertTrue(enumOrValue([]) == []);
+        $this->assertTrue(enumOrValue([123]) == [123]);
+        $this->assertTrue(enumOrValue($object) == $object);
+        $this->assertTrue(enumOrValue(collect(['123'])) == collect(['123']));
+
+        $this->assertTrue(enumOrValue(FoobarEnum::ACTIVE) == 'ACTIVE'); // FoobarEnum exist in eumableTraitUnitTest
+    }
+
     public function test_value_or_default_helper()
     {
         $this->assertTrue(valueOrDefault(value: [], default: 'foobar') == 'foobar');
@@ -322,6 +340,20 @@ class HelpersUnitTest extends TestCase
 
         request()->merge(['per_page' => 301]);
         $this->assertTrue(pg() == FOOINO_PER_PAGE);
+    }
+
+    public function test_ef()
+    {
+        $this->assertTrue(ef('foo') == null);
+
+        request()->merge(['foo' => ' ']);
+        $this->assertTrue(ef('foo') == null);
+
+        request()->merge(['foo' => []]);
+        $this->assertTrue(ef('foo') == null);
+
+        request()->merge(['foo' => 'bar']);
+        $this->assertTrue(ef('foo') == 'bar');
     }
 
 

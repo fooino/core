@@ -58,6 +58,12 @@ class LanguageModelUnitTest extends TestCase
 
         $this->assertEquals(Language::latest('id')->first()->code, 'an');
     }
+    public function test_the_flag_accessor()
+    {
+        $language = Language::first();
+
+        $this->assertTrue(file_exists($language->flag));
+    }
 
     public function test_the_direction_detail_attribute()
     {
@@ -94,24 +100,24 @@ class LanguageModelUnitTest extends TestCase
 
     public function test_the_code_scope()
     {
-        $this->assertTrue(filled(Language::codeFilter('en')->first()));
-        $this->assertTrue(blank(Language::codeFilter('foobar')->first()));
+        $this->assertTrue(Language::codeFilter('en')->count('id') == 1);
+        $this->assertTrue(Language::codeFilter('foobar')->count('id') == 0);
 
-        $this->assertTrue(Language::codeFilter(null)->count() == Language::count());
+        $this->assertTrue(Language::codeFilter(null)->count('id') == Language::count('id'));
     }
 
     public function test_the_search_scope()
     {
-        $this->assertTrue(filled(Language::search('en')->first()));
-        $this->assertTrue(filled(Language::search('English')->first()));
-        $this->assertTrue(blank(Language::search('foobar')->first()));
+        $this->assertTrue(Language::search('fa')->count('id') == 1);
+        $this->assertTrue(Language::search('English')->count('id') == 1);
+        $this->assertTrue(Language::search('foobar')->count('id') == 0);
 
-        $this->assertTrue(Language::search(null)->count() == Language::count());
+        $this->assertTrue(Language::search(null)->count('id') == Language::count('id'));
     }
 
     public function test_direction_scope()
     {
-        $this->assertTrue(Language::direction(null)->count() == Language::count());
+        $this->assertTrue(Language::direction(null)->count('id') == Language::count('id'));
         $this->assertTrue(Language::direction('RTL')->first()->code == 'fa');
         $this->assertTrue(Language::direction('LTR')->first()->code == 'en');
         $this->assertTrue(Language::RTL()->first()->code == 'fa');
@@ -127,7 +133,7 @@ class LanguageModelUnitTest extends TestCase
 
         $this->assertEquals(Language::status('ACTIVE')->first()->id, 1);
         $this->assertEquals(Language::status('INACTIVE')->first()->id, 2);
-        $this->assertEquals(Language::status(null)->count(), Language::count());
+        $this->assertEquals(Language::status(null)->count('id'), Language::count('id'));
 
         $this->assertEquals(Language::active()->first()->id, 1);
         $this->assertEquals(Language::inactive()->first()->id, 2);
@@ -142,7 +148,7 @@ class LanguageModelUnitTest extends TestCase
 
         $this->assertEquals(Language::state('DEFAULT')->first()->id, 1);
         $this->assertEquals(Language::state('NON_DEFAULT')->first()->id, 2);
-        $this->assertEquals(Language::state(null)->count(), Language::count());
+        $this->assertEquals(Language::state(null)->count('id'), Language::count('id'));
 
         $this->assertEquals(Language::default()->first()->id, 1);
         $this->assertEquals(Language::nonDefault()->first()->id, 2);

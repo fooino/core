@@ -30,7 +30,7 @@ trait Prioritiable
 
     public function changePriorityPermission(): bool
     {
-        $can = lcfirst(class_basename($this)) . '-update';
+        $can = lcfirst($this->objectClassName()) . '-update';
 
         if (
             filled(request()->user()) &&
@@ -40,5 +40,10 @@ trait Prioritiable
         }
 
         return false;
+    }
+
+    public function getHasChangePriorityPermissionAttribute()
+    {
+        return once(fn() => $this->changePriorityPermission());
     }
 }

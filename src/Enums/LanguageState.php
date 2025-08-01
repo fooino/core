@@ -8,8 +8,8 @@ enum LanguageState: string
 {
     use Enumable;
 
-    case DEFAULT    = 'DEFAULT';
-    case NON_DEFAULT  = 'NON_DEFAULT';
+    case DEFAULT        = 'DEFAULT';
+    case NON_DEFAULT    = 'NON_DEFAULT';
 
     public static function default(): array
     {

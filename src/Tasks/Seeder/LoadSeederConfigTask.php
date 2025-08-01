@@ -7,7 +7,7 @@ class LoadSeederConfigTask
 {
     public function run(string $path): void
     {
-        $path = $this->prettifyPath($path);
+        $path = $this->prettifyPath(path: $path);
 
         $file = str_replace('.php', '', basename($path));
 

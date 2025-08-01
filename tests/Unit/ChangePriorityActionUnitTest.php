@@ -212,6 +212,8 @@ class ChangePriorityActionUnitTest extends TestCase
             user: $user
         );
 
+        $this->assertTrue($this->user->hasChangePriorityPermission);
+
 
         Event::fake();
 

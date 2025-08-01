@@ -11,7 +11,8 @@ class GetPaginatedLanguagesAction
         array|string $with = [],
         array|string $withCount = []
     ) {
-        return Language::select($select)
+        return Language::sortByStateAndStatus()
+            ->select($select)
             ->search(ef('search'))
             ->direction(ef('direction'))
             ->status(ef('status'))

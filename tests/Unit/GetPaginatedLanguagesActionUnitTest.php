@@ -18,6 +18,6 @@ class GetPaginatedLanguagesActionUnitTest extends TestCase
 
         $languages = app(GetPaginatedLanguagesAction::class)->run();
 
-        $this->assertTrue($languages->count() == Language::count());
+        $this->assertTrue($languages->count() == Language::count('id'));
     }
 }

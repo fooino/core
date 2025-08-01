@@ -58,7 +58,7 @@ class Language extends Model
 
     public function getFlagAttribute()
     {
-        return config('core_package_env') == 'testing' ? __DIR__ . "/../../assets/languages/{$this->code}.png" : asset("vendor/fooino/core/languages/{$this->code}.png");
+        return app()->environment() == 'testing' ? __DIR__ . "/../../assets/languages/{$this->code}.png" : asset("vendor/fooino/core/languages/{$this->code}.png");
     }
 
     public function getDirectionDetailAttribute()
@@ -133,7 +133,9 @@ class Language extends Model
 
     public function scopeStatus(Builder $query, LanguageStatus|string|null $status = null): void
     {
-        if (filled($status)) {
+        if (
+            filled($status)
+        ) {
             $query->where('status', enumOrValue($status));
         }
     }
@@ -150,7 +152,9 @@ class Language extends Model
 
     public function scopeState(Builder $query, LanguageState|string|null $state = null): void
     {
-        if (filled($state)) {
+        if (
+            filled($state)
+        ) {
             $query->where('state', enumOrValue($state));
         }
     }
@@ -168,4 +172,9 @@ class Language extends Model
     /**
      * custom functions section
      */
+
+    public function getIdSort(): string
+    {
+        return 'ASC';
+    }
 }
