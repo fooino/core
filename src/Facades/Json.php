@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Http\JsonResponse response(int $status = 200, string $message = '', array $data = [], array $errors = [], array $headers = [])
  * @method static array template()
  *
- * @see \Fooino\Core\Concretes\Json\JsonResponse
+ * @see \Fooino\Core\Concretes\Json\JsonManager
  */
 class Json extends Facade
 {
@@ -23,6 +23,6 @@ class Json extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'json-facade';
+        return 'fooino-json-facade';
     }
 }

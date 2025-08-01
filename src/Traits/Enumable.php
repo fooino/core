@@ -48,7 +48,7 @@ trait Enumable
         $made = array_merge(
             [
                 'key'           => $key,
-                'name'          => filled($name) ? $name : ($key == 'defaultKey' ? 'unknown' :  __("msg." . \strtolower($key))),
+                'name'          => filled($name) ? $name : ($key == 'defaultKey' ? 'unknown' :  __(key: "msg." . lcfirst(str(strtolower($key))->camel()->value()))),
                 'icon_style'    => $iconStyle,
                 'icon'          => $icon,
                 'color'         => $color

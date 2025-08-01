@@ -51,6 +51,14 @@ class PrioritiableTraitUnitTest extends TestCase
             ],
         ]);
 
+        $models = $model->disablePrioritiable()->get();
+
+        $this->assertEquals($models[0]->name, 'first');
+        $this->assertEquals($models[1]->name, 'second');
+        $this->assertEquals($models[2]->name, 'third');
+        $this->assertEquals($models[3]->name, 'fourth');
+
+
         $models = $model->get();
 
         $this->assertEquals($models[0]->name, 'second');

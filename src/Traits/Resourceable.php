@@ -11,8 +11,8 @@ trait Resourceable
 
     public function __construct($resource)
     {
-        $this->resourceObject = $resource;
         parent::__construct($resource);
+        $this->resourceObject = $resource;
         $this->custom();
     }
 

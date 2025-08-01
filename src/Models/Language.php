@@ -30,6 +30,11 @@ class Language extends Model
 
     protected $guarded = ['id'];
 
+    protected $permissions = [
+        'show',
+        'update'
+    ];
+
 
     /**
      * relationships section
@@ -43,18 +48,17 @@ class Language extends Model
         return jsonAttribute();
     }
 
-    public function code(): Attribute
+    protected function code(): Attribute
     {
         return Attribute::make(
             get: fn($value) => emptyToNullOrValue(strtolower((string) $value)),
-            set: fn($value) => emptyToNullOrValue(strtolower((string)$value))
+            set: fn($value) => emptyToNullOrValue(strtolower((string) $value))
         );
     }
 
-
     public function getFlagAttribute()
     {
-        return config('core_package_env') == 'testing' ? __DIR__ . "/../../assets/languages/{$this->code}.png" : asset("vendor/fooino/core/languages/{$this->code}.png");
+        return app()->environment() == 'testing' ? __DIR__ . "/../../assets/languages/{$this->code}.png" : asset("vendor/fooino/core/languages/{$this->code}.png");
     }
 
     public function getDirectionDetailAttribute()
@@ -79,7 +83,7 @@ class Language extends Model
 
     public function getEditableAttribute()
     {
-        return (int) ($this->state == LanguageState::UNDEFAULT->value);
+        return (int) ($this->state == LanguageState::NON_DEFAULT->value);
     }
 
     /**
@@ -88,7 +92,9 @@ class Language extends Model
 
     public function scopeSearch(Builder $query, string|int|float|bool|null $search = null): void
     {
-        if (filled($search)) {
+        if (
+            filled($search)
+        ) {
             $query->where(
                 fn($q) => $q
                     ->orWhere('name', 'LIKE', "%{$search}%")
@@ -97,18 +103,21 @@ class Language extends Model
         }
     }
 
-    public function scopeCode(Builder $query, string|int|float|bool|null $code = null): void
+    public function scopeCodeFilter(Builder $query, string|int|float|bool|null $code = null): void
     {
-        if (filled($code)) {
+        if (
+            filled($code)
+        ) {
             $query->where('code', $code);
         }
     }
 
     public function scopeDirection(Builder $query, Direction|string|null $direction = null): void
     {
-        if (filled($direction)) {
-            $direction = ($direction instanceof Direction) ? $direction->value : $direction;
-            $query->where('direction', $direction);
+        if (
+            filled($direction)
+        ) {
+            $query->where('direction', enumOrValue($direction));
         }
     }
 
@@ -124,9 +133,10 @@ class Language extends Model
 
     public function scopeStatus(Builder $query, LanguageStatus|string|null $status = null): void
     {
-        if (filled($status)) {
-            $status = ($status instanceof LanguageStatus) ? $status->value : $status;
-            $query->where('status', $status);
+        if (
+            filled($status)
+        ) {
+            $query->where('status', enumOrValue($status));
         }
     }
 
@@ -142,9 +152,10 @@ class Language extends Model
 
     public function scopeState(Builder $query, LanguageState|string|null $state = null): void
     {
-        if (filled($state)) {
-            $state = ($state instanceof LanguageState) ? $state->value : $state;
-            $query->where('state', $state);
+        if (
+            filled($state)
+        ) {
+            $query->where('state', enumOrValue($state));
         }
     }
 
@@ -153,12 +164,17 @@ class Language extends Model
         $query->state(LanguageState::DEFAULT);
     }
 
-    public function scopeUndefault(Builder $query): void
+    public function scopeNonDefault(Builder $query): void
     {
-        $query->state(LanguageState::UNDEFAULT);
+        $query->state(LanguageState::NON_DEFAULT);
     }
 
     /**
      * custom functions section
      */
+
+    public function getIdSort(): string
+    {
+        return 'ASC';
+    }
 }

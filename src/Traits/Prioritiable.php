@@ -3,12 +3,18 @@
 namespace Fooino\Core\Traits;
 
 use Fooino\Core\Scopes\OrderByPriorityScope;
+use Illuminate\Database\Eloquent\Builder;
 
 trait Prioritiable
 {
-    protected static function booted(): void
+    protected static function bootPrioritiable(): void
     {
-        static::addGlobalScope(new OrderByPriorityScope());
+        static::addGlobalScope(OrderByPriorityScope::class);
+    }
+
+    public function scopeDisablePrioritiable(Builder $query): void
+    {
+        $query->withoutGlobalScope(OrderByPriorityScope::class);
     }
 
     public function getPrioritySort(): string
@@ -22,9 +28,9 @@ trait Prioritiable
     }
 
 
-    public function changePriorityPermission()
+    public function changePriorityPermission(): bool
     {
-        $can = ucfirst(class_basename($this)) . '-update';
+        $can = lcfirst($this->objectClassName()) . '-update';
 
         if (
             filled(request()->user()) &&
@@ -34,5 +40,10 @@ trait Prioritiable
         }
 
         return false;
+    }
+
+    public function getHasChangePriorityPermissionAttribute()
+    {
+        return once(fn() => $this->changePriorityPermission());
     }
 }

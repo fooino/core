@@ -5,14 +5,24 @@ namespace Fooino\Core\Tests;
 use Astrotomic\Translatable\TranslatableServiceProvider;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
 use Fooino\Core\Providers\CoreServiceProvider;
+use Spatie\Activitylog\ActivitylogServiceProvider;
 
 class TestCase extends TestbenchTestCase
 {
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        activity()->disableLogging();
+    }
+
     protected function getPackageProviders($app)
     {
         return [
             CoreServiceProvider::class,
-            TranslatableServiceProvider::class
+            TranslatableServiceProvider::class,
+            ActivitylogServiceProvider::class
         ];
     }
 

@@ -8,6 +8,6 @@ class GetDefaultLanguageTask
 {
     public function run()
     {
-        return collect(app(GetActiveLanguagesTask::class)->run())->where('state', LanguageState::DEFAULT->value)->first();
+        return collect(app(GetActiveLanguagesFromCacheTask::class)->run())->where('state', LanguageState::DEFAULT->value)->first();
     }
 }

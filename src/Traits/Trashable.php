@@ -3,12 +3,10 @@
 namespace Fooino\Core\Traits;
 
 use Fooino\Core\Models\Trash;
-use Illuminate\Auth\Access\AuthorizationException;
 
 trait Trashable
 {
     abstract public function restore(); // the model must use the SoftDeletes
-
 
     public static function bootTrashable()
     {
@@ -42,7 +40,7 @@ trait Trashable
 
     public function moveToTrash(): void
     {
-        $this->delete();
+        $this->deleteOrFail();
     }
 
     public function restoreFromTrash(): void
@@ -50,9 +48,9 @@ trait Trashable
         $this->restore();
     }
 
-    public function restoreFromTrashPermission()
+    public function restoreFromTrashPermission(): bool
     {
-        $can = ucfirst(class_basename($this)) . '-restore';
+        $can = lcfirst($this->objectClassName()) . '-restore';
 
         if (
             filled(request()->user()) &&
@@ -64,9 +62,9 @@ trait Trashable
         return false;
     }
 
-    public function moveToTrashPermission()
+    public function moveToTrashPermission(): bool
     {
-        $can = ucfirst(class_basename($this)) . '-delete';
+        $can = lcfirst($this->objectClassName()) . '-delete';
 
         if (
             filled(request()->user()) &&
@@ -78,14 +76,13 @@ trait Trashable
         return false;
     }
 
-
-    public function checkPermission($key)
+    public function getHasMoveToTrashPermissionAttribute()
     {
-        throw_if(
-            $this->{$key}() === false,
-            new AuthorizationException(
-                message: __(key: 'msg.unauthorizedToThisAction')
-            )
-        );
+        return once(fn() => $this->moveToTrashPermission());
+    }
+
+    public function getHasRestoreFromTrashPermissionAttribute()
+    {
+        return once(fn() => $this->restoreFromTrashPermission());
     }
 }

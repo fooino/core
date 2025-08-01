@@ -14,6 +14,7 @@ class MathFacadeUnitTest extends TestCase
     {
         $this->assertEquals(Math::getPrecision(), 10);
         $this->assertEquals(math()->getPrecision(), 10);
+
         $this->assertEquals(Math::instance(precision: 8)->getPrecision(), 8);
         $this->assertEquals(math(precision: 8)->getPrecision(), 8);
     }
@@ -22,6 +23,7 @@ class MathFacadeUnitTest extends TestCase
     {
         $this->assertEquals(Math::getTrimTrailingZeroes(), true);
         $this->assertEquals(math()->getTrimTrailingZeroes(), true);
+
         $this->assertEquals(Math::instance(trimTrailingZeroes: false)->getTrimTrailingZeroes(), false);
         $this->assertEquals(math(trimTrailingZeroes: false)->getTrimTrailingZeroes(), false);
     }
@@ -90,6 +92,7 @@ class MathFacadeUnitTest extends TestCase
         $this->assertEquals(Math::instance(trimTrailingZeroes: false)->number('1.1e+8'), '110000000.0000000000');
         $this->assertEquals(Math::instance(trimTrailingZeroes: false)->number(1.1e+8), '110000000.0');
         $this->assertEquals(Math::number('test'), 'test');
+        $this->assertEquals(Math::number('foo.bar'), 'foo.bar');
         $this->assertEquals(Math::number(null), 0);
         $this->assertEquals(Math::number(0), 0);
         $this->assertEquals(Math::number(0.0), 0);
@@ -125,6 +128,7 @@ class MathFacadeUnitTest extends TestCase
         $this->assertEquals(Math::numberFormat(number: 1.1e-8, divisor: 10), "0.0000000011");
         $this->assertEquals(Math::numberFormat(number: 100000, divisor: 10000), "10");
         $this->assertEquals(Math::numberFormat(number: 5000000.50, divisor: 1000), "5,000.0005");
+        $this->assertThrows(fn() => Math::numberFormat(number: 5000000.50, divisor: 0), DivisionByZeroError::class);
         $this->assertEquals(Math::numberFormat(number: 1.1e+20, thousandsSeparator: "|", divisor: 100), "1|100|000|000|000|000|000");
         $this->assertThrows(fn() => Math::numberFormat(number: 'test'), TypeError::class);
 
@@ -313,6 +317,76 @@ class MathFacadeUnitTest extends TestCase
         $this->assertEquals(Math::sqrt(16), 4);
         $this->assertEquals(Math::sqrt('1524157878067367851562259605883269630864220000001'), '1234567891234567889999999');
         $this->assertThrows(fn() => Math::sqrt(-2), ValueError::class);
+    }
+
+
+    public function test_round_up_method()
+    {
+        $this->assertEquals(Math::roundUp(null), 0);
+        $this->assertEquals(Math::roundUp(0), 0);
+        $this->assertEquals(Math::roundUp(1), 1);
+        $this->assertEquals(Math::roundUp(1.1), 2);
+        $this->assertEquals(Math::roundUp(-1.1), -1);
+        $this->assertEquals(Math::roundUp(1.9), 2);
+        $this->assertEquals(Math::roundUp(-1.9), -1);
+        $this->assertEquals(Math::roundUp(1.1e+8), 110000000);
+        $this->assertEquals(Math::roundUp(1.1e-8), 1);
+
+        $this->assertEquals(roundUp(null), 0);
+        $this->assertEquals(roundUp(0), 0);
+        $this->assertEquals(roundUp(1), 1);
+        $this->assertEquals(roundUp(1.1), 2);
+        $this->assertEquals(roundUp(-1.1), -1);
+        $this->assertEquals(roundUp(1.9), 2);
+        $this->assertEquals(roundUp(-1.9), -1);
+        $this->assertEquals(roundUp(1.1e+8), 110000000);
+        $this->assertEquals(roundUp(1.1e-8), 1);
+    }
+
+    public function test_round_down_method()
+    {
+        $this->assertEquals(Math::roundDown(null), 0);
+        $this->assertEquals(Math::roundDown(0), 0);
+        $this->assertEquals(Math::roundDown(1), 1);
+        $this->assertEquals(Math::roundDown(1.1), 1);
+        $this->assertEquals(Math::roundDown(-1.1), -2);
+        $this->assertEquals(Math::roundDown(1.9), 1);
+        $this->assertEquals(Math::roundDown(-1.9), -2);
+        $this->assertEquals(Math::roundDown(1.1e+8), 110000000);
+        $this->assertEquals(Math::roundDown(1.1e-8), 0);
+
+        $this->assertEquals(roundDown(null), 0);
+        $this->assertEquals(roundDown(0), 0);
+        $this->assertEquals(roundDown(1), 1);
+        $this->assertEquals(roundDown(1.1), 1);
+        $this->assertEquals(roundDown(-1.1), -2);
+        $this->assertEquals(roundDown(1.9), 1);
+        $this->assertEquals(roundDown(-1.9), -2);
+        $this->assertEquals(roundDown(1.1e+8), 110000000);
+        $this->assertEquals(roundDown(1.1e-8), 0);
+    }
+
+    public function test_round_close_method()
+    {
+        $this->assertEquals(Math::roundClose(null), 0);
+        $this->assertEquals(Math::roundClose(0), 0);
+        $this->assertEquals(Math::roundClose(1), 1);
+        $this->assertEquals(Math::roundClose(1.1), 1);
+        $this->assertEquals(Math::roundClose(-1.1), -1);
+        $this->assertEquals(Math::roundClose(1.9), 2);
+        $this->assertEquals(Math::roundClose(-1.9), -2);
+        $this->assertEquals(Math::roundClose(1.1e+8), 110000000);
+        $this->assertEquals(Math::roundClose(1.1e-8), 0);
+
+        $this->assertEquals(roundClose(null), 0);
+        $this->assertEquals(roundClose(0), 0);
+        $this->assertEquals(roundClose(1), 1);
+        $this->assertEquals(roundClose(1.1), 1);
+        $this->assertEquals(roundClose(-1.1), -1);
+        $this->assertEquals(roundClose(1.9), 2);
+        $this->assertEquals(roundClose(-1.9), -2);
+        $this->assertEquals(roundClose(1.1e+8), 110000000);
+        $this->assertEquals(roundClose(1.1e-8), 0);
     }
 
 

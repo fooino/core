@@ -2,11 +2,14 @@
 
 namespace Fooino\Core\Providers;
 
+use Fooino\Core\Commands\SyncLanguagesCommand;
 use Fooino\Core\Concretes\{
-    Json\JsonResponse,
+    Json\JsonManager,
     Math\MathManager,
     Date\DateManager
 };
+use Fooino\Core\Tasks\Language\GetActiveLanguagesFromCacheTask;
+use Fooino\Core\Tasks\Tools\GetFooinoModelsFromCacheTask;
 use Illuminate\Support\ServiceProvider;
 
 class CoreServiceProvider extends ServiceProvider
@@ -21,6 +24,7 @@ class CoreServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerSingletons();
+        $this->loadCommands();
     }
 
     protected function registerPublishes(): self
@@ -61,17 +65,40 @@ class CoreServiceProvider extends ServiceProvider
 
     protected function registerSingletons(): self
     {
-        $this->app->singleton('json-facade', function ($app) {
-            return new JsonResponse();
+        $this->app->singleton('fooino-json-facade', function ($app) {
+            return new JsonManager();
         });
 
-        $this->app->singleton('math-facade', function ($app) {
+        $this->app->singleton('fooino-math-facade', function ($app) {
             return new MathManager();
         });
 
-        $this->app->singleton('date-facade', function ($app) {
+        $this->app->singleton('fooino-date-facade', function ($app) {
             return new DateManager();
         });
+
+
+        $singletons = [
+            GetFooinoModelsFromCacheTask::class,
+            GetActiveLanguagesFromCacheTask::class,
+        ];
+
+        foreach ($singletons as $singleton) {
+
+            $this->app->singleton($singleton, function ($app) use ($singleton) {
+                return new $singleton;
+            });
+        }
+
+        return $this;
+    }
+
+
+    protected function loadCommands(): self
+    {
+        $this->commands([
+            SyncLanguagesCommand::class,
+        ]);
 
         return $this;
     }

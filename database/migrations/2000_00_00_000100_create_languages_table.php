@@ -18,9 +18,9 @@ return new class extends Migration
             $table->string('name', 100);
             $table->char('code', 10)->unique();
 
-            $table->enum('direction', Direction::values());
-            $table->enum('status', LanguageStatus::values())->index();
-            $table->enum('state', LanguageState::values());
+            $table->enum('direction', Direction::values())->default(Direction::LTR->value);
+            $table->enum('status', LanguageStatus::values())->default(LanguageStatus::INACTIVE->value)->index();
+            $table->enum('state', LanguageState::values())->default(LanguageState::NON_DEFAULT->value);
             $table->bigInteger('priority')->default(0);
 
             $table->json('timezones')->nullable();

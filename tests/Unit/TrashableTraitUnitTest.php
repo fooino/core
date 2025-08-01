@@ -44,7 +44,9 @@ class TrashableTraitUnitTest extends TestCase
 
         $this->user = new class extends User
         {
-            use SoftDeletes, Infoable;
+            use
+                SoftDeletes,
+                Infoable;
 
             protected $guarded = ['id'];
 
@@ -95,6 +97,8 @@ class TrashableTraitUnitTest extends TestCase
         $this->product->withTrashed()->find(1)->update([
             'deleted_at'    => null
         ]);
+
+        // moved to trash once
         $this->product->find(1)->delete();
 
         $this->assertTrue(Trash::where('trashable_id', 1)->where('trashable_type', get_class($this->product))->count('id') == 1); // the move to trash delete once the product since we used firstOrCreate
@@ -185,5 +189,25 @@ class TrashableTraitUnitTest extends TestCase
             'removerable_type'  => 'Fooino\Admin\Models\Admin'
         ]);
         $this->assertTrue(Trash::removedByAdmin()->count('id') == 1);
+
+
+        $user = new class extends User
+        {
+            use
+                SoftDeletes,
+                Trashable,
+                Infoable;
+
+            protected $guarded = ['id'];
+
+            protected $table = 'users_table';
+        };
+        $user->find(1)->delete();
+
+        $this->assertTrue(Trash::inTrashableType(null)->count('id') == 2);
+        $this->assertTrue(Trash::inTrashableType([])->count('id') == 0);
+        $this->assertTrue(Trash::inTrashableType('foobar')->count('id') == 0);
+        $this->assertTrue(Trash::inTrashableType([get_class($user), get_class($this->product)])->count('id') == 2);
+        $this->assertTrue(Trash::inTrashableType(get_class($user))->count('id') == 1);
     }
 }

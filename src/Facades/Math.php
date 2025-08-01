@@ -20,6 +20,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static string power(string|int|float|null $number, string|int|float|null $exponent = 2)
  * @method static string sqrt(string|int|float|null $number)
  * 
+ * @method static string roundUp(string|int|float|null $number)
+ * @method static string roundDown(string|int|float|null $number)
+ * @method static string roundClose(string|int|float|null $number)
+ * 
  * @method static bool greaterThan(string|int|float|null $a, string|int|float|null $b)
  * @method static bool greaterThanOrEqual(string|int|float|null $a, string|int|float|null $b)
  * @method static bool lessThan(string|int|float|null $a, string|int|float|null $b)
@@ -42,6 +46,6 @@ class Math extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'math-facade';
+        return 'fooino-math-facade';
     }
 }

@@ -1,40 +1,28 @@
 <?php
 
-namespace fooino\Core\Commands;
+namespace Fooino\Core\Commands;
 
-use fooino\Core\Models\Language;
-use fooino\Core\Tasks\Seeder\LoadSeederConfigTask;
-use fooino\Core\Tasks\Language\RecacheActiveLanguagesTask;
+use Fooino\Core\Models\Language;
+use Fooino\Core\Tasks\Seeder\LoadSeederConfigTask;
+use Fooino\Core\Tasks\Language\RecacheActiveLanguagesTask;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class SyncLanguagesCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+
     protected $signature = 'sync:languages';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Sync Languages base on fooino core languages';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         try {
 
             DB::beginTransaction();
 
-            app(LoadSeederConfigTask::class)->run('fooino-core-languages');
+            app(LoadSeederConfigTask::class)->run(path: base_path('config/fooino-core-languages.php'));
 
             $recache = false;
             $insert = [];
@@ -45,7 +33,9 @@ class SyncLanguagesCommand extends Command
 
                 $id = $dbLanguages[strtolower($lang['code'])] ?? null;
 
-                if (filled($id)) {
+                if (
+                    filled($id) // the language already inserted
+                ) {
                     continue;
                 }
 
@@ -56,8 +46,8 @@ class SyncLanguagesCommand extends Command
                     'status'        => $lang['status'],
                     'state'         => $lang['state'],
                     'timezones'     => filled($lang['timezones'] ?? null) ? jsonEncode($lang['timezones']) : null,
-                    'created_at'    => date('Y-m-d H:i:s'),
-                    'updated_at'    => date('Y-m-d H:i:s'),
+                    'created_at'    => currentDate(),
+                    'updated_at'    => currentDate(),
                 ];
             }
 
@@ -68,7 +58,9 @@ class SyncLanguagesCommand extends Command
                 Language::insert($insert);
             }
 
-            if ($recache) {
+            if (
+                $recache
+            ) {
                 app(RecacheActiveLanguagesTask::class)->run();
             }
 
@@ -85,7 +77,7 @@ class SyncLanguagesCommand extends Command
             logger()->error('CAN_NOT_SYNC_LANGUAGES_EXCEPTION:' . $e);
 
 
-            $this->error('There was an error syncing languages');
+            $this->error('There was an error in syncing languages');
         }
     }
 }

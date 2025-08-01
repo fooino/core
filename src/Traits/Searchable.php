@@ -12,7 +12,7 @@ trait Searchable
             ->orderByRaw(
                 "CASE 
                     WHEN `state` = 'DEFAULT' THEN 1
-                    WHEN `state` = 'UNDEFAULT' THEN 0
+                    WHEN `state` = 'NON_DEFAULT' THEN 0
                 END 
                 DESC"
             )

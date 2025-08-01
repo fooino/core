@@ -11,12 +11,43 @@ use Exception;
 
 class GenerateCodeTaskUnitTest extends TestCase
 {
-    public function test_the_task_can_generate_numeric_OTP_code()
+
+    public function test_the_task_can_generate_numeric_code()
     {
         $code = app(GenerateCodeTask::class)->length(4)->isNumeric(true)->run();
 
         $this->assertEquals(strlen($code), 4);
         $this->assertTrue(is_numeric($code));
+
+        foreach (range(1, 10) as $attempt) {
+
+            $code = app(GenerateCodeTask::class)->length(2)->isNumeric(true)->run();
+
+            $this->assertTrue($code[0] != 0);
+        }
+    }
+
+    public function test_the_task_can_generate_easy_numeric_otp_style()
+    {
+        foreach (range(1, 10) as $attempt) {
+
+            $code = app(GenerateCodeTask::class)->length(5)->easyNumericOtpStyle()->run();
+
+            $digits = str_split($code);
+
+            $digitCounts = array_count_values($digits);
+
+            $hasDuplicate = false;
+            foreach ($digitCounts as $count) {
+                
+                if ($count >= 2) {
+                    $hasDuplicate = true;
+                    break;
+                }
+            }
+
+            $this->assertTrue($hasDuplicate);
+        }
     }
 
     public function test_the_task_can_generate_random_token()
@@ -30,6 +61,7 @@ class GenerateCodeTaskUnitTest extends TestCase
     public function test_the_task_can_generate_token_in_timestamp_style()
     {
         $token = app(GenerateCodeTask::class)->length(6)->timestampStyle(true)->run();
+
         $this->assertTrue((bool)preg_match('/[\w]{6}[\d]{1,}[\w\d]{6}/', $token));
     }
 
@@ -46,6 +78,7 @@ class GenerateCodeTaskUnitTest extends TestCase
             $this->assertFalse(in_array($letter, $upperCase));
         }
     }
+
     public function test_the_task_can_generate_random_token_in_upper_case()
     {
         $code = app(GenerateCodeTask::class)->length(6)->isNumeric(false)->upperCase()->run();
@@ -54,7 +87,7 @@ class GenerateCodeTaskUnitTest extends TestCase
         $this->assertTrue(is_string($code));
 
         $lowerCase = range('a', 'z');
-        
+
         foreach (str_split($code) as $letter) {
             $this->assertFalse(in_array($letter, $lowerCase));
         }
@@ -94,7 +127,7 @@ class GenerateCodeTaskUnitTest extends TestCase
         };
 
         $inserts = [];
-        
+
         $tokens = array_merge(range('a', 'z'), range('A', 'Z'), range(0, 9));
 
         foreach ($tokens as $token) {
@@ -118,7 +151,7 @@ class GenerateCodeTaskUnitTest extends TestCase
         );
     }
 
-    public function test_length_method()
+    public function test_validate_settings()
     {
         $this->assertThrows(
             fn() =>

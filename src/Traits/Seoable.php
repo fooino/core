@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 
 trait Seoable
 {
-    public function metaTitle(): Attribute
+    protected function metaTitle(): Attribute
     {
         return Attribute::make(
             get: fn($value) => (string) $value,
@@ -15,7 +15,7 @@ trait Seoable
         );
     }
 
-    public function metaDescription(): Attribute
+    protected function metaDescription(): Attribute
     {
         return Attribute::make(
             get: fn($value) => (string) $value,
@@ -23,7 +23,7 @@ trait Seoable
         );
     }
 
-    public function canonical(): Attribute
+    protected function canonical(): Attribute
     {
         return Attribute::make(
             get: fn($value) => (string) $value,
@@ -31,7 +31,7 @@ trait Seoable
         );
     }
 
-    public function slug(): Attribute
+    protected function slug(): Attribute
     {
         return Attribute::make(
             get: fn($value) => (string) $value,
@@ -47,7 +47,7 @@ trait Seoable
 
     public function setKeywordsAttribute($value)
     {
-        $value = \array_unique((array) emptyToNullOrValue($value));
+        $value = \array_unique((array) emptyToNullOrValue(value: $value));
 
         app(AddNewTagTask::class)->run(tags: $value);
 

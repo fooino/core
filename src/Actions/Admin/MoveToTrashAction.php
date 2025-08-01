@@ -6,15 +6,15 @@ use Illuminate\Http\Request;
 
 class MoveToTrashAction
 {
-    public function run(Request $request)
+    public function run(Request $request): bool
     {
-        dbTransaction(function () use ($request) {
+        return dbTransaction(function () use ($request) {
 
             $model = app($request->safe()->model)->findOrFail(id: $request->safe()->model_id);
 
-            $model->checkPermission(key: 'moveToTrashPermission');
-
             $model->moveToTrash();
+
+            return true;
         });
     }
 }

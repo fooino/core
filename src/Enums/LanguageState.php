@@ -8,8 +8,8 @@ enum LanguageState: string
 {
     use Enumable;
 
-    case DEFAULT    = 'DEFAULT';
-    case UNDEFAULT  = 'UNDEFAULT';
+    case DEFAULT        = 'DEFAULT';
+    case NON_DEFAULT    = 'NON_DEFAULT';
 
     public static function default(): array
     {
@@ -21,11 +21,11 @@ enum LanguageState: string
         );
     }
 
-    public static function undefault(): array
+    public static function nonDefault(): array
     {
         return self::maker(
-            key: self::UNDEFAULT->value,
-            query: "state=" . self::UNDEFAULT->value,
+            key: self::NON_DEFAULT->value,
+            query: "state=" . self::NON_DEFAULT->value,
             icon: 'cancel',
             color: FOOINO_TEXT_DANGER
         );

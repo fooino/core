@@ -15,6 +15,7 @@ class DateFacadeUnitTest extends TestCase
         $to = new DateTimeZone('Asia/Tehran');
         $this->assertEquals(Date::convert(date: null, to: $to), '');
         $this->assertEquals(Date::convert(date: 'null', to: $to), '');
+        $this->assertEquals(dateConvert(date: 'null', to: $to), '');
         $this->assertEquals(Date::convert(date: '', to: $to), '');
         $this->assertEquals(Date::convert(date: 'test', to: $to), '');
         $this->assertEquals(Date::convert(date: '2022-12-24', format: 'Y/m/d', to: $to), '1401/10/03');
@@ -25,12 +26,20 @@ class DateFacadeUnitTest extends TestCase
         $this->assertEquals(Date::convert(date: '2022-12-24 19', to: $to), '1401-10-03 03:30:00');
         $this->assertEquals(Date::convert(date: '2022-12-24 time 19:27:00', to: $to), '1401-10-03 22:57:00');
         $this->assertEquals(Date::convert(date: '2022-12-24 19:27:00', format: 'j F Y ساعت H:i:s', to: $to), '3 دی 1401 ساعت 22:57:00');
+        $this->assertEquals(dateConvert(date: '2022-12-24 19:27:00', format: 'j F Y ساعت H:i:s', to: $to), '3 دی 1401 ساعت 22:57:00');
 
         $this->assertThrows(
             fn() => Date::convert(date: 'test', to: $to, throwException: true),
             CanNotConvertDateException::class,
             'strtotime can not convert date to timestamp'
         );
+
+        $this->assertThrows(
+            fn() => dateConvert(date: 'test', to: $to, throwException: true),
+            CanNotConvertDateException::class,
+            'strtotime can not convert date to timestamp'
+        );
+
         $this->assertThrows(
             fn() => Date::convert(date: null, to: $to, throwException: true),
             CanNotConvertDateException::class,
@@ -85,17 +94,26 @@ class DateFacadeUnitTest extends TestCase
         $this->assertEquals(Date::convert(date: '1401/10/03 22:57:00', format: 'j F Y H:i:s', from: $from), '24 December 2022 19:27:00');
         $this->assertEquals(Date::convert(date: '1401/10/03', format: 'j F Y', from: $from), '24 December 2022');
         $this->assertEquals(Date::convert(date: '1401-10/03 ساعت 22:57:00', from: $from), '2022-12-24 19:27:00');
+        $this->assertEquals(dateConvert(date: '1401-10/03 ساعت 22:57:00', from: $from), '2022-12-24 19:27:00');
 
         $this->assertThrows(
             fn() => Date::convert(date: 'test', from: $from, throwException: true),
             CanNotConvertDateException::class,
             'The date is empty'
         );
+
+        $this->assertThrows(
+            fn() => dateConvert(date: 'test', from: $from, throwException: true),
+            CanNotConvertDateException::class,
+            'The date is empty'
+        );
+
         $this->assertThrows(
             fn() => Date::convert(date: null, from: $from, throwException: true),
             CanNotConvertDateException::class,
             'The date is empty'
         );
+
         $this->assertThrows(
             fn() => Date::convert(date: '', from: $from, throwException: true),
             CanNotConvertDateException::class,
@@ -127,6 +145,7 @@ class DateFacadeUnitTest extends TestCase
         $this->assertEquals(Date::convert(date: '1401/10/03', format: 'Y/m/d', from: $from, to: $to), '1401/10/03');
         $this->assertEquals(Date::convert(date: '1401/10/03', format: 'Y-m-d', from: $from, to: $to), '1401-10-03');
         $this->assertEquals(Date::convert(date: '1401/10/03 22:57:00', from: $from, to: $to), '1401-10-03 23:57:00');
+        $this->assertEquals(dateConvert(date: '1401/10/03 22:57:00', from: $from, to: $to), '1401-10-03 23:57:00');
 
         $this->assertThrows(fn() => Date::convert(date: 'test', from: $from, to: $to, throwException: true), CanNotConvertDateException::class);
         $this->assertThrows(fn() => Date::convert(date: null, from: $from, to: $to, throwException: true), CanNotConvertDateException::class);
@@ -205,6 +224,7 @@ class DateFacadeUnitTest extends TestCase
         $this->assertEquals(Date::convert(date: '2022-12-24 04:00:00', format: 'Y/m/d H:i:s', to: new DateTimeZone('America/New_York')), '2022/12/23 23:00:00');
         $this->assertEquals(Date::convert(date: '2022-12-24 18:15:00', format: 'Y/m/d H:i:s', to: new DateTimeZone('Asia/Tokyo')), '2022/12/25 03:15:00');
         $this->assertEquals(Date::convert(date: '2022-12-24 07:45:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('America/New_York'), to: new DateTimeZone("Asia/Tokyo")), '2022/12/24 21:45:00');
+        $this->assertEquals(dateConvert(date: '2022-12-24 07:45:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('America/New_York'), to: new DateTimeZone("Asia/Tokyo")), '2022/12/24 21:45:00');
     }
 
     public function test_convert_gregorian_to_utc_method()
@@ -212,11 +232,13 @@ class DateFacadeUnitTest extends TestCase
         $this->assertThrows(fn() => Date::convert(date: 'test', from: new DateTimeZone('America/New_York'), throwException: true), CanNotConvertDateException::class);
         $this->assertEquals(Date::convert(date: '2022-12-24 23:00:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('America/New_York')), '2022/12/25 04:00:00');
         $this->assertEquals(Date::convert(date: '2022-12-24 03:15:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('Asia/Tokyo')), '2022/12/23 18:15:00');
+        $this->assertEquals(dateConvert(date: '2022-12-24 03:15:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('Asia/Tokyo')), '2022/12/23 18:15:00');
     }
 
     public function test_convert_shamsi_iran_to_gregorian_america()
     {
         $this->assertEquals(Date::convert(date: '1402-03-19 21:50:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('Asia/Tehran'), to: new DateTimeZone('America/New_York')), '2023/06/09 14:20:00');
+        $this->assertEquals(dateConvert(date: '1402-03-19 21:50:00', format: 'Y/m/d H:i:s', from: new DateTimeZone('Asia/Tehran'), to: new DateTimeZone('America/New_York')), '2023/06/09 14:20:00');
     }
 
     public function test_gregorian_validate_method()

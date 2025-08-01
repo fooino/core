@@ -12,8 +12,11 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
-use Exception;
+use Fooino\Core\Traits\Infoable;
+use Spatie\Activitylog\Models\Activity;
 use stdClass;
+use Exception;
+use Fooino\Core\Traits\Loggable;
 
 class HelpersUnitTest extends TestCase
 {
@@ -32,7 +35,7 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(emptyToNullOrValue('NULL') == null);
         $this->assertTrue(emptyToNullOrValue('NULl') == null);
         $this->assertTrue(emptyToNullOrValue(collect([])) == null);
-        $this->assertTrue(emptyToNullOrValue('foobar') == 'foobar');
+        $this->assertTrue(emptyToNullOrValue(' foobar') == ' foobar');
         $this->assertTrue(emptyToNullOrValue(1) == 1);
         $this->assertTrue(emptyToNullOrValue(0) == 0);
         $this->assertTrue(emptyToNullOrValue(0.0) == 0.0);
@@ -43,6 +46,53 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(emptyToNullOrValue(false) == false);
         $this->assertTrue(emptyToNullOrValue([1, 'foobar', true]) == [1, 'foobar', true]);
         $this->assertTrue(emptyToNullOrValue(collect([1, 'foobar', true])) == collect([1, 'foobar', true]));
+    }
+
+
+    public function test_enum_or_value()
+    {
+        $object = new stdClass;
+        $this->assertTrue(enumOrValue(false) == false);
+        $this->assertTrue(enumOrValue(true) == true);
+        $this->assertTrue(enumOrValue(0) == 0);
+        $this->assertTrue(enumOrValue(123) == 123);
+        $this->assertTrue(enumOrValue(123.123) == 123.123);
+        $this->assertTrue(enumOrValue(null) == null);
+        $this->assertTrue(enumOrValue([]) == []);
+        $this->assertTrue(enumOrValue([123]) == [123]);
+        $this->assertTrue(enumOrValue($object) == $object);
+        $this->assertTrue(enumOrValue(collect(['123'])) == collect(['123']));
+
+        $this->assertTrue(enumOrValue(FoobarEnum::ACTIVE) == 'ACTIVE'); // FoobarEnum exist in eumableTraitUnitTest
+    }
+
+    public function test_value_or_default_helper()
+    {
+        $this->assertTrue(valueOrDefault(value: [], default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: '', default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: '      ', default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: '  "" ', default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: '  " ', default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: "  ' ", default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: "  '' ", default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: "  ' \" ' ", default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: null, default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: 'null', default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: 'NULL', default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: 'NULl', default: 'foobar') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: collect([]), default: 'foobar') == 'foobar');
+
+        $this->assertTrue(valueOrDefault(value: 'foobar', default: 'barfoo') == 'foobar');
+        $this->assertTrue(valueOrDefault(value: 0, default: 'foobar') == 0);
+        $this->assertTrue(valueOrDefault(value: 1, default: 'foobar') == 1);
+        $this->assertTrue(valueOrDefault(value: 0.0, default: 'foobar') == 0.0);
+        $this->assertTrue(valueOrDefault(value: "0", default: 'foobar') == "0");
+        $this->assertTrue(valueOrDefault(value: "0.0", default: 'foobar') == "0.0");
+        $this->assertTrue(valueOrDefault(value: 1.1, default: 'foobar') == 1.1);
+        $this->assertTrue(valueOrDefault(value: true, default: 'foobar') == true);
+        $this->assertTrue(valueOrDefault(value: false, default: 'foobar') == false);
+        $this->assertTrue(valueOrDefault(value: [1, 'foobar', true], default: 'foobar') == [1, 'foobar', true]);
+        $this->assertTrue(valueOrDefault(value: collect([1, 'foobar', true]), default: 'foobar') == collect([1, 'foobar', true]));
     }
 
     public function test_zero_to_null_or_value()
@@ -115,6 +165,7 @@ class HelpersUnitTest extends TestCase
         $this->assertTrue(removeEmptyString([1, 2]) == [1, 2]);
         $this->assertTrue(removeEmptyString(collect([1, 2])) == collect([1, 2]));
         $this->assertTrue(removeEmptyString($stdClass) == $stdClass);
+        $this->assertTrue(removeEmptyString('  ') == '  ');
         $this->assertTrue(removeEmptyString('foobar') == 'foobar');
         $this->assertTrue(removeEmptyString(' foobar') == 'foobar');
         $this->assertTrue(removeEmptyString('foobar ') == 'foobar');
@@ -171,6 +222,7 @@ class HelpersUnitTest extends TestCase
     public function test_change_percentage_helper()
     {
         $this->assertTrue(changePercentage(from: 200, to: 50) == 75);
+        $this->assertTrue(changePercentage(from: 200, to: 200) == 0);
         $this->assertTrue(changePercentage(from: 10, to: 3.331) == 66.69);
         $this->assertTrue(changePercentage(from: 200, to: 0) == -100);
         $this->assertTrue(changePercentage(from: 0, to: 200) == 100);
@@ -212,9 +264,10 @@ class HelpersUnitTest extends TestCase
             prettifyCanonical("test / prettify canonical ? %& $ *"),
             "test-/-prettify-canonical-?--&----"
         );
+
         $this->assertEquals(
-            prettifyCanonical("https://google.com"),
-            "https://google.com"
+            prettifyCanonical("https://google.com/laravel_tips!for-2025"),
+            "https://google.com/laravel-tips-for-2025"
         );
 
         $this->assertTrue(prettifyCanonical('') == null);
@@ -229,7 +282,7 @@ class HelpersUnitTest extends TestCase
         );
 
         $this->assertEquals(
-            prettifySlug("laravel-tips-for-2025"),
+            prettifySlug("laravel_tips!for-2025"),
             "laravel-tips-for-2025"
         );
 
@@ -247,12 +300,25 @@ class HelpersUnitTest extends TestCase
     public function test_get_user_timezone()
     {
         $this->assertTrue(getUserTimezone() == 'UTC');
+
         setUserTimezone('Asia/Tehran');
         $this->assertTrue(getUserTimezone() == 'Asia/Tehran');
+
+        config(['user-timezone' => null]);
+        $this->assertTrue(getUserTimezone() == 'UTC');
+    }
+
+    public function test_set_default_locale()
+    {
+        $this->assertTrue(config('app.locale') == 'en');
+        setDefaultLocale('fa');
+        $this->assertTrue(config('app.locale') == 'fa');
     }
 
     public function test_get_default_locale()
     {
+        $this->assertTrue(getDefaultLocale() == 'en');
+
         config(['app.locale' => null]);
         $this->assertTrue(getDefaultLocale() == 'fa');
     }
@@ -260,6 +326,34 @@ class HelpersUnitTest extends TestCase
     public function test_current_date()
     {
         $this->assertTrue(currentDate() == date('Y-m-d H:i:s'));
+    }
+
+    public function test_pg()
+    {
+        $this->assertTrue(pg() == FOOINO_PER_PAGE);
+
+        request()->merge(['per_page' => 10]);
+        $this->assertTrue(pg() == 10);
+
+        request()->merge(['per_page' => 0]);
+        $this->assertTrue(pg() == FOOINO_PER_PAGE);
+
+        request()->merge(['per_page' => 301]);
+        $this->assertTrue(pg() == FOOINO_PER_PAGE);
+    }
+
+    public function test_ef()
+    {
+        $this->assertTrue(ef('foo') == null);
+
+        request()->merge(['foo' => ' ']);
+        $this->assertTrue(ef('foo') == null);
+
+        request()->merge(['foo' => []]);
+        $this->assertTrue(ef('foo') == null);
+
+        request()->merge(['foo' => 'bar']);
+        $this->assertTrue(ef('foo') == 'bar');
     }
 
 
@@ -295,6 +389,21 @@ class HelpersUnitTest extends TestCase
     public function test_db_transaction()
     {
 
+        Schema::create('activity_log', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('log_name')->nullable();
+            $table->text('description');
+            $table->nullableMorphs('subject', 'subject');
+            $table->string('event')->nullable();
+            $table->nullableMorphs('causer', 'causer');
+            $table->json('properties')->nullable();
+            $table->uuid('batch_uuid')->nullable();
+            $table->timestamps();
+            $table->index('log_name');
+        });
+
+        activity()->enableLogging();
+
         Schema::create('users_table', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -302,6 +411,10 @@ class HelpersUnitTest extends TestCase
         });
 
         $user = new class extends User {
+
+            use
+                Infoable,
+                Loggable;
 
             protected $guarded = ['id'];
 
@@ -315,6 +428,10 @@ class HelpersUnitTest extends TestCase
                     'name'  => 'foo'
                 ]);
 
+                $user->find(1)->update([
+                    'name'  => 'foobar'
+                ]);
+
                 return $user->find(1);
 
                 // 
@@ -322,13 +439,23 @@ class HelpersUnitTest extends TestCase
         );
 
         $this->assertTrue($res instanceof User);
-        $this->assertTrue($res->name == 'foo');
+        $this->assertTrue($res->name == 'foobar');
         $this->assertDatabaseHas('users_table', [
             'id'    => 1,
-            'name'  => 'foo'
+            'name'  => 'foobar'
         ]);
 
-        $user->find(1)->delete();
+        $logs = Activity::select(['id', 'event', 'batch_uuid'])->get()->groupBy('batch_uuid')->toArray();
+        $this->assertTrue(count($logs) == 1); // the batching heppend
+
+        dbTransaction(function () use ($user) {
+            $user->find(1)->update([
+                'name'  => 'foo'
+            ]);
+            $user->find(1)->delete();
+        }, false);
+
+        $this->assertTrue(Activity::whereNull('batch_uuid')->count('id') == 2); // the batching not heppend
 
         $this->assertThrows(
             fn() => dbTransaction(
@@ -363,7 +490,7 @@ class HelpersUnitTest extends TestCase
         };
 
         $model->create([
-            'info'  => ''
+            'info'  => '   '
         ]);
         $this->assertTrue($model->find(1)->info == []);
         $this->assertTrue($model->find(1)->getRawOriginal('info') == null);
@@ -423,12 +550,12 @@ class HelpersUnitTest extends TestCase
 
         $user = new class extends User {
 
+            use Infoable;
+
             protected $guarded = ['id'];
 
             protected $table = 'users_table';
         };
-
-        $type = str(class_basename($user))->camel()->value();
 
         $user->create([]);
 
@@ -437,7 +564,7 @@ class HelpersUnitTest extends TestCase
             'creatorable_id'    => 1
         ]);
 
-        $b = $blog->with('creatorable')->find(1);
+        $b = $blog->with('creatorable')->find(1); // the user has not the data
         $this->assertEquals(
             userInfo($b, 'creatorable'),
             [
@@ -447,8 +574,21 @@ class HelpersUnitTest extends TestCase
                 'country_code'          => '',
                 'phone_number'          => '',
                 'phone_number_original' => '',
-                'type'                  => $type,
-                'type_translated'       => __('msg.' . $type),
+                'type'                  => $user->objectName()['type'],
+            ]
+        );
+
+        $b = $blog->find(1); // the relation not loaded and the function prevent n+1 query
+        $this->assertEquals(
+            userInfo($b, 'creatorable'),
+            [
+                'id'                    => 0,
+                'country_id'            => 0,
+                'full_name'             => '',
+                'country_code'          => '',
+                'phone_number'          => '',
+                'phone_number_original' => '',
+                'type'                  => __('msg.unknown'),
             ]
         );
 
@@ -466,7 +606,7 @@ class HelpersUnitTest extends TestCase
             'creatorable_id'    => 2
         ]);
 
-        $b = $blog->with('creatorable')->find(2);
+        $b = $blog->with('creatorable')->find(2); // everything is fine
 
         $this->assertEquals(
             userInfo($b, 'creatorable'),
@@ -477,8 +617,7 @@ class HelpersUnitTest extends TestCase
                 'country_code'          => 'IR',
                 'phone_number'          => '09121231234',
                 'phone_number_original' => '09121231234',
-                'type'                  => $type,
-                'type_translated'       => __('msg.' . $type),
+                'type'                  => $user->objectName()['type'],
             ]
         );
 
@@ -496,8 +635,7 @@ class HelpersUnitTest extends TestCase
                 'country_code'          => '',
                 'phone_number'          => '',
                 'phone_number_original' => '',
-                'type'                  => '',
-                'type_translated'       => __('msg.unknown'),
+                'type'                  => __('msg.unknown'),
             ]
         );
     }
@@ -569,6 +707,7 @@ class HelpersUnitTest extends TestCase
                 'removerable_id'    => 1,
             ]
         );
+
         $this->assertEquals(
             getUserable(
                 able: 'removerable',

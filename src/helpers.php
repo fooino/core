@@ -1,23 +1,52 @@
 <?php
 
-use Fooino\Core\Facades\Json;
-use Fooino\Core\Facades\Math;
-use Fooino\Core\Tasks\Tools\PrettifyInputTask;
-use Fooino\Core\Tasks\Tools\ReplaceForbiddenCharactersTask;
+use Fooino\Core\{
+    Facades\Date,
+    Facades\Math,
+    Facades\Json,
 
+    Tasks\Tools\PrettifyInputTask,
+    Tasks\Tools\ReplaceForbiddenCharactersTask
+};
+use Fooino\Core\Tasks\Tools\GetFooinoModelsFromCacheTask;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Facades\LogBatch;
+
+if (
+    !function_exists('dateConvert')
+) {
+
+    function dateConvert(
+        string|null $date,
+        string $format = 'Y-m-d H:i:s',
+        DateTimeZone $from = new DateTimeZone('UTC'),
+        DateTimeZone $to = new DateTimeZone('UTC'),
+        bool $throwException = false
+    ): string {
+
+        return Date::convert(
+            date: $date,
+            format: $format,
+            from: $from,
+            to: $to,
+            throwException: $throwException
+        );
+
+        // 
+    }
+}
 
 if (
     !function_exists('isJson')
 ) {
     function isJson(mixed $string): bool
     {
-        return Json::is($string);
+        return Json::is(string: $string);
     }
 }
 
@@ -190,6 +219,34 @@ if (
 }
 
 if (
+    !function_exists('roundUp')
+) {
+    function roundUp(string|int|float|null $number): string
+    {
+        return Math::roundUp(number: $number);
+    }
+}
+
+if (
+    !function_exists('roundDown')
+) {
+    function roundDown(string|int|float|null $number): string
+    {
+        return Math::roundDown(number: $number);
+    }
+}
+
+if (
+    !function_exists('roundClose')
+) {
+    function roundClose(string|int|float|null $number): string
+    {
+        return Math::roundClose(number: $number);
+    }
+}
+
+
+if (
     !function_exists('greaterThan')
 ) {
     function greaterThan(
@@ -313,11 +370,34 @@ if (
 }
 
 if (
+    !function_exists('enumOrValue')
+) {
+    function enumOrValue(mixed $object): mixed
+    {
+        return ($object instanceof \UnitEnum) ? $object->value : $object;
+    }
+}
+
+
+if (
+    !function_exists('valueOrDefault')
+) {
+    function valueOrDefault(
+        mixed $value,
+        mixed $default
+    ): mixed {
+
+        return emptyToNullOrValue(value: $value) ?? $default;
+    }
+}
+
+if (
     !function_exists('zeroToNullOrValue')
 ) {
     function zeroToNullOrValue(mixed $value = null): mixed
     {
         $value = emptyToNullOrValue(value: $value);
+
         return ((is_string($value) || is_numeric($value)) && in_array($value, [0, 0.0, '0', '0.0'])) ? null : $value;
     }
 }
@@ -469,7 +549,7 @@ if (
 if (
     !function_exists('prettifyCanonical')
 ) {
-    function prettifyCanonical(string|int|float|null|array|bool $value): string|int|float|null|array|bool
+    function prettifyCanonical(string|null $value): string|null
     {
         return emptyToNullOrValue(replaceForbiddenCharacters(
             value: $value,
@@ -482,7 +562,7 @@ if (
 if (
     !function_exists('prettifySlug')
 ) {
-    function prettifySlug(string|int|float|null|array|bool $value): string|int|float|null|array|bool
+    function prettifySlug(string|null $value): string|null
     {
         return emptyToNullOrValue(replaceForbiddenCharacters(
             value: $value,
@@ -511,6 +591,15 @@ if (
 }
 
 if (
+    !function_exists('setDefaultLocale')
+) {
+    function setDefaultLocale(string $locale): void
+    {
+        config(['app.locale' => $locale]);
+    }
+}
+
+if (
     !function_exists('getDefaultLocale')
 ) {
     function getDefaultLocale(): string
@@ -526,6 +615,15 @@ if (
     {
         $pg = request()->input('per_page');
         return (is_null($pg) || $pg <= 0 || $pg > 300) ? FOOINO_PER_PAGE : $pg;
+    }
+}
+
+if (
+    !function_exists('ef')
+) {
+    function ef(string $key): mixed
+    {
+        return emptyToNullOrValue(request()->input($key));
     }
 }
 
@@ -546,6 +644,7 @@ if (
         array $data = [],
         User|null $user = null
     ) {
+
         $req = new $request();
 
         $req->merge($data);
@@ -566,19 +665,25 @@ if (
     }
 }
 
-
-
 if (
     !function_exists('dbTransaction')
 ) {
 
-    function dbTransaction(callable $callback)
+    function dbTransaction(callable $callback, bool $useLogBatch = true): mixed
     {
         try {
 
             DB::beginTransaction();
 
+            if ($useLogBatch) {
+                LogBatch::startBatch();
+            }
+
             $result = $callback();
+
+            if ($useLogBatch) {
+                LogBatch::endBatch();
+            }
 
             DB::commit();
 
@@ -586,6 +691,10 @@ if (
 
             // 
         } catch (Exception $e) {
+
+            if ($useLogBatch) {
+                LogBatch::endBatch();
+            }
 
             DB::rollBack();
 
@@ -614,18 +723,36 @@ if (
         string $key
     ): array {
 
+        if (
+            !$model->relationLoaded($key)
+        ) {
+            return [
+                'id'                    => 0,
+                'country_id'            => 0,
+                'full_name'             => '',
+                'country_code'          => '',
+                'phone_number'          => '',
+                'phone_number_original' => '',
+                'type'                  => __(key: 'msg.unknown'),
+            ];
+        }
+
         $user = $model?->{$key};
-        $type = filled($user) ? str(class_basename($user))->camel()->value() : '';
 
         return [
             'id'                        => (float) ($user?->id ?? 0),
+
             'country_id'                => (float) ($user?->country_id ?? 0),
+
             'full_name'                 => (string) ($user?->full_name ?? $user?->name ?? trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? ''))),
+
             'country_code'              => (string) ($user?->country_code ?? ''),
+
             'phone_number'              => (string) ($user?->phone_number ?? ''),
+
             'phone_number_original'     => (string) ($user?->getRawOriginal('phone_number', '') ?? ''),
-            'type'                      => $type,
-            'type_translated'           => __(key: 'msg.' . (filled($type) ? $type : 'unknown')),
+
+            'type'                      => $user?->objectName()['type'] ?? __(key: 'msg.unknown'),
         ];
     }
 }
@@ -661,6 +788,24 @@ if (
     }
 }
 
+
+if (
+    !function_exists('getFooinoModelByName')
+) {
+    function getFooinoModelByName(string $name): string|null
+    {
+        return getFooinoModels()[$name] ?? null;
+    }
+}
+
+if (
+    !function_exists('getFooinoModels')
+) {
+    function getFooinoModels(): array
+    {
+        return app(GetFooinoModelsFromCacheTask::class)->run();
+    }
+}
 
 if (
     !function_exists('isDriverSqlite')

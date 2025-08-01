@@ -3,7 +3,6 @@
 namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Models\Tag;
-use Fooino\Core\Facades\Json;
 use Fooino\Core\Tests\TestCase;
 use Fooino\Core\Traits\Seoable;
 use Illuminate\Database\Eloquent\Model;
@@ -106,7 +105,7 @@ class SeoableTraitUnitTest extends TestCase
             'slug'              => 'the--is---a-slug',
             'meta_title'        => 'foobar',
             'meta_description'  => 'fooobar',
-            'keywords'          => Json::encode(['foo', 'bar']),
+            'keywords'          => jsonEncode(['foo', 'bar']),
             'canonical'         => 'https://example.com?q=foo-bar&status=-foo',
         ]);
 
@@ -134,7 +133,7 @@ class SeoableTraitUnitTest extends TestCase
         $this->assertTrue($this->post->find(2)->keywords == ['livewire']);
         $this->assertDatabaseHas('posts_table', [
             'id'        => 2,
-            'keywords'  => Json::encode(['livewire']),
+            'keywords'  => jsonEncode(['livewire']),
         ]);
 
         $this->assertEquals(Tag::search('laravel')->count(), 1);

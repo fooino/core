@@ -11,7 +11,7 @@ enum LanguageStatus: string
     case ACTIVE     = 'ACTIVE';
     case INACTIVE   = 'INACTIVE';
 
-    public static function statuses(int|float $id): array
+    public static function statuses(int $id): array
     {
         return [
             self::active(id: $id),
@@ -19,7 +19,7 @@ enum LanguageStatus: string
         ];
     }
 
-    public static function active(int|float|null $id = null): array
+    public static function active(int|null $id = null): array
     {
         return self::maker(
             key: self::ACTIVE->value,
@@ -30,7 +30,7 @@ enum LanguageStatus: string
         );
     }
 
-    public static function inactive(int|float|null $id = null): array
+    public static function inactive(int|null $id = null): array
     {
         return self::maker(
             key: self::INACTIVE->value,

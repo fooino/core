@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Cache;
 
 class RecacheActiveLanguagesTask
 {
-    public function run()
+    public function run(): void
     {
         Cache::forget(FOOINO_ACTIVE_LANGUAGES_CACHE_KEY);
-        app(GetActiveLanguagesTask::class)->reset()->run();
+        app(GetActiveLanguagesFromCacheTask::class)->reset()->run();
     }
 }
