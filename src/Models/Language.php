@@ -9,7 +9,8 @@ use Fooino\Core\{
     Traits\Infoable,
     Traits\Searchable,
     Traits\Dateable,
-    Traits\Loggable
+    Traits\Loggable,
+    Traits\Prioritiable
 };
 use Illuminate\Database\Eloquent\{
     Builder,
@@ -26,6 +27,7 @@ class Language extends Model
         Searchable,
         Dateable,
         Loggable,
+        Prioritiable,
         SoftDeletes;
 
     protected $guarded = ['id'];

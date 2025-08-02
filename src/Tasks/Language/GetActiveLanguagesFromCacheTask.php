@@ -14,7 +14,8 @@ class GetActiveLanguagesFromCacheTask extends SingletonableTask
             key: FOOINO_ACTIVE_LANGUAGES_CACHE_KEY,
             ttl: FOOINO_MEDIUM_TTL_TIME,
             callback: function () {
-                return Language::sortByStateAndStatus()
+                return Language::disablePrioritiable()
+                    ->sortByStateAndStatus()
                     ->select([
                         'id',
                         'name',
