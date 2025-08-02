@@ -22,7 +22,7 @@ class SyncLanguagesCommand extends Command
 
             DB::beginTransaction();
 
-            app(LoadSeederConfigTask::class)->run(path: base_path('config/fooino-core-languages.php'));
+            app(LoadSeederConfigTask::class)->run(path: base_path('vendor/fooino/core/config/fooino-core-languages.php'));
 
             $recache = false;
             $insert = [];
