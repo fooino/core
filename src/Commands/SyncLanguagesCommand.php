@@ -7,6 +7,7 @@ use Fooino\Core\Tasks\Seeder\LoadSeederConfigTask;
 use Fooino\Core\Tasks\Language\RecacheActiveLanguagesTask;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Fooino\Core\Tasks\Tools\PrettifyInputTask;
 use Exception;
 
 class SyncLanguagesCommand extends Command
@@ -26,10 +27,11 @@ class SyncLanguagesCommand extends Command
 
             $recache = false;
             $insert = [];
+            $languages = app(PrettifyInputTask::class)->run('languages', config('fooino-core-languages', []));
             $dbLanguages = Language::pluck('id', 'code')->toArray(); // the array will be ['code' => 'id']
 
 
-            foreach (config('fooino-core-languages', []) as $lang) {
+            foreach ($languages as $lang) {
 
                 $id = $dbLanguages[strtolower($lang['code'])] ?? null;
 
@@ -42,6 +44,7 @@ class SyncLanguagesCommand extends Command
                 $insert[]   = [
                     'code'          => strtolower($lang['code']),
                     'name'          => $lang['name'],
+                    'priority'      => $lang['priority'] ?? 0,
                     'direction'     => $lang['direction'],
                     'status'        => $lang['status'],
                     'state'         => $lang['state'],

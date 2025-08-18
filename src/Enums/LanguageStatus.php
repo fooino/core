@@ -24,7 +24,7 @@ enum LanguageStatus: string
         return self::maker(
             key: self::ACTIVE->value,
             query: 'status=' . self::ACTIVE->value,
-            endpoint: filled($id) ? "languages/{$id}/activate" : '',
+            endpoint: filled($id) ? "activate({$id})" : '',
             icon: 'check_circle',
             color: FOOINO_TEXT_SUCCESS
         );
@@ -35,7 +35,7 @@ enum LanguageStatus: string
         return self::maker(
             key: self::INACTIVE->value,
             query: "status=" . self::INACTIVE->value,
-            endpoint: filled($id) ? "languages/{$id}/deactivate" : '',
+            endpoint: filled($id) ? "deactivate({$id})" : '',
             icon: 'cancel',
             color: FOOINO_TEXT_DANGER
         );

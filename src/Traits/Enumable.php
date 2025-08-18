@@ -39,9 +39,10 @@ trait Enumable
         string $name        = '',
         string $query       = '',
         string $endpoint    = '',
-        string $iconStyle   = 'material-symbols-outlined',
+        string $iconClass   = 'material-symbols-outlined',
         string $icon        = '',
         string $color       = '',
+        string $bgColor     = '',
         array $additional   = [],
     ): array {
 
@@ -49,9 +50,10 @@ trait Enumable
             [
                 'key'           => $key,
                 'name'          => filled($name) ? $name : ($key == 'defaultKey' ? 'unknown' :  __(key: "msg." . lcfirst(str(strtolower($key))->camel()->value()))),
-                'icon_style'    => $iconStyle,
+                'icon_class'    => $iconClass,
                 'icon'          => $icon,
-                'color'         => $color
+                'color'         => $color,
+                'bg_color'      => filled($bgColor) ? $bgColor : str_replace('text-', 'bg-', $color)
             ],
             $additional
         );

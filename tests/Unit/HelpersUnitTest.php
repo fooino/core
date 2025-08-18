@@ -11,12 +11,12 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Validation\ValidationException;
 use Fooino\Core\Traits\Infoable;
 use Spatie\Activitylog\Models\Activity;
-use stdClass;
-use Exception;
+use Fooino\Core\Exceptions\ResolveRequestValidationException;
 use Fooino\Core\Traits\Loggable;
+use Exception;
+use stdClass;
 
 class HelpersUnitTest extends TestCase
 {
@@ -366,7 +366,7 @@ class HelpersUnitTest extends TestCase
             fn() => resolveRequest(
                 request: TestFormRequest::class
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'The name field is required'
         );
 

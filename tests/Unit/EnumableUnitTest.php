@@ -42,9 +42,10 @@ class EnumableUnitTest extends TestCase
                 [
                     'key'           => 'defaultKey',
                     'name'          => 'unknown',
-                    'icon_style'    => 'material-symbols-outlined',
+                    'icon_class'    => 'material-symbols-outlined',
                     'icon'          => '',
                     'color'         => '',
+                    'bg_color'      => '',
                 ]
         );
 
@@ -52,7 +53,7 @@ class EnumableUnitTest extends TestCase
             FoobarEnum::maker(
                 key: FoobarEnum::ACTIVE->value,
                 query: 'status=' . FoobarEnum::ACTIVE->value,
-                endpoint: "languages/1/activate",
+                endpoint: "activate(1)",
                 icon: 'icon',
                 color: 'red',
                 additional: [
@@ -63,11 +64,12 @@ class EnumableUnitTest extends TestCase
                 [
                     'key'           => 'ACTIVE',
                     'name'          => __(key: 'msg.active'),
-                    'endpoint'      => 'languages/1/activate',
+                    'endpoint'      => 'activate(1)',
                     'query'         => 'status=ACTIVE',
-                    'icon_style'    => 'material-symbols-outlined',
+                    'icon_class'    => 'material-symbols-outlined',
                     'icon'          => 'icon',
                     'color'         => 'red',
+                    'bg_color'      => 'red',
                     'foo'           => 'bar'
                 ]
         );

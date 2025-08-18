@@ -4,6 +4,7 @@ return [
     [
         'name'                  => 'فارسی',
         'code'                  => 'fa',
+        'priority'              => 1,
         'direction'             => 'RTL',
         'status'                => 'ACTIVE',
         'state'                 => 'DEFAULT',
@@ -14,6 +15,7 @@ return [
     [
         'name'                  => 'English',
         'code'                  => 'en',
+        'priority'              => 100,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -127,8 +129,9 @@ return [
         ]
     ],
     [
-        'name'                  => 'عربی',
+        'name'                  => 'العربية',
         'code'                  => 'ar',
+        'priority'              => 200,
         'direction'             => 'RTL',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -162,6 +165,7 @@ return [
     [
         'name'                  => 'Chinese',
         'code'                  => 'zh',
+        'priority'              => 300,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -174,6 +178,7 @@ return [
     [
         'name'                  => 'Spanish',
         'code'                  => 'es',
+        'priority'              => 400,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -224,6 +229,7 @@ return [
     [
         'name'                  => 'Hindi',
         'code'                  => 'hi',
+        'priority'              => 500,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -235,6 +241,7 @@ return [
     [
         'name'                  => 'Portuguese',
         'code'                  => 'pt',
+        'priority'              => 600,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -267,6 +274,7 @@ return [
     [
         'name'                  => 'Bengali',
         'code'                  => 'bn',
+        'priority'              => 700,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -278,6 +286,7 @@ return [
     [
         'name'                  => 'Russian',
         'code'                  => 'ru',
+        'priority'              => 800,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -311,6 +320,7 @@ return [
     [
         'name'                  => 'Japanese',
         'code'                  => 'ja',
+        'priority'              => 900,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -321,6 +331,7 @@ return [
     [
         'name'                  => 'Vietnamese',
         'code'                  => 'vi',
+        'priority'              => 1000,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -331,6 +342,7 @@ return [
     [
         'name'                  => 'Turkish',
         'code'                  => 'tr',
+        'priority'              => 1100,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -342,6 +354,7 @@ return [
     [
         'name'                  => 'Korean',
         'code'                  => 'ko',
+        'priority'              => 1200,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -353,6 +366,7 @@ return [
     [
         'name'                  => 'French',
         'code'                  => 'fr',
+        'priority'              => 1300,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -371,6 +385,7 @@ return [
     [
         'name'                  => 'German',
         'code'                  => 'de',
+        'priority'              => 1400,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -386,6 +401,7 @@ return [
     [
         'name'                  => 'Italian',
         'code'                  => 'it',
+        'priority'              => 1500,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -399,6 +415,7 @@ return [
     [
         'name'                  => 'Kurmanji Kurdish',
         'code'                  => 'ku',
+        'priority'              => 1600,
         'direction'             => 'LTR',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -412,6 +429,7 @@ return [
     [
         'name'                  => 'Sorani Kurdish',
         'code'                  => 'ku-so',
+        'priority'              => 1700,
         'direction'             => 'RTL',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',
@@ -423,6 +441,7 @@ return [
     [
         'name'                  => 'Southern Kurdish',
         'code'                  => 'ku-su',
+        'priority'              => 1800,
         'direction'             => 'RTL',
         'status'                => 'INACTIVE',
         'state'                 => 'NON_DEFAULT',

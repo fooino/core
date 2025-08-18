@@ -8,6 +8,7 @@ use Fooino\Core\{
     Tasks\Tools\PrettifyInputTask,
     Tasks\Tools\ReplaceForbiddenCharactersTask
 };
+use Fooino\Core\Exceptions\ResolveRequestValidationException;
 use Fooino\Core\Tasks\Tools\GetFooinoModelsFromCacheTask;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Spatie\Activitylog\Facades\LogBatch;
 
 if (
@@ -645,23 +647,33 @@ if (
         User|null $user = null
     ) {
 
-        $req = new $request();
+        try {
 
-        $req->merge($data);
+            $req = new $request();
 
-        if (
-            filled($user)
-        ) {
-            $req->setUserResolver(fn() => $user);
+            $req->merge($data);
+
+            if (
+                filled($user)
+            ) {
+                $req->setUserResolver(fn() => $user);
+            }
+
+            $container = app();
+            $req
+                ->setContainer($container)
+                ->setRedirector($container->make('redirect'))
+                ->validateResolved();
+
+            return $req;
+
+            // 
+        } catch (ValidationException $e) {
+
+            throw new ResolveRequestValidationException(errors: $e->errors());
+
+            // 
         }
-
-        $container = app();
-        $req
-            ->setContainer($container)
-            ->setRedirector($container->make('redirect'))
-            ->validateResolved();
-
-        return $req;
     }
 }
 
