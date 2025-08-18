@@ -5,6 +5,7 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Actions\Admin\ChangePriorityAction;
 use Fooino\Core\Events\ModelPriorityChangedEvent;
+use Fooino\Core\Exceptions\ResolveRequestValidationException;
 use Fooino\Core\Http\Requests\Admin\Priority\ChangePriorityRequest;
 use Fooino\Core\Tests\TestCase;
 use Fooino\Core\Traits\Infoable;
@@ -15,7 +16,6 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Validation\ValidationException;
 
 class ChangePriorityActionUnitTest extends TestCase
 {
@@ -94,7 +94,7 @@ class ChangePriorityActionUnitTest extends TestCase
 
         $this->assertThrows(
             fn() => resolveRequest(ChangePriorityRequest::class),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'The model field is required'
         );
 
@@ -105,7 +105,7 @@ class ChangePriorityActionUnitTest extends TestCase
                     'model' => '   '
                 ]
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'The model field is required'
         );
 
@@ -116,7 +116,7 @@ class ChangePriorityActionUnitTest extends TestCase
                     'model' => 'foobar'
                 ]
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'msg.modelIsInvalid'
         );
 
@@ -127,7 +127,7 @@ class ChangePriorityActionUnitTest extends TestCase
                     'model' => get_class($withoutInfoable)
                 ]
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'msg.modelIsInvalid'
         );
 
@@ -138,7 +138,7 @@ class ChangePriorityActionUnitTest extends TestCase
                     'model' => get_class($withoutPrioritiable)
                 ]
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'msg.modelIsInvalid'
         );
 

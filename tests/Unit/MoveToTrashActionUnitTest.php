@@ -3,6 +3,7 @@
 namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Actions\Admin\MoveToTrashAction;
+use Fooino\Core\Exceptions\ResolveRequestValidationException;
 use Fooino\Core\Http\Requests\Admin\Trash\MoveToTrashRequest;
 use Fooino\Core\Tests\TestCase;
 use Fooino\Core\Traits\Infoable;
@@ -15,7 +16,6 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Validation\ValidationException;
 
 class MoveToTrashActionUnitTest extends TestCase
 {
@@ -113,7 +113,7 @@ class MoveToTrashActionUnitTest extends TestCase
 
         $this->assertThrows(
             fn() => resolveRequest(MoveToTrashRequest::class),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'The model field is required'
         );
 
@@ -124,7 +124,7 @@ class MoveToTrashActionUnitTest extends TestCase
                     'model' => '   '
                 ]
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'The model field is required'
         );
 
@@ -135,7 +135,7 @@ class MoveToTrashActionUnitTest extends TestCase
                     'model' => 'foobar'
                 ]
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'msg.modelIsInvalid'
         );
 
@@ -146,7 +146,7 @@ class MoveToTrashActionUnitTest extends TestCase
                     'model' => get_class($withoutInfoable)
                 ]
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'msg.modelIsInvalid'
         );
 
@@ -157,7 +157,7 @@ class MoveToTrashActionUnitTest extends TestCase
                     'model' => get_class($withoutTrashable)
                 ]
             ),
-            ValidationException::class,
+            ResolveRequestValidationException::class,
             'msg.modelIsInvalid'
         );
 
