@@ -23,20 +23,19 @@ class LoadSeederConfigTask
 
     private function prettifyPath(string $path): string
     {
-        if (
-            str_contains($path, '/vendor/orchestra/testbench-core/laravel')
-        ) {
-            return str_replace(
-                [
-                    '/vendor/orchestra/testbench-core/laravel',
-                    '/vendor/fooino/core',
-                    '/vendor/fooino/world',
-                ],
-                '',
-                $path
-            );
-        }
 
-        return $path;
+        $path = str_replace('/vendor/orchestra/testbench-core/laravel', '', $path);
+
+        if (
+            file_exists($path)
+        ) {
+
+            return $path;
+
+            // 
+        } else {
+
+            return preg_replace('#/vendor/fooino/[^/]+#', '', $path);
+        }
     }
 }

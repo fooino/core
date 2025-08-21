@@ -3,7 +3,7 @@
 namespace Fooino\Core\Models;
 
 use Fooino\Core\Traits\Dateable;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Fooino\Core\Traits\Searchable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +16,7 @@ class Trash extends Model
     use
         SoftDeletes,
         Dateable,
-        Infoable,
+        Modelable,
         Searchable;
 
     protected $guarded = ['id'];

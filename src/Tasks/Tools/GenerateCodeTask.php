@@ -72,7 +72,7 @@ class GenerateCodeTask
         return $this;
     }
 
-    public function run(): string|int
+    public function run(): string|int|float
     {
         $this->attempted();
 
@@ -131,7 +131,7 @@ class GenerateCodeTask
         }
     }
 
-    private function generateCode(): int|string
+    private function generateCode(): string|int|float
     {
         return match (true) {
 

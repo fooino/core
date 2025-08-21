@@ -3,7 +3,7 @@
 namespace Fooino\Core\Models;
 
 use Fooino\Core\Traits\FullTextSearch;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,7 +11,7 @@ class Tag extends Model
 {
     use
         FullTextSearch,
-        Infoable;
+        Modelable;
 
     protected $guarded = ['id'];
 

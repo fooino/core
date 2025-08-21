@@ -5,7 +5,7 @@ namespace Fooino\Core\Tests\Unit;
 use Fooino\Core\Models\Trash;
 use Fooino\Core\Tests\TestCase;
 use Fooino\Core\Traits\Dateable;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Fooino\Core\Traits\Trashable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -46,7 +46,7 @@ class TrashableTraitUnitTest extends TestCase
         {
             use
                 SoftDeletes,
-                Infoable;
+                Modelable;
 
             protected $guarded = ['id'];
 
@@ -59,7 +59,7 @@ class TrashableTraitUnitTest extends TestCase
             use
                 SoftDeletes,
                 Trashable,
-                Infoable,
+                Modelable,
                 Dateable;
 
             protected $guarded = ['id'];
@@ -196,7 +196,7 @@ class TrashableTraitUnitTest extends TestCase
             use
                 SoftDeletes,
                 Trashable,
-                Infoable;
+                Modelable;
 
             protected $guarded = ['id'];
 

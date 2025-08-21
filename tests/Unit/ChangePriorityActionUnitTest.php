@@ -8,7 +8,7 @@ use Fooino\Core\Events\ModelPriorityChangedEvent;
 use Fooino\Core\Exceptions\ResolveRequestValidationException;
 use Fooino\Core\Http\Requests\Admin\Priority\ChangePriorityRequest;
 use Fooino\Core\Tests\TestCase;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Fooino\Core\Traits\Prioritiable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Schema\Blueprint;
@@ -39,7 +39,7 @@ class ChangePriorityActionUnitTest extends TestCase
         $this->user = new class extends User
         {
             use
-                Infoable,
+                Modelable,
                 Prioritiable;
 
             protected $guarded = ['id'];
@@ -63,7 +63,7 @@ class ChangePriorityActionUnitTest extends TestCase
     public function test_the_change_priority_request_validation()
     {
 
-        $withoutInfoable = new class extends User
+        $withoutModelable = new class extends User
         {
             use
                 Prioritiable;
@@ -75,7 +75,7 @@ class ChangePriorityActionUnitTest extends TestCase
         $withoutPrioritiable = new class extends User
         {
             use
-                Infoable;
+                Modelable;
 
             protected $guarded = ['*'];
             protected $table = 'users_table';
@@ -84,7 +84,7 @@ class ChangePriorityActionUnitTest extends TestCase
         $withoutPermission = new class extends User
         {
             use
-                Infoable,
+                Modelable,
                 Prioritiable;
 
             protected $guarded = ['*'];
@@ -124,7 +124,7 @@ class ChangePriorityActionUnitTest extends TestCase
             fn() => resolveRequest(
                 request: ChangePriorityRequest::class,
                 data: [
-                    'model' => get_class($withoutInfoable)
+                    'model' => get_class($withoutModelable)
                 ]
             ),
             ResolveRequestValidationException::class,

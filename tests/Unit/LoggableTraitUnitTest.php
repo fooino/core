@@ -5,7 +5,7 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Traits\Trashable;
 use Fooino\Core\Tests\TestCase;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Fooino\Core\Traits\Loggable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -65,7 +65,7 @@ class LoggableTraitUnitTest extends TestCase
         $user = new class extends User
         {
             use
-                Infoable,
+                Modelable,
                 SoftDeletes,
                 Trashable,
                 Loggable;

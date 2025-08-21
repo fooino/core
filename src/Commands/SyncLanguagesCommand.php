@@ -23,6 +23,8 @@ class SyncLanguagesCommand extends Command
 
             DB::beginTransaction();
 
+            activity()->disableLogging();
+
             app(LoadSeederConfigTask::class)->run(path: base_path('vendor/fooino/core/config/fooino-core-languages.php'));
 
             $recache = false;
@@ -31,7 +33,7 @@ class SyncLanguagesCommand extends Command
             $dbLanguages = Language::pluck('id', 'code')->toArray(); // the array will be ['code' => 'id']
 
 
-            foreach ($languages as $lang) {
+            foreach ($languages as $key => $lang) {
 
                 $id = $dbLanguages[strtolower($lang['code'])] ?? null;
 
@@ -44,7 +46,7 @@ class SyncLanguagesCommand extends Command
                 $insert[]   = [
                     'code'          => strtolower($lang['code']),
                     'name'          => $lang['name'],
-                    'priority'      => $lang['priority'] ?? 0,
+                    'priority'      => $lang['priority'] ?? ($key * FOOINO_PRIORITY_STEP),
                     'direction'     => $lang['direction'],
                     'status'        => $lang['status'],
                     'state'         => $lang['state'],

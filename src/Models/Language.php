@@ -6,7 +6,7 @@ use Fooino\Core\{
     Enums\Direction,
     Enums\LanguageState,
     Enums\LanguageStatus,
-    Traits\Infoable,
+    Traits\Modelable,
     Traits\Searchable,
     Traits\Dateable,
     Traits\Loggable,
@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\{
 class Language extends Model
 {
     use
-        Infoable,
+        Modelable,
         Searchable,
         Dateable,
         Loggable,
@@ -60,7 +60,7 @@ class Language extends Model
 
     public function getFlagAttribute()
     {
-        return app()->environment() == 'testing' ? __DIR__ . "/../../assets/languages/{$this->code}.png" : asset("vendor/fooino/core/languages/{$this->code}.png");
+        return app()->environment() == 'testing' ? __DIR__ . "/../../assets/language/flags/{$this->code}.png" : asset("vendor/fooino/core/language/flags/{$this->code}.png");
     }
 
     public function getDirectionDetailAttribute()

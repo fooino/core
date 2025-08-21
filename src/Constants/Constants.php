@@ -18,6 +18,8 @@ define('FOOINO_TEXT_WARNING', 'text-warning');
 
 define('FOOINO_ACTIVE_LANGUAGES_CACHE_KEY', 'fooino-active-languages');
 define('FOOINO_MODELS_CACHE_KEY', 'fooino-models');
+define('FOOINO_ALL_COUNTRIES_CACHE_KEY', 'fooino-all-countries-cache-key');
+define('FOOINO_ACTIVE_COUNTRIES_CACHE_KEY', 'fooino-active-countries-cache-key');
 
 
 

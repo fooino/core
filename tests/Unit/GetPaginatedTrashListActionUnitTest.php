@@ -7,7 +7,7 @@ use Fooino\Core\Actions\Admin\GetPaginatedTrashListAction;
 use Fooino\Core\Models\Trash;
 use Fooino\Core\Tests\TestCase;
 use Fooino\Core\Traits\Dateable;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Fooino\Core\Traits\Trashable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -39,7 +39,7 @@ class GetPaginatedTrashListActionUnitTest extends TestCase
                 SoftDeletes,
                 Dateable,
                 Trashable,
-                Infoable;
+                Modelable;
 
             protected $guarded = ['id'];
             protected $table = 'products_table';

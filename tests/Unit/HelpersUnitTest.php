@@ -11,7 +11,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Spatie\Activitylog\Models\Activity;
 use Fooino\Core\Exceptions\ResolveRequestValidationException;
 use Fooino\Core\Traits\Loggable;
@@ -413,7 +413,7 @@ class HelpersUnitTest extends TestCase
         $user = new class extends User {
 
             use
-                Infoable,
+                Modelable,
                 Loggable;
 
             protected $guarded = ['id'];
@@ -550,7 +550,7 @@ class HelpersUnitTest extends TestCase
 
         $user = new class extends User {
 
-            use Infoable;
+            use Modelable;
 
             protected $guarded = ['id'];
 

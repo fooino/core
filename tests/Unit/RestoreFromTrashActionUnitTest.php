@@ -5,7 +5,7 @@ namespace Fooino\Core\Tests\Unit;
 use Fooino\Core\Actions\Admin\RestoreFromTrashAction;
 use Fooino\Core\Models\Trash;
 use Fooino\Core\Tests\TestCase;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Fooino\Core\Traits\Trashable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
@@ -45,7 +45,7 @@ class RestoreFromTrashActionUnitTest extends TestCase
         $this->product = new class extends Model {
 
             use SoftDeletes,
-                Infoable,
+                Modelable,
                 Trashable;
 
             protected $table = 'products_table';
@@ -56,7 +56,7 @@ class RestoreFromTrashActionUnitTest extends TestCase
         $this->user = new class extends User {
 
             use SoftDeletes,
-                Infoable,
+                Modelable,
                 Trashable;
 
             protected $table = 'users_table';
