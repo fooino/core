@@ -3,7 +3,8 @@
 
 namespace Fooino\Core\Traits;
 
-trait Infoable
+
+trait Modelable
 {
 
     public function objectNamespace(): string
@@ -89,5 +90,16 @@ trait Infoable
             'name'  => $this->objectUsedTranslatable() ? (($this?->translateOrDefault(getDefaultLocale())?->{$this->objectKeyName()}) ?? $unknown) : (($this?->{$this->objectKeyName()}) ?? $unknown),
             'type'  => __(key: 'msg.' . lcfirst($this->objectClassName()))
         ];
+    }
+
+
+    public function setLocaleAttribute($value)
+    {
+        $this->attributes['locale'] = emptyToNullOrValue(strtolower((string) $value));
+    }
+
+    public function getLocaleAttribute($value)
+    {
+        return emptyToNullOrValue(strtolower((string) $value));
     }
 }

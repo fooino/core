@@ -40,7 +40,34 @@ trait Searchable
         }
     }
 
-    public function scopeInIds(Builder $query, array|int|null $ids = null): void
+    public function scopeSortByStatus(Builder $query, bool $byPriority = true)
+    {
+        $query
+            ->orderByRaw(
+                "CASE 
+                    WHEN `status` = 'ACTIVE' THEN 1
+                    WHEN `status` = 'INACTIVE' THEN 0
+                END 
+                DESC"
+            );
+
+        if (
+            $byPriority
+        ) {
+            $table = $this->getTable();
+            $query
+                ->orderBy(
+                    $table . '.priority',
+                    (method_exists($this, 'getPrioritySort') ? $this->getPrioritySort() : 'ASC')
+                )
+                ->orderBy(
+                    $table . '.id',
+                    (method_exists($this, 'getIdSort') ? $this->getIdSort() : 'DESC')
+                );
+        }
+    }
+
+    public function scopeInIds(Builder $query, array|int|float|null $ids = null): void
     {
         if (
             !is_null($ids)

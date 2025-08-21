@@ -6,7 +6,7 @@ use Fooino\Core\Actions\Admin\MoveToTrashAction;
 use Fooino\Core\Exceptions\ResolveRequestValidationException;
 use Fooino\Core\Http\Requests\Admin\Trash\MoveToTrashRequest;
 use Fooino\Core\Tests\TestCase;
-use Fooino\Core\Traits\Infoable;
+use Fooino\Core\Traits\Modelable;
 use Fooino\Core\Traits\Trashable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
@@ -46,7 +46,7 @@ class MoveToTrashActionUnitTest extends TestCase
         $this->product = new class extends Model {
 
             use SoftDeletes,
-                Infoable,
+                Modelable,
                 Trashable;
 
             protected $table = 'products_table';
@@ -57,7 +57,7 @@ class MoveToTrashActionUnitTest extends TestCase
         $this->user = new class extends User {
 
             use SoftDeletes,
-                Infoable,
+                Modelable,
                 Trashable;
 
             protected $table = 'users_table';
@@ -79,7 +79,7 @@ class MoveToTrashActionUnitTest extends TestCase
     public function test_the_move_to_trash_request_validation()
     {
 
-        $withoutInfoable = new class extends User
+        $withoutModelable = new class extends User
         {
             use
                 SoftDeletes,
@@ -93,7 +93,7 @@ class MoveToTrashActionUnitTest extends TestCase
         {
             use
                 SoftDeletes,
-                Infoable;
+                Modelable;
 
             protected $guarded = ['*'];
             protected $table = 'users_table';
@@ -103,7 +103,7 @@ class MoveToTrashActionUnitTest extends TestCase
         {
             use
                 SoftDeletes,
-                Infoable,
+                Modelable,
                 Trashable;
 
             protected $guarded = ['*'];
@@ -143,7 +143,7 @@ class MoveToTrashActionUnitTest extends TestCase
             fn() => resolveRequest(
                 request: MoveToTrashRequest::class,
                 data: [
-                    'model' => get_class($withoutInfoable)
+                    'model' => get_class($withoutModelable)
                 ]
             ),
             ResolveRequestValidationException::class,

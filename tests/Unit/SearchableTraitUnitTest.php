@@ -85,6 +85,25 @@ class SearchableTraitUnitTest extends TestCase
 
     }
 
+
+    public function test_sort_by_status_scope()
+    {
+
+        $users = $this->user->sortByStatus()->get();
+
+        $this->assertTrue($users[0]->name == 'fourth');
+        $this->assertTrue($users[1]->name == 'third');
+        $this->assertTrue($users[2]->name == 'second');
+        $this->assertTrue($users[3]->name == 'first');
+
+        $users = $this->user->sortByStatus(byPriority: false)->get();
+
+        $this->assertTrue($users[0]->name == 'second');
+        $this->assertTrue($users[1]->name == 'third');
+        $this->assertTrue($users[2]->name == 'fourth');
+        $this->assertTrue($users[3]->name == 'first');
+    }
+
     public function test_inids_scope()
     {
         $this->assertTrue($this->user->inIds(null)->count('id') == 4);
