@@ -27,6 +27,16 @@ trait Modelable
         return once(fn() => class_uses($this));
     }
 
+    public function modelStatusEnumClass(): string
+    {
+        return once(fn() => str_replace('\Models\\', '\Enums\\', $this->objectNamespace() . 'Status'));
+    }
+
+    public function modelStateEnumClass(): string
+    {
+        return once(fn() => str_replace('\Models\\', '\Enums\\', $this->objectNamespace() . 'State'));
+    }
+
     public function objectUsedSoftDeletes(): bool
     {
         return once(
