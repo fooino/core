@@ -5,7 +5,6 @@ namespace Fooino\Core\Models;
 use Fooino\Core\{
     Enums\Direction,
     Enums\LanguageState,
-    Enums\LanguageStatus,
     Traits\Modelable,
     Traits\Searchable,
     Traits\Dateable,
@@ -68,21 +67,6 @@ class Language extends Model
         return Direction::from(value: $this->direction)->detail();
     }
 
-    public function getStatusDetailAttribute()
-    {
-        return LanguageStatus::from(value: $this->status)->detail();
-    }
-
-    public function getStatusesAttribute()
-    {
-        return LanguageStatus::statuses(id: $this->id);
-    }
-
-    public function getStateDetailAttribute()
-    {
-        return LanguageState::from(value: $this->state)->detail();
-    }
-
     public function getEditableAttribute()
     {
         return (int) ($this->state == LanguageState::NON_DEFAULT->value);
@@ -131,44 +115,6 @@ class Language extends Model
     public function scopeLTR(Builder $query): void
     {
         $query->direction(Direction::LTR);
-    }
-
-    public function scopeStatus(Builder $query, LanguageStatus|string|null $status = null): void
-    {
-        if (
-            filled($status)
-        ) {
-            $query->where('status', enumOrValue($status));
-        }
-    }
-
-    public function scopeActive(Builder $query): void
-    {
-        $query->status(LanguageStatus::ACTIVE);
-    }
-
-    public function scopeInactive(Builder $query): void
-    {
-        $query->status(LanguageStatus::INACTIVE);
-    }
-
-    public function scopeState(Builder $query, LanguageState|string|null $state = null): void
-    {
-        if (
-            filled($state)
-        ) {
-            $query->where('state', enumOrValue($state));
-        }
-    }
-
-    public function scopeDefault(Builder $query): void
-    {
-        $query->state(LanguageState::DEFAULT);
-    }
-
-    public function scopeNonDefault(Builder $query): void
-    {
-        $query->state(LanguageState::NON_DEFAULT);
     }
 
     /**

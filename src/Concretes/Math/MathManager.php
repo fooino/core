@@ -334,13 +334,19 @@ class MathManager
      * Round the number to the nearest integer
      * 
      * @param string|int|float|null $number
+     * @param int $precision
      * 
      * @return string
      */
-    public function roundClose(string|int|float|null $number): string
-    {
+    public function roundClose(
+        string|int|float|null $number,
+        int $precision = 0
+    ): string {
         return $this->number(
-            number: \round($this->convertScientificNumber(number: $number))
+            number: \round(
+                num: $this->convertScientificNumber(number: $number),
+                precision: $precision
+            )
         );
     }
 

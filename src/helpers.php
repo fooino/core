@@ -241,9 +241,14 @@ if (
 if (
     !function_exists('roundClose')
 ) {
-    function roundClose(string|int|float|null $number): string
-    {
-        return Math::roundClose(number: $number);
+    function roundClose(
+        string|int|float|null $number,
+        int $precision = 0
+    ): string {
+        return Math::roundClose(
+            number: $number,
+            precision: $precision
+        );
     }
 }
 
