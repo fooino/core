@@ -375,6 +375,7 @@ class MathFacadeUnitTest extends TestCase
         $this->assertEquals(Math::roundClose(-1.1), -1);
         $this->assertEquals(Math::roundClose(1.9), 2);
         $this->assertEquals(Math::roundClose(-1.9), -2);
+        $this->assertEquals(Math::roundClose(5.045, 2), 5.05);
         $this->assertEquals(Math::roundClose(1.1e+8), 110000000);
         $this->assertEquals(Math::roundClose(1.1e-8), 0);
 
@@ -385,6 +386,7 @@ class MathFacadeUnitTest extends TestCase
         $this->assertEquals(roundClose(-1.1), -1);
         $this->assertEquals(roundClose(1.9), 2);
         $this->assertEquals(roundClose(-1.9), -2);
+        $this->assertEquals(roundClose(5.045, 2), 5.05);
         $this->assertEquals(roundClose(1.1e+8), 110000000);
         $this->assertEquals(roundClose(1.1e-8), 0);
     }

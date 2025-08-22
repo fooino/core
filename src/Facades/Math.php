@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * 
  * @method static string roundUp(string|int|float|null $number)
  * @method static string roundDown(string|int|float|null $number)
- * @method static string roundClose(string|int|float|null $number)
+ * @method static string roundClose(string|int|float|null $number , int $precision = 0)
  * 
  * @method static bool greaterThan(string|int|float|null $a, string|int|float|null $b)
  * @method static bool greaterThanOrEqual(string|int|float|null $a, string|int|float|null $b)
