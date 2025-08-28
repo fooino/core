@@ -39,7 +39,7 @@ trait Enumable
         string $name        = '',
         string $query       = '',
         string $endpoint    = '',
-        string $iconClass   = 'material-symbols-outlined',
+        string $iconClass   = 'msr',
         string $icon        = '',
         string $color       = '',
         string $bgColor     = '',

@@ -42,7 +42,7 @@ class EnumableUnitTest extends TestCase
                 [
                     'key'           => 'defaultKey',
                     'name'          => 'unknown',
-                    'icon_class'    => 'material-symbols-outlined',
+                    'icon_class'    => 'msr',
                     'icon'          => '',
                     'color'         => '',
                     'bg_color'      => '',
@@ -66,7 +66,7 @@ class EnumableUnitTest extends TestCase
                     'name'          => __(key: 'msg.active'),
                     'endpoint'      => 'activate(1)',
                     'query'         => 'status=ACTIVE',
-                    'icon_class'    => 'material-symbols-outlined',
+                    'icon_class'    => 'msr',
                     'icon'          => 'icon',
                     'color'         => 'red',
                     'bg_color'      => 'red',

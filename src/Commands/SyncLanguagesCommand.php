@@ -29,8 +29,10 @@ class SyncLanguagesCommand extends Command
 
             $recache = false;
             $insert = [];
+            
             $languages = app(PrettifyInputTask::class)->run('languages', config('fooino-core-languages', []));
-            $dbLanguages = Language::pluck('id', 'code')->toArray(); // the array will be ['code' => 'id']
+
+            $dbLanguages = Language::disablePrioritiable()->pluck('id', 'code')->toArray(); // the array will be ['code' => 'id']
 
 
             foreach ($languages as $key => $lang) {
