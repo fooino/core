@@ -1,0 +1,49 @@
+{
+    "name": "fooino/core",
+    "description": "The fooino core package with tools and functionalities.",
+    "type": "library",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Sajad Sholi",
+            "email": "sajadsholi@outlook.com",
+            "role": "owner"
+        }
+    ],
+    "require": {
+        "morilog/jalali": "^3.4",
+        "astrotomic/laravel-translatable": "^11.16",
+        "spatie/laravel-activitylog": "^4.10"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.6",
+        "pestphp/pest": "^4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fooino\\Core\\": "src/",
+            "Fooino\\Core\\Database\\": "database/",
+            "Fooino\\Core\\Database\\Factories\\": "database/factories/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Fooino\\Core\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Fooino\\Core\\Providers\\CoreServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

@@ -1,0 +1,1 @@
+Fooino core package
