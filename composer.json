@@ -21,9 +21,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Fooino\\Core\\": "src/",
-            "Fooino\\Core\\Database\\": "database/",
-            "Fooino\\Core\\Database\\Factories\\": "database/factories/"
+            "Fooino\\Core\\": "src/"
         },
         "files": [
             "src/helpers.php"
