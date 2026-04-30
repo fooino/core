@@ -19,36 +19,36 @@ interface Jsonable
     /**
      * Encode a variable to json.
      *
-     * @param  mixed  $mixed
+     * @param  int|float|string|null|bool|array|object $value
      * @param  int  $flags
      * @param  int  $depth
      * 
      * @return string|false
      */
-    public function encode(mixed $mixed, int $flags = 0, int $depth = 512): string|false;
+    public function encode(int|float|string|null|bool|array|object $value, int $flags = 0, int $depth = 512): string|false;
 
 
     /**
      * Decode a json to variable.
      *
-     * @param  mixed  $json
+     * @param  int|float|string|null|bool|array|object  $json
      * @param  bool|null  $associative
      * @param  int  $depth
      * @param  int  $flags
      * 
      * @return mixed
      */
-    public function decode(mixed $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed;
+    public function decode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed;
 
 
     /**
      * Decode a json to array.
      *
-     * @param  mixed  $json
+     * @param  int|float|string|null|bool|array|object  $json
      * 
      * @return array
      */
-    public function decodeToArray(mixed $json): array;
+    public function decodeToArray(int|float|string|null|bool|array|object $json): array;
 
     /**
      * Return response to user.
@@ -59,10 +59,11 @@ interface Jsonable
      * @param  array  $data
      * @param  array  $additional
      * @param  array  $headers
+     * @param  int  $options
      * 
      * @return JsonResponse
      */
-    public function response(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = []): JsonResponse;
+    public function response(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse;
 
 
     /**

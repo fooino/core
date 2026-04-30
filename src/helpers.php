@@ -11,29 +11,29 @@ if (!function_exists('isJson')) {
 }
 
 if (!function_exists('jsonEncode')) {
-    function jsonEncode(mixed $mixed, int $flags = 0, int $depth = 512): string|false
+    function jsonEncode(int|float|string|null|bool|array|object $value, int $flags = 0, int $depth = 512): string|false
     {
-        return Json::encode(mixed: $mixed, flags: $flags, depth: $depth);
+        return Json::encode(value: $value, flags: $flags, depth: $depth);
     }
 }
 
 if (!function_exists('jsonDecode')) {
-    function jsonDecode(mixed $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed
+    function jsonDecode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed
     {
         return Json::decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
     }
 }
 
 if (!function_exists('jsonDecodeToArray')) {
-    function jsonDecodeToArray(mixed $json): array
+    function jsonDecodeToArray(int|float|string|null|bool|array|object $json): array
     {
         return Json::decodeToArray(json: $json);
     }
 }
 
 if (!function_exists('jsonResponse')) {
-    function jsonResponse(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [],  array $headers = []): JsonResponse
+    function jsonResponse(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [],  array $headers = [], int $options = 0): JsonResponse
     {
-        return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional,  headers: $headers);
+        return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional,  headers: $headers, options: $options);
     }
 }

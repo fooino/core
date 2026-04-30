@@ -6,14 +6,13 @@
     "authors": [
         {
             "name": "Sajad Sholi",
-            "email": "sajadsholi@outlook.com",
+            "email": "sajadsholidev@gmail.com",
             "role": "owner"
         }
     ],
     "require": {
         "morilog/jalali": "^3.4",
-        "astrotomic/laravel-translatable": "^11.16",
-        "spatie/laravel-activitylog": "^4.10"
+        "astrotomic/laravel-translatable": "^11.16"
     },
     "require-dev": {
         "orchestra/testbench": "^10.6",

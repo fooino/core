@@ -4,7 +4,6 @@ namespace Fooino\Core\Concretes\Json;
 
 use Fooino\Core\Interfaces\Jsonable;
 use Illuminate\Http\JsonResponse;
-use stdClass;
 
 class FooinoJsonHandler implements Jsonable
 {
@@ -14,23 +13,23 @@ class FooinoJsonHandler implements Jsonable
     }
 
     public function encode(
-        mixed $mixed,
+        int|float|string|null|bool|array|object $value,
         int $flags = 0,
         int $depth = 512
     ): string|false {
-        return (\is_resource($mixed)) ? '' : ($this->is($mixed) ? $mixed : \json_encode(value: $mixed, flags: $flags, depth: $depth));
+        return $this->is(value: $value) ? $value : \json_encode(value: $value, flags: $flags, depth: $depth);
     }
 
     public function decode(
-        mixed $json,
+        int|float|string|null|bool|array|object $json,
         bool|null $associative = null,
         int $depth = 512,
         int $flags = 0
     ): mixed {
-        return !$this->is($json) ? (blank($json) ? ($this->types()[\gettype($json)]) : $json) : \json_decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
+        return !$this->is(value: $json) ? $json : \json_decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
     }
 
-    public function decodeToArray(mixed $json): array
+    public function decodeToArray(int|float|string|null|bool|array|object $json): array
     {
         return (array) $this->decode(json: $json, associative: true);
     }
@@ -41,7 +40,8 @@ class FooinoJsonHandler implements Jsonable
         array $errors = [],
         array $data = [],
         array $additional = [],
-        array $headers = []
+        array $headers = [],
+        int $options = 0
     ): JsonResponse {
 
         return response()
@@ -55,7 +55,8 @@ class FooinoJsonHandler implements Jsonable
                     'additional'            => $additional,
                 ],
                 status: $status,
-                headers: $headers
+                headers: $headers,
+                options: $options
             );
     }
 
@@ -68,21 +69,6 @@ class FooinoJsonHandler implements Jsonable
             'errors'        => [],
             'data'          => [],
             'additional'    => []
-        ];
-    }
-
-    private function types(): array
-    {
-        return [
-            'boolean'       => false,
-            'integer'       => 0,
-            'double'        => 0,
-            'string'        => '',
-            'array'         => [],
-            'object'        => new stdClass,
-            'resource'      => '',
-            'NULL'          => null,
-            'unknown type'  => ''
         ];
     }
 }

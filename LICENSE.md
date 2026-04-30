@@ -6,4 +6,4 @@ This repository and all its contents, including but not limited to source code, 
 
 ANY USE OF THIS CODE WITHOUT PERMISSION IS STRICTLY PROHIBITED.
 
-For inquiries regarding the use of this code, please contact: <sajadsholi@outlook.com>.
+For inquiries regarding the use of this code, please contact: <sajadsholidev@gmail.com>.
