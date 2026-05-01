@@ -17,7 +17,13 @@ class FooinoJsonHandler implements Jsonable
         int $flags = 0,
         int $depth = 512
     ): string|false {
+
         return $this->is(value: $value) ? $value : \json_encode(value: $value, flags: $flags, depth: $depth);
+    }
+
+    public function encodePrettified(string|array $value): string
+    {
+        return blank($value) ? '' : '<pre style="direction:ltr; text-align:left;">' . htmlspecialchars(string: $this->encode(value: ($this->is(value: $value) ? $this->decodeToArray(json: $value) : $value), flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), flags: ENT_QUOTES, encoding: 'UTF-8') . '</pre>';
     }
 
     public function decode(
@@ -26,6 +32,7 @@ class FooinoJsonHandler implements Jsonable
         int $depth = 512,
         int $flags = 0
     ): mixed {
+
         return !$this->is(value: $json) ? $json : \json_decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
     }
 

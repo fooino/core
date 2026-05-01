@@ -143,6 +143,32 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->and(jsonEncode($object))->toBeJson();
     });
 
+    test('encode value in pretty format for showing purpose', function () {
+
+        expect(Json::encodePrettified(''))
+            ->toEqual('')
+            ->and(jsonEncodePrettified(''))->toEqual('');
+
+        expect(Json::encodePrettified('     '))
+            ->toEqual('')
+            ->and(jsonEncodePrettified('    '))->toEqual('');
+
+        expect(Json::encodePrettified([]))
+            ->toEqual('')
+            ->and(jsonEncodePrettified([]))->toEqual('');
+
+
+        expect(Json::encodePrettified(['foo' => 'bar']) == '<pre style="direction:ltr; text-align:left;">{
+    &quot;foo&quot;: &quot;bar&quot;
+}</pre>')
+            ->toBeTrue();
+
+        expect(Json::encodePrettified(json_encode(['foo' => 'bar'])) == '<pre style="direction:ltr; text-align:left;">{
+    &quot;foo&quot;: &quot;bar&quot;
+}</pre>')
+            ->toBeTrue();
+    });
+
     test('decode method returns well-formatted value', function () {
 
         $int = json_encode(5);
@@ -284,67 +310,74 @@ describe('Json facade using FooinoJsonHandler', function () {
     test('json response return a http response with standarad structure', function () {
 
         expect(Json::response() instanceof JsonResponse)
+            ->toBeTrue()
             ->and(jsonResponse() instanceof JsonResponse)
             ->toBeTrue();
 
-        expect(
-            Json::response(
-                status: 429,
-                message: 'too many request',
-                errors: [
-                    'foo'       => 'bar'
-                ],
+        $facade = Json::response(
+            status: 429,
+            message: 'too many request',
+            errors: [
+                'foo'       => 'bar'
+            ],
+            data: [
+                'foo'       => 'bar'
+            ],
+            additional: [
+                'bypass'    => false
+            ],
+            headers: [
+                'accept'    => 'application/json'
+            ]
+        );
+
+        $helper = jsonResponse(
+            status: 429,
+            message: 'too many request',
+            errors: [
+                'foo'       => 'bar'
+            ],
+            data: [
+                'foo'       => 'bar'
+            ],
+            additional: [
+                'bypass'    => false
+            ],
+            headers: [
+                'accept'    => 'application/json'
+            ]
+        );
+
+        $expected = response()
+            ->json(
                 data: [
-                    'foo'       => 'bar'
+                    'status'    => 429,
+                    'success'   => false,
+                    'message'   => 'too many request',
+                    'errors'    => [
+                        'foo'   => 'bar'
+                    ],
+                    'data'      => [
+                        'foo' => 'bar'
+                    ],
+                    'additional'    => [
+                        'bypass'    => false
+                    ],
                 ],
-                additional: [
-                    'bypass'    => false
-                ],
+                status: 429,
                 headers: [
                     'accept'    => 'application/json'
                 ]
-            ),
-        )
-            ->and(
-                jsonResponse(
-                    status: 429,
-                    message: 'too many request',
-                    errors: [
-                        'foo'       => 'bar'
-                    ],
-                    data: [
-                        'foo'       => 'bar'
-                    ],
-                    additional: [
-                        'bypass'    => false
-                    ],
-                    headers: [
-                        'accept'    => 'application/json'
-                    ]
-                ),
-            )
-            ->toEqual(
-                response()->json(
-                    data: [
-                        'status'    => 429,
-                        'success'   => false,
-                        'message'   => 'too many request',
-                        'errors'    => [
-                            'foo'   => 'bar'
-                        ],
-                        'data'      => [
-                            'foo' => 'bar'
-                        ],
-                        'additional'    => [
-                            'bypass'    => false
-                        ],
-                    ],
-                    status: 429,
-                    headers: [
-                        'accept'    => 'application/json'
-                    ]
-                )
             );
+
+        expect($facade->getStatusCode())->toEqual($expected->getStatusCode());
+        expect($helper->getStatusCode())->toEqual($expected->getStatusCode());
+
+        expect($facade->getData(true))->toEqual($expected->getData(true));
+        expect($helper->getData(true))->toEqual($expected->getData(true));
+
+        expect($facade->headers->all())->toEqual($expected->headers->all());
+        expect($helper->headers->all())->toEqual($expected->headers->all());
     });
 
     test('check json response template', function () {

@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 interface Jsonable
 {
     /**
-     * Check a variable is json or not.
+     * Validate a value is json or not.
      *
      * @param  int|float|string|null|bool|array|object $value
      * 
@@ -17,7 +17,7 @@ interface Jsonable
 
 
     /**
-     * Encode a variable to json.
+     * Encode a value to json format.
      *
      * @param  int|float|string|null|bool|array|object $value
      * @param  int  $flags
@@ -27,9 +27,17 @@ interface Jsonable
      */
     public function encode(int|float|string|null|bool|array|object $value, int $flags = 0, int $depth = 512): string|false;
 
+    /**
+     * Encode a value to json format for showing purpose.
+     *
+     * @param  string|array $value
+     * 
+     * @return string
+     */
+    public function encodePrettified(string|array $value): string;
 
     /**
-     * Decode a json to variable.
+     * Decode a json to value.
      *
      * @param  int|float|string|null|bool|array|object  $json
      * @param  bool|null  $associative

@@ -17,6 +17,13 @@ if (!function_exists('jsonEncode')) {
     }
 }
 
+if (!function_exists('jsonEncodePrettified')) {
+    function jsonEncodePrettified(string|array $value): string
+    {
+        return Json::encodePrettified(value: $value);
+    }
+}
+
 if (!function_exists('jsonDecode')) {
     function jsonDecode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed
     {
@@ -32,8 +39,8 @@ if (!function_exists('jsonDecodeToArray')) {
 }
 
 if (!function_exists('jsonResponse')) {
-    function jsonResponse(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [],  array $headers = [], int $options = 0): JsonResponse
+    function jsonResponse(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse
     {
-        return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional,  headers: $headers, options: $options);
+        return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional, headers: $headers, options: $options);
     }
 }
