@@ -22,3 +22,7 @@
                 // To return response to user in json format and standard structure | or use jsonResponse() helper
                 Json::response(status: 200, message: 'ok', errors: ['foo' => 'the foo is required'], data: ['foo' => 'bar'], additional: ['foo' => 'ino'], headers: ['language' => 'fa']) // it returns \Illuminate\Http\JsonResponse
             ```
+
++ **Helpers**
+    1. ```nullIfBlank()``` convert value to null when the value is ```blank``` or ```'null'```,```"null"``` otherwise it returns the value or fallback value
+    2. 

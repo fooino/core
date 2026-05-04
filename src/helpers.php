@@ -44,3 +44,11 @@ if (!function_exists('jsonResponse')) {
         return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional, headers: $headers, options: $options);
     }
 }
+
+if (!function_exists('nullIfBlank')) {
+
+    function nullIfBlank(int|float|string|null|bool|array|object|callable $value, int|float|string|null|bool|array|object|callable $fallback = null): int|float|string|null|bool|array|object|callable
+    {
+        return ((blank($value) || (is_string($value) && (strtolower($value) == 'null' || blank(trim(str_replace(["'", '"'], '', trim($value))))))) ? null : $value) ?? $fallback;
+    }
+}
