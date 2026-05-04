@@ -52,3 +52,29 @@ if (!function_exists('nullIfBlank')) {
         return ((blank($value) || (is_string($value) && (strtolower($value) == 'null' || blank(trim(str_replace(["'", '"'], '', trim($value))))))) ? null : $value) ?? $fallback;
     }
 }
+
+if (!function_exists('nullIfBlankOrZero')) {
+
+    function nullIfBlankOrZero(int|float|string|null|bool|array|object|callable $value, int|float|string|null|bool|array|object|callable $fallback = null): int|float|string|null|bool|array|object|callable
+    {
+        $value = nullIfBlank(value: $value);
+
+        return ((is_numeric($value) && in_array($value, [0, 0.0, '0', '0.0'])) ? null : $value) ?? $fallback;
+    }
+}
+
+if (!function_exists('removeComma')) {
+
+    function removeComma(int|float|string|null|bool|array|object|callable $value): int|float|string|null|bool|array|object|callable
+    {
+        return (\is_string($value) || \is_array($value)) ? \str_replace(',', '', $value) : $value;
+    }
+}
+
+if (!function_exists('removeSpace')) {
+
+    function removeSpace(int|float|string|null|bool|array|object|callable $value): int|float|string|null|bool|array|object|callable
+    {
+        return (\is_string($value) || \is_array($value)) ? \str_replace(' ', '', $value) : $value;
+    }
+}

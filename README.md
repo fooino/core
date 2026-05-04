@@ -25,4 +25,6 @@
 
 + **Helpers**
     1. ```nullIfBlank()``` convert value to null when the value is ```blank``` or ```'null'```,```"null"``` otherwise it returns the value or fallback value
-    2. 
+    2. ```nullIfBlankOrZero()``` convert value to null when the value is ZERO or blank base on ```nullIfBlank()```
+    3. ```removeComma()``` remove comma between letters when the value is string or array
+    4. ```removeSpace()``` remove space between letters when the value is string or array
