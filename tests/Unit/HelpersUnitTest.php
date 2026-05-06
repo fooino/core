@@ -143,21 +143,88 @@ describe('Helpers unit tests', function () {
 
         expect(removeSpace(12))->toEqual(12);
         expect(removeSpace(12.12))->toEqual(12.12);
-        
+
         expect(removeSpace('  '))->toEqual('');
         expect(removeSpace('foobar'))->toEqual('foobar');
         expect(removeSpace(' foobar'))->toEqual('foobar');
         expect(removeSpace('foobar '))->toEqual('foobar');
         expect(removeSpace(' foobar '))->toEqual('foobar');
         expect(removeSpace(' 0912 123 1234 '))->toEqual('09121231234');
-        
+
         expect(removeSpace(null))->toEqual(null);
         expect(removeSpace(true))->toEqual(true);
         expect(removeSpace(false))->toEqual(false);
-        
+
         $stdClass = new stdClass;
         expect(removeSpace([1, ' 0912 123 1234 ']))->toEqual([1, '09121231234']);
         expect(removeSpace(collect([1, 2])))->toEqual(collect([1, 2]));
         expect(removeSpace($stdClass))->toEqual($stdClass);
+    });
+
+    test('sanitizeNumber remove space and comma from value',  function () {
+
+        expect(sanitizeNumber(123))->toEqual(123);
+        expect(sanitizeNumber(123.123))->toEqual(123.123);
+
+        expect(sanitizeNumber('+98 912 111 2222 '))->toEqual('+989121112222');
+        expect(sanitizeNumber(' 1,222 333,444'))->toEqual('1222333444');
+        expect(sanitizeNumber(' '))->toEqual('');
+
+
+        expect(sanitizeNumber(null))->toEqual(null);
+        expect(sanitizeNumber(true))->toEqual(true);
+        expect(sanitizeNumber(false))->toEqual(false);
+
+        $stdClass = new stdClass;
+        expect(sanitizeNumber(['123,123 ', ' 0912 123 1234 ']))->toEqual(['123123', '09121231234']);
+        expect(sanitizeNumber(collect([1, 2])))->toEqual(collect([1, 2]));
+        expect(sanitizeNumber($stdClass))->toEqual($stdClass);
+    });
+
+    test('replaceSlashToDash does the replacement when the value is string or array', function () {
+
+        expect(replaceSlashToDash(value: 123))->toEqual(123);
+        expect(replaceSlashToDash(value: 123.123))->toEqual(123.123);
+
+        expect(replaceSlashToDash(value: '2023/01/02'))->toEqual('2023-01-02');
+        expect(replaceSlashToDash(value: ''))->toEqual('');
+        expect(replaceSlashToDash(value: ' foobar'))->toEqual(' foobar');
+
+        expect(replaceSlashToDash(value: null))->toEqual(null);
+        expect(replaceSlashToDash(value: true))->toEqual(true);
+        expect(replaceSlashToDash(value: false))->toEqual(false);
+
+        $object = new stdClass;
+        expect(replaceSlashToDash(value: ['hi/hello', '2023/01/02 11:00:00']))->toEqual(['hi-hello', '2023-01-02 11:00:00']);
+        expect(replaceSlashToDash(value: [123]))->toEqual([123]);
+        expect(replaceSlashToDash(value: collect([123])))->toEqual(collect([123]));
+        expect(replaceSlashToDash(value: $object))->toEqual($object);
+    });
+
+
+    test('setDefaultLocale change app.locale config', function () {
+
+        expect(config('app.locale'))->toEqual('en');
+
+        setDefaultLocale(locale: 'fa');
+        expect(config('app.locale'))->toEqual('fa');
+    });
+
+    test('getDefaultLocale get default locale from config', function () {
+
+        expect(getDefaultLocale())->toEqual('en');
+
+        config(['app.locale' => null]);
+        expect(getDefaultLocale())->toEqual('fa');
+    });
+
+    test('currentDate returns current date in Y-m-d format', function () {
+
+        expect(currentDate())->toEqual(date('Y-m-d'));
+    });
+
+    test('currentDateTime returns current date in Y-m-d H:i:s format', function () {
+
+        expect(currentDateTime())->toEqual(date('Y-m-d H:i:s'));
     });
 });

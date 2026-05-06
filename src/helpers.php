@@ -78,3 +78,51 @@ if (!function_exists('removeSpace')) {
         return (\is_string($value) || \is_array($value)) ? \str_replace(' ', '', $value) : $value;
     }
 }
+
+if (!function_exists('sanitizeNumber')) {
+
+    function sanitizeNumber(int|float|string|null|bool|array|object|callable $value): int|float|string|null|bool|array|object|callable
+    {
+        return removeSpace(value: removeComma(value: $value));
+    }
+}
+
+if (!function_exists('replaceSlashToDash')) {
+
+    function replaceSlashToDash(int|float|string|null|bool|array|object|callable $value): int|float|string|null|bool|array|object|callable
+    {
+        return (\is_string($value) || \is_array($value)) ? \str_replace('/', '-', $value) : $value;
+    }
+}
+
+if (!function_exists('setDefaultLocale')) {
+
+    function setDefaultLocale(string $locale): void
+    {
+        config(['app.locale' => $locale]);
+    }
+}
+
+if (!function_exists('getDefaultLocale')) {
+
+    function getDefaultLocale(): string
+    {
+        return (config('app.locale', 'fa')) ?: 'fa';
+    }
+}
+
+if (!function_exists('currentDate')) {
+
+    function currentDate(): string
+    {
+        return \date('Y-m-d');
+    }
+}
+
+if (!function_exists('currentDateTime')) {
+
+    function currentDateTime(): string
+    {
+        return \date('Y-m-d H:i:s');
+    }
+}
