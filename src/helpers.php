@@ -1,5 +1,6 @@
 <?php
 
+use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Illuminate\Http\JsonResponse;
 
@@ -42,6 +43,14 @@ if (!function_exists('jsonResponse')) {
     function jsonResponse(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse
     {
         return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional, headers: $headers, options: $options);
+    }
+}
+
+if (!function_exists('dateConvert')) {
+
+    function dateConvert(string|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
+    {
+        return Date::convert(date: $date, format: $format, from: $from, to: $to, fallback: $fallback, throwException: $throwException);
     }
 }
 
@@ -124,5 +133,13 @@ if (!function_exists('currentDateTime')) {
     function currentDateTime(): string
     {
         return \date('Y-m-d H:i:s');
+    }
+}
+
+if (!function_exists('callMethodIfExists')) {
+
+    function callMethodIfExists(object|string $object, string $method, mixed $fallback = '', mixed ...$args): mixed
+    {
+        return method_exists($object, $method) ? (is_string($object) ? (new $object)->{$method}(...$args) : $object->{$method}(...$args)) : value($fallback, ...$args);
     }
 }

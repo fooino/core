@@ -107,6 +107,11 @@ class FooinoException extends Exception
         throw $this->instance();
     }
 
+    public function throwIf(bool $condition)
+    {
+        if ($condition) $this->throw();
+    }
+
     public function log(bool $trace = true): string
     {
         $e = $this->instance();

@@ -1,5 +1,23 @@
 <?php
 
+namespace Fooino\Core\Tests\Unit;
+
+use stdClass;
+use Stringable;
+
+class CustomClass
+{
+    public function pi()
+    {
+        return 3.14;
+    }
+
+    public function abs(int $a)
+    {
+        return abs($a);
+    }
+};
+
 describe('Helpers unit tests', function () {
 
     test('nullIfBlank returns value when it is filled', function () {
@@ -226,5 +244,16 @@ describe('Helpers unit tests', function () {
     test('currentDateTime returns current date in Y-m-d H:i:s format', function () {
 
         expect(currentDateTime())->toEqual(date('Y-m-d H:i:s'));
+    });
+
+    test('callMethodIfExists call existing method or returns the fallback', function () {
+
+        expect(callMethodIfExists(new CustomClass, 'pi', 'fooino'))->toEqual(3.14);
+        expect(callMethodIfExists(CustomClass::class, 'pi', 'fooino'))->toEqual(3.14);
+
+        expect(callMethodIfExists(CustomClass::class, 'abs', 'fooino', -5))->toEqual(5);
+
+        expect(callMethodIfExists(CustomClass::class, 'power', 'fooino'))->toEqual('fooino');
+        expect(callMethodIfExists(CustomClass::class, 'power', fn($a) => $a * $a, 5))->toEqual(25);
     });
 });
