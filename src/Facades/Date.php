@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Facade;
  *
  * @see \Fooino\Core\Concretes\Date\DateManager
  * @see \Fooino\Core\Concretes\Date\FooinoDateHandler
+ * @see \Fooino\Core\Interfaces\Dateable
  */
 class Date extends Facade
 {

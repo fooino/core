@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Facade;
  *
  * @see \Fooino\Core\Concretes\Json\JsonManager
  * @see \Fooino\Core\Concretes\Json\FooinoJsonHandler
+ * @see \Fooino\Core\Interfaces\Jsonable
  */
 class Json extends Facade
 {

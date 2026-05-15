@@ -16,16 +16,25 @@ use Exception;
 class DateHandler
 {
     protected array $validTimezones = [];
+
+    protected array $validatedTimezones = [];
+
     protected array $dateTimeZones = [];
+
+    protected const JALALIAN_TIMEZONES = ['Asia/Tehran', 'Asia/Kabul'];
 
     public function getTimezones(): array
     {
-        return once(fn() => DateTimeZone::listIdentifiers());
+        if (count($this->validTimezones) == 0) {
+            $this->validTimezones = DateTimeZone::listIdentifiers();
+        }
+
+        return $this->validTimezones;
     }
 
     public function validateTimezone(string $timezone): bool
     {
-        return $this->validTimezones[$timezone] ??= in_array($timezone, $this->getTimezones());
+        return $this->validatedTimezones[$timezone] ??= in_array($timezone, $this->getTimezones());
     }
 
     protected function UTCToJalali(
@@ -34,7 +43,7 @@ class DateHandler
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'Asia/Tehran'
     ): string {
-        return (string) Jalalian::forge(timestamp: \strtotime($this->serializeDate(date: $date)), timeZone: $this->getDateTimeZone($to))->format(format: $format);
+        return (string) Jalalian::forge(timestamp: \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone($from))), timeZone: $this->getDateTimeZone(timezone: $to))->format(format: $format);
     }
 
 
@@ -45,7 +54,7 @@ class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        $date = $this->serializeDate(date: $date);
+        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone($from));
         $hasTimePart = $this->hasTimePart(date: $date);
         $baseFormat = $hasTimePart ? 'Y-m-d H:i:s' : 'Y-m-d';
 
@@ -72,7 +81,7 @@ class DateHandler
         DateTimeZone $to = new DateTimeZone('Asia/Riyadh')
     ): string {
 
-        $date = $this->parseDate(date: $date);
+        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone($from));
 
         throw_if(
             \is_null($date),
@@ -109,7 +118,7 @@ class DateHandler
         DateTimeZone $to = new DateTimeZone('UTC')
     ): string {
 
-        $date = $this->parseDate(date: $date);
+        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone($from));
 
         throw_if(
             \is_null($date),
@@ -127,7 +136,7 @@ class DateHandler
 
         $julianDay = \floor((11 * $year + 3) / 30) + \floor(354 * $year) + \floor(30 * $month) - \floor(($month - 1) / 2) + $day + 1948440 - 385;
 
-        $date = $this->parseDate(\jdtogregorian($julianDay) . ' ' . $timePart);
+        $date = $this->standardize(date: \jdtogregorian($julianDay) . ' ' . $timePart, timezone: $this->getDateTimeZone($from));
 
         $date = date($format, \strtotime($date));
 
@@ -150,7 +159,7 @@ class DateHandler
     ): string {
 
         return (new DateTime(
-            datetime: $this->serializeDate(date: $date),
+            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone($from)),
             timezone: $this->getDateTimeZone($from)
         ))
             ->setTimezone(timezone: $this->getDateTimeZone('UTC'))
@@ -165,7 +174,7 @@ class DateHandler
     ): string {
 
         return (new DateTime(
-            datetime: $this->serializeDate(date: $date),
+            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone($from)),
             timezone: $this->getDateTimeZone('UTC')
         ))
             ->setTimezone(timezone: $this->getDateTimeZone($to))
@@ -179,7 +188,7 @@ class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        return date($format, \strtotime($this->serializeDate(date: $date)));
+        return date($format, \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone($from))));
     }
 
 
@@ -187,7 +196,7 @@ class DateHandler
     {
         try {
 
-            list($year, $month, $day, $hour, $minute, $second) = $this->parsedDate(date: $date);
+            list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: $date);
 
             Assertion::between((int)$year, 1, 10000);
             Assertion::between((int)$month, 1, 12);
@@ -215,7 +224,7 @@ class DateHandler
     {
         try {
 
-            list($year, $month, $day, $hour, $minute, $second) = $this->parsedDate(date: $date);
+            list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: $date);
 
             Assertion::between((int)$year, 1, 10000);
             Assertion::between((int)$month, 1, 12);
@@ -231,7 +240,7 @@ class DateHandler
 
     public function validateGregorian(string $date): bool
     {
-        $date = $this->serializeDate(date: $date);
+        $date = $this->standardize(date: $date);
 
         $validator = Validator::make(
             ['date' => $date],
@@ -292,21 +301,9 @@ class DateHandler
         return $format;
     }
 
-    private function parsedDate(string $date): array
-    {
-        $parts  = \date_parse(\trim($date));
 
-        return [
-            $parts['year'],
-            $parts['month'],
-            $parts['day'],
-            $parts['hour'],
-            $parts['minute'],
-            $parts['second'],
-        ];
-    }
 
-    private function dateParts(string $date): array
+    public function dateParts(string $date): array
     {
         $parts = \explode(" ", $date);
 
@@ -316,65 +313,99 @@ class DateHandler
         ];
     }
 
-    private function hasTimePart(string $date): bool
+    public function hasTimePart(string $date): bool
     {
         return filled($this->dateParts($date)[1]);
     }
 
-    private function serializeDate(string|null $date): string
-    {
-        $serializedDate = $this->parseDate(date: $date);
-
-        app(CanNotConvertDateException::class)
-            ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
-            ->setCode(10052)
-            ->error()
-            ->shouldReport()
-            ->throwIf(condition: is_null($serializedDate));
-
-        return $serializedDate;
-    }
-
     /**
-     * Parses the given date string and formats it with zero-padded year, month, and day.
-     * Combines the date with zero-padded hour, minute, and second if available.
+     * Standardize given date to Y-m-d H:i:s format
      *
-     * @param string|null $date The date string to parse and format.
-     * @return string|null The formatted date string or null if the date parts are invalid.
+     * @param string|null $date
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException when non parts of date is valid
+     * 
+     * @return string
      */
-    private function parseDate(string|null $date): string|null
+    protected function standardize(string|null $date, DateTimeZone $timezone): string
     {
-        if (\is_null($date)) return $date;
+        list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string)$date);
 
-        list($year, $month, $day, $hour, $minute, $second) = $this->parsedDate(date: $date);
+        $timePart = '';
+        $datePart = $year . '-' . $month . '-' . $day;
 
         if (
-            $year == false  &&
-            $month == false &&
-            $day == false
+            $hour != '00' ||
+            $minute != '00' ||
+            $second != '00'
         ) {
-            return null;
+            $timePart = $hour . ':' . $minute . ':' . $second;
         }
 
-        $date = $this->addZeroToBeginning(value: $year) . '-' . $this->addZeroToBeginning(value: $month) . '-' . $this->addZeroToBeginning(value: $day);
         if (
-            $hour != false  ||
-            $minute != false ||
-            $second != false
+            $datePart == '00-00-00' &&
+            (blank($timePart) || $timePart == '00:00:00')
         ) {
-            $date .= ' ' . $this->addZeroToBeginning(value: $hour) . ':' . $this->addZeroToBeginning(value: $minute) . ':' . $this->addZeroToBeginning(value: $second);
+            app(CanNotConvertDateException::class)
+                ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
+                ->setCode(10053)
+                ->error()
+                ->shouldReport()
+                ->throw();
         }
+
+        if ($datePart == '00-00-00') {
+
+            if (in_array($timezone->getName(), self::JALALIAN_TIMEZONES)) {
+
+                $datePart = Jalalian::forge(timestamp: \strtotime(date('Y-m-d')), timeZone: $timezone)->format('Y-m-d');
+
+                // 
+            } else {
+
+                $datePart = (new DateTime(
+                    datetime: date('Y-m-d'),
+                    timezone: $this->getDateTimeZone('UTC')
+                ))
+                    ->setTimezone(timezone: $timezone)
+                    ->format(format: 'Y-m-d');
+            }
+        }
+
+        $date = trim($datePart . ' ' . $timePart);
 
         return $date;
     }
 
     /**
+     * Parse date with date_parse php function
+     * 
+     * @param string $date
+     * 
+     * @return array
+     */
+    protected function parseDate(string $date): array
+    {
+        $parsed  = \date_parse(\trim($date));
+
+        return [
+            $this->addZeroToBeginning($parsed['year']),
+            $this->addZeroToBeginning($parsed['month']),
+            $this->addZeroToBeginning($parsed['day']),
+            $this->addZeroToBeginning($parsed['hour']),
+            $this->addZeroToBeginning($parsed['minute']),
+            $this->addZeroToBeginning($parsed['second']),
+        ];
+    }
+
+    /**
      * Adds a zero at the beginning of the value if the length is 1.
      *
-     * @param string|false|int|null $value The value to add a zero to.
-     * @return string The value with a zero added at the beginning.
+     * @param string|false|int|null $value
+     * 
+     * @return string
      */
-    private function addZeroToBeginning(string|false|int|null $value): string
+    protected function addZeroToBeginning(string|false|int|null $value): string
     {
         $value = (int) $value;
 
@@ -384,17 +415,22 @@ class DateHandler
     }
 
     /**
-     * Make \DateTimeZone object if the timezone is string.
+     * Make DateTimeZone object if the timezone is string.
      *
-     * @param \DateTimeZone|string $timezone
+     * @param DateTimeZone|string $timezone
      * 
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException when the timezone is invalid
      * 
-     * @return \DateTimeZone
+     * @return DateTimeZone
      */
     protected function getDateTimeZone(DateTimeZone|string $timezone): DateTimeZone
     {
         if (is_string($timezone)) {
+
+            if (filled($this->dateTimeZones[$timezone] ?? null)) {
+
+                return $this->dateTimeZones[$timezone];
+            }
 
             if (!$this->validateTimezone(timezone: $timezone)) {
 

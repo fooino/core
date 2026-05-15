@@ -11,6 +11,8 @@ describe('Date facade using FooinoDateHandler', function () {
 
     test('convert method can handle exceptions and errors', function () {
 
+        $iranTz = 'Asia/Tehran';
+
         expect(Date::convert(date: null))->toEqual('');
         expect(Date::convert(date: '', fallback: 'fooino'))->toEqual('fooino');
         expect(Date::convert(date: 'null', fallback: 'fooino'))->toEqual('fooino');
@@ -63,6 +65,30 @@ describe('Date facade using FooinoDateHandler', function () {
                 ]
             );
         };
+
+        try {
+
+            Date::convert(date: 'test', from: $iranTz, throwException: true);
+
+            // 
+        } catch (CanNotConvertDateException | Exception $e) {
+
+            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCode())->toEqual(10053);
+
+            expect($e->getLevel())->toEqual('error');
+            expect($e->getHttpStatusCode())->toEqual(500);
+            expect($e->reportable())->toBeTrue();
+
+            expect($e->getWith())->toEqual(
+                [
+                    "date"              => "test",
+                    "format"            => "Y-m-d H:i:s",
+                    "from"              => "Asia/Tehran",
+                    "to"                => "UTC",
+                ]
+            );
+        };
     });
 
     test('convert method change date from a timezone to other timezone', function () {
@@ -98,7 +124,9 @@ describe('Date facade using FooinoDateHandler', function () {
     test('validateTimezone method', function () {
 
         expect(Date::getTimezones())->toEqual(DateTimeZone::listIdentifiers());
+
         expect(Date::validateTimezone('Asia/Tehran'))->toBeTrue();
         expect(Date::validateTimezone('Asia/Fooino'))->toBeFalse();
+        expect(Date::validateTimezone('Asia/Tehran'))->toBeTrue();
     });
 });

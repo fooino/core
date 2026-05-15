@@ -42,12 +42,7 @@ class FooinoDateHandler extends DateHandler implements Dateable
                     ->throw();
             }
 
-            $methods = $this->chainMethods(
-                from: $from,
-                to: $to
-            );
-
-            foreach ($methods as $method) {
+            foreach ($this->chainMethods($from, $to) as $method) {
 
                 $date = $this->{$method}(
                     date: $date,
@@ -88,8 +83,8 @@ class FooinoDateHandler extends DateHandler implements Dateable
     private function chainMethods(DateTimeZone $from, DateTimeZone $to): array
     {
         $methods = [];
-        $fromMethod = $this->getTimezoneConvertMethod(timezone: $from);
-        $toMethod   = $this->getTimezoneConvertMethod(timezone: $to);
+        $fromMethod = $this->getChainMethodByTimezone(timezone: $from);
+        $toMethod   = $this->getChainMethodByTimezone(timezone: $to);
 
         if (
             $fromMethod != 'UTC' &&
@@ -105,11 +100,10 @@ class FooinoDateHandler extends DateHandler implements Dateable
             $methods[] = $fromMethod . 'To' . \ucfirst($toMethod);
         }
 
-
         return $methods;
     }
 
-    private function getTimezoneConvertMethod(DateTimeZone $timezone): string
+    private function getChainMethodByTimezone(DateTimeZone $timezone): string
     {
         return match ($timezone->getName()) {
             'Asia/Tehran'           => 'jalali',
