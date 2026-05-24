@@ -11,12 +11,12 @@
         }
     ],
     "require": {
-        "morilog/jalali": "^3.4",
-        "astrotomic/laravel-translatable": "^11.16"
+        "morilog/jalali": "^3.5",
+        "spatie/laravel-activitylog": "^5.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^10.6",
-        "pestphp/pest": "^4.1"
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.7"
     },
     "autoload": {
         "psr-4": {
