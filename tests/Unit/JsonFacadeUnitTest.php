@@ -309,10 +309,8 @@ describe('Json facade using FooinoJsonHandler', function () {
 
     test('json response return a http response with standarad structure', function () {
 
-        expect(Json::response() instanceof JsonResponse)
-            ->toBeTrue()
-            ->and(jsonResponse() instanceof JsonResponse)
-            ->toBeTrue();
+        expect(Json::response())->toBeInstanceOf(JsonResponse::class);
+        expect(jsonResponse())->toBeInstanceOf(JsonResponse::class);
 
         $facade = Json::response(
             status: 429,

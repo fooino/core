@@ -16,6 +16,10 @@ bc1q5g0kxxwwcn5h8vnv8rhch2c9x6uxy9ay9k5ch2
 
 ## 📝 Documentation
 
+```bash
+./vendor/bin/phpdoc # the result will be build at docs/api
+```
+
 **Facades**
 1. Json
     + Interface ```Fooino\Core\Interfaces\Jsonable```

@@ -7,6 +7,8 @@
 /.vscode
 /coverage
 /.phpunit.cache
+/.phpdoc
+/docs
 .env
 .env.backup
 .env.testing
