@@ -8,16 +8,11 @@ You can install the package via composer:
 composer require fooino/core
 ```
 
-## ☕ If this package makes your life easier, Buy me a coffee… but make it ₿itcoin
-
-```
-bc1q5g0kxxwwcn5h8vnv8rhch2c9x6uxy9ay9k5ch2
-```
-
 ## 📝 Documentation
 
 ```bash
-./vendor/bin/phpdoc # the result will be build at docs/api
+# the result will be built at docs/core
+./vendor/bin/phpdoc # or composer phpdoc
 ```
 
 **Facades**
@@ -61,7 +56,7 @@ Please see [CHANGELOG](CHANGELOG.md) for more information about recent changes.
 ## ✅ Testing
 
 ```bash
-./vendor/bin/pest
+./vendor/bin/pest # or composer pest
 ```
 
 ## 👨‍💻 Contributing
@@ -70,7 +65,7 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details to how contribute.
 
 ## 🐞 Security
 
-If you've found a bug regarding security please mail [sajadsholidev@gmail.com](mailto:sajadsholidev@gmail.com) instead of using the issue tracker.
+If you've found a bug regarding security please mail [sajadsholidev@gmail.com](mailto:sajadsholidev@gmail.com)
 
 ## 🔥 Credits
 

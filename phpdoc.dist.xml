@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-    <title>API Documentation</title>
+    <title>Core Package docs</title>
     <parser>
-        <target>docs/api</target>
+        <target>docs/core</target>
     </parser>
     <transformer>
-        <target>docs/api</target>
+        <target>docs/core</target>
     </transformer>
     <files>
-        <directory>src</directory>
-        <ignore>vendor/*</ignore>
-        <ignore>tests/*</ignore>
-        <ignore>docs/*</ignore>
-        <ignore>coverage/*</ignore>
+        <directory>./src</directory>
+        <ignore>./vendor/*</ignore>
+        <ignore>./tests/*</ignore>
+        <ignore>./docs/*</ignore>
+        <ignore>./coverage/*</ignore>
     </files>
 </phpdoc>
