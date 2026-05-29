@@ -18,7 +18,7 @@ composer require fooino/core
 **Facades**
 1. Json
     + Interface `Fooino\Core\Interfaces\Jsonable`
-    + Concrete  `Fooino\Core\Concretes\Json`
+    + Concrete  `Fooino\Core\Concretes\JsonManager`
     + Unit test `Fooino\Core\Tests\JsonFacadeUnitTest`
     + Basic Usage
     ```php
@@ -36,6 +36,28 @@ composer require fooino/core
 
         // To return response to user in json format and standard structure | or use jsonResponse() helper
         Json::response(status: 200, message: 'ok', errors: ['foo' => 'the foo is required'], data: ['foo' => 'bar'], additional: ['foo' => 'ino'], headers: ['language' => 'fa']) // it returns \Illuminate\Http\JsonResponse
+    ```
+
+2. Date
+    + Interface `Fooino\Core\Interfaces\Dateable`
+    + Concrete  `Fooino\Core\Concretes\DateManager`
+    + Unit test `Fooino\Core\Tests\DateFacadeUnitTest`
+    + Basic Usage
+    ```php
+        use Fooino\Core\Facades\Date;
+
+        // return DateTimeZone::listIdentifiers() list that contains ['Asia/Tehran', 'America/New_York', 'UTC', ...]
+        Date::getTimezones();
+
+        // validate timezone base on Date::getTimezones() list
+        Date::validateTimezone('Asia/Tehran'); // true
+        Date::validateTimezone('Asia/Fooino'); // false
+
+        // convert date
+        Date::convert(date: '2022-12-24 19:27:00', format: 'Y-m-d H:i:s', to: 'Asia/Tehran'); // 1401-10-03 22:57:00
+        Date::convert(date: '2022-12-24 07:27:00 PM', format: 'Y-m-d h:i:s A', to: 'Asia/Tehran'); // 1401-10-03 10:57:00 بعد از ظهر
+
+
     ```
 
 **Helpers**

@@ -21,29 +21,42 @@ class DateHandler
 
     protected array $dateTimeZones = [];
 
-    protected const JALALIAN_TIMEZONES = ['Asia/Tehran', 'Asia/Kabul'];
-
+    /**
+     * Get timezones list
+     */
     public function getTimezones(): array
     {
-        if (count($this->validTimezones) == 0) {
+        if (is_null($this->validTimezones[0] ?? null)) {
+
             $this->validTimezones = DateTimeZone::listIdentifiers();
         }
 
         return $this->validTimezones;
     }
 
+    /**
+     * Validate timezone
+     */
     public function validateTimezone(string $timezone): bool
     {
         return $this->validatedTimezones[$timezone] ??= in_array($timezone, $this->getTimezones());
     }
 
+    /**
+     * Convert date from UTC to Jalali timezone
+     */
     protected function UTCToJalali(
         string|null $date,
         string $format = 'Y-m-d H:i:s',
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'Asia/Tehran'
     ): string {
-        return (string) Jalalian::forge(timestamp: \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone($from))), timeZone: $this->getDateTimeZone(timezone: $to))->format(format: $format);
+
+        return (string) Jalalian::forge(
+            timestamp: \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from))),
+            timeZone: $this->getDateTimeZone(timezone: $to)
+        )
+            ->format(format: $format);
     }
 
 
@@ -321,11 +334,7 @@ class DateHandler
     /**
      * Standardize given date to Y-m-d H:i:s format
      *
-     * @param string|null $date
-     * 
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException when non parts of date is valid
-     * 
-     * @return string
      */
     protected function standardize(string|null $date, DateTimeZone $timezone): string
     {
@@ -356,7 +365,7 @@ class DateHandler
 
         if ($datePart == '00-00-00') {
 
-            if (in_array($timezone->getName(), self::JALALIAN_TIMEZONES)) {
+            if ($this->getCalendarTypeByTimezone($timezone) == 'jalali') {
 
                 $datePart = Jalalian::forge(timestamp: \strtotime(date('Y-m-d')), timeZone: $timezone)->format('Y-m-d');
 
@@ -379,10 +388,6 @@ class DateHandler
 
     /**
      * Parse date with date_parse php function
-     * 
-     * @param string $date
-     * 
-     * @return array
      */
     protected function parseDate(string $date): array
     {
@@ -400,10 +405,6 @@ class DateHandler
 
     /**
      * Adds a zero at the beginning of the value if the length is 1.
-     *
-     * @param string|false|int|null $value
-     * 
-     * @return string
      */
     protected function addZeroToBeginning(string|false|int|null $value): string
     {
@@ -417,17 +418,13 @@ class DateHandler
     /**
      * Make DateTimeZone object if the timezone is string.
      *
-     * @param DateTimeZone|string $timezone
-     * 
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException when the timezone is invalid
-     * 
-     * @return DateTimeZone
      */
     protected function getDateTimeZone(DateTimeZone|string $timezone): DateTimeZone
     {
         if (is_string($timezone)) {
 
-            if (filled($this->dateTimeZones[$timezone] ?? null)) {
+            if (!is_null($this->dateTimeZones[$timezone] ?? null)) {
 
                 return $this->dateTimeZones[$timezone];
             }
@@ -449,5 +446,21 @@ class DateHandler
         }
 
         return $timezone;
+    }
+
+    /**
+     * Get calendar type base on timezone
+     */
+    protected function getCalendarTypeByTimezone(DateTimeZone $timezone): string
+    {
+        return match ($timezone->getName()) {
+            'Asia/Tehran'           => 'jalali',
+            'Asia/Kabul'            => 'jalali',
+            // 'Asia/Muscat'           => 'hijri',
+            // 'Asia/Riyadh'           => 'hijri',
+            // 'Asia/Dubai'            => 'hijri',
+            'UTC'                   => 'UTC',
+            default                 => 'gregorian',
+        };
     }
 }

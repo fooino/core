@@ -65,8 +65,12 @@ if (!function_exists('jsonResponse')) {
 }
 
 if (!function_exists('dateConvert')) {
-
-    function dateConvert(string|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
+    /**
+     * Convert date base on timezone and the format you desire.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     */
+    function dateConvert(string|int|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
     {
         return Date::convert(date: $date, format: $format, from: $from, to: $to, fallback: $fallback, throwException: $throwException);
     }

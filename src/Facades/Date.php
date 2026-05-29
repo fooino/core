@@ -5,7 +5,7 @@ namespace Fooino\Core\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static string convert(string|null $date, string $format = 'Y-m-d H:i:s', \DateTimeZone|string $from = 'UTC', \DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false)
+ * @method static string convert(string|int|null $date, string $format = 'Y-m-d H:i:s', \DateTimeZone|string $from = 'UTC', \DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false)
  * @method static bool validateGregorian(string $date)
  * @method static bool validateJalali(string $date)
  * @method static bool validateHijri(string $date)

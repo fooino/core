@@ -9,14 +9,19 @@ use Exception;
 
 class FooinoDateHandler extends DateHandler implements Dateable
 {
+    /**
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     */
     public function convert(
-        string|null $date,
+        string|int|null $date,
         string $format = 'Y-m-d H:i:s',
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'UTC',
         string $fallback = '',
         bool $throwException = false
     ): string {
+
+        $date = is_numeric($date) ? date('Y-m-d H:i:s', $date) : $date;
 
         $date = nullIfBlank(value: replaceSlashToDash(value: (string) $date));
 
@@ -80,11 +85,14 @@ class FooinoDateHandler extends DateHandler implements Dateable
         }
     }
 
+    /**
+     * Chain the methods that should be called in order
+     */
     private function chainMethods(DateTimeZone $from, DateTimeZone $to): array
     {
         $methods = [];
-        $fromMethod = $this->getChainMethodByTimezone(timezone: $from);
-        $toMethod   = $this->getChainMethodByTimezone(timezone: $to);
+        $fromMethod = $this->getCalendarTypeByTimezone(timezone: $from);
+        $toMethod   = $this->getCalendarTypeByTimezone(timezone: $to);
 
         if (
             $fromMethod != 'UTC' &&
@@ -101,18 +109,5 @@ class FooinoDateHandler extends DateHandler implements Dateable
         }
 
         return $methods;
-    }
-
-    private function getChainMethodByTimezone(DateTimeZone $timezone): string
-    {
-        return match ($timezone->getName()) {
-            'Asia/Tehran'           => 'jalali',
-            'Asia/Kabul'            => 'jalali',
-            // 'Asia/Muscat'           => 'hijri',
-            // 'Asia/Riyadh'           => 'hijri',
-            // 'Asia/Dubai'            => 'hijri',
-            'UTC'                   => 'UTC',
-            default                 => 'gregorian',
-        };
     }
 }

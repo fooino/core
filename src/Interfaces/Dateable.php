@@ -9,7 +9,7 @@ interface Dateable
     /**
      * Convert date base on timezone and the format you desire.
      *
-     * @param string|null $date
+     * @param string|int|null $date
      * @param string $format
      * @param DateTimeZone|string $from
      * @param DateTimeZone|string $to
@@ -20,7 +20,7 @@ interface Dateable
      * 
      * @return string
      */
-    public function convert(string|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string;
+    public function convert(string|int|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string;
 
     /**
      * Validate Gregorian Date
