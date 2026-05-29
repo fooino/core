@@ -16,9 +16,13 @@ class FooinoException extends Exception
 
     public function __construct(...$args)
     {
+        // use current state of message and code(the initial value in class property or already setted by setMessage, setCode methods) to make new instance from parent 
         parent::__construct(message: $this->message, code: $this->code);
     }
 
+    /**
+     * Message Setter
+     */
     public function setMessage(string $message): static
     {
         $this->message = $message;
@@ -26,6 +30,9 @@ class FooinoException extends Exception
         return $this;
     }
 
+    /**
+     * Code Setter
+     */
     public function setCode(int $code): static
     {
         $this->code = $code;
@@ -33,6 +40,9 @@ class FooinoException extends Exception
         return $this;
     }
 
+    /**
+     * Level Setter
+     */
     public function setLevel(string $level): static
     {
         $this->level = $level;
@@ -40,11 +50,17 @@ class FooinoException extends Exception
         return $this;
     }
 
+    /**
+     * Level Getter
+     */
     public function getLevel(): string
     {
         return $this->level;
     }
 
+    /**
+     * Http status code Setter
+     */
     public function setHttpStatusCode(int $httpStatusCode): static
     {
         $this->httpStatusCode = $httpStatusCode;
@@ -52,11 +68,17 @@ class FooinoException extends Exception
         return $this;
     }
 
+    /**
+     * Http status code Getter
+     */
     public function getHttpStatusCode(): int
     {
         return $this->httpStatusCode;
     }
 
+    /**
+     * The attached data to exception Setter
+     */
     public function with(array $with): static
     {
         $this->with = $with;
@@ -64,11 +86,17 @@ class FooinoException extends Exception
         return $this;
     }
 
+    /**
+     * The attached data to exception Getter
+     */
     public function getWith(): array
     {
         return $this->with;
     }
 
+    /**
+     * Report or skip the exception log
+     */
     public function report(bool $report): static
     {
         $this->report = $report;
@@ -76,21 +104,33 @@ class FooinoException extends Exception
         return $this;
     }
 
+    /**
+     * Exception log is reportable or not
+     */
     public function reportable(): bool
     {
         return $this->report;
     }
 
+    /**
+     * Do not Report the exception log
+     */
     public function dontReport(): static
     {
         return $this->report(false);
     }
 
+    /**
+     * Report the exception log
+     */
     public function shouldReport(): static
     {
         return $this->report(true);
     }
 
+    /**
+     * Make a fresh new instance 
+     */
     public function instance(): FooinoException
     {
         return (new static())
@@ -102,16 +142,17 @@ class FooinoException extends Exception
             ->report($this->report);
     }
 
+    /**
+     * Throw the exception
+     */
     public function throw(): never
     {
         throw $this->instance();
     }
 
-    public function throwIf(bool $condition)
-    {
-        if ($condition) $this->throw();
-    }
-
+    /**
+     * Log message with trace
+     */
     public function log(bool $trace = true): string
     {
         $e = $this->instance();
