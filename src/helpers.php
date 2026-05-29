@@ -5,6 +5,9 @@ use Fooino\Core\Facades\Json;
 use Illuminate\Http\JsonResponse;
 
 if (!function_exists('isJson')) {
+    /**
+     * Validate a value is json or not.
+     */
     function isJson(int|float|string|null|bool|array|object $value): bool
     {
         return Json::is(value: $value);
@@ -12,6 +15,9 @@ if (!function_exists('isJson')) {
 }
 
 if (!function_exists('jsonEncode')) {
+    /**
+     * Encode a value to json format.
+     */
     function jsonEncode(int|float|string|null|bool|array|object $value, int $flags = 0, int $depth = 512): string|false
     {
         return Json::encode(value: $value, flags: $flags, depth: $depth);
@@ -19,6 +25,9 @@ if (!function_exists('jsonEncode')) {
 }
 
 if (!function_exists('jsonEncodePrettified')) {
+    /**
+     * Encode a value to json format for showing purpose.
+     */
     function jsonEncodePrettified(string|array $value): string
     {
         return Json::encodePrettified(value: $value);
@@ -26,6 +35,9 @@ if (!function_exists('jsonEncodePrettified')) {
 }
 
 if (!function_exists('jsonDecode')) {
+    /**
+     * Decode a json to value.
+     */
     function jsonDecode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed
     {
         return Json::decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
@@ -33,6 +45,9 @@ if (!function_exists('jsonDecode')) {
 }
 
 if (!function_exists('jsonDecodeToArray')) {
+    /**
+     * Decode a json to array.
+     */
     function jsonDecodeToArray(int|float|string|null|bool|array|object $json): array
     {
         return Json::decodeToArray(json: $json);
@@ -40,6 +55,9 @@ if (!function_exists('jsonDecodeToArray')) {
 }
 
 if (!function_exists('jsonResponse')) {
+    /**
+     * Return response to user.
+     */
     function jsonResponse(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse
     {
         return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional, headers: $headers, options: $options);

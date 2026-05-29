@@ -1,7 +1,10 @@
 <?php
 
+namespace Fooino\Core\Tests\Unit;
+
 use Fooino\Core\Facades\Json;
 use Illuminate\Http\JsonResponse;
+use stdClass;
 
 describe('Json facade using FooinoJsonHandler', function () {
 
@@ -149,6 +152,10 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->toEqual('')
             ->and(jsonEncodePrettified(''))->toEqual('');
 
+        expect(Json::encodePrettified('null'))
+            ->toEqual('')
+            ->and(jsonEncodePrettified('NaN'))->toEqual('');
+
         expect(Json::encodePrettified('     '))
             ->toEqual('')
             ->and(jsonEncodePrettified('    '))->toEqual('');
@@ -158,15 +165,9 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->and(jsonEncodePrettified([]))->toEqual('');
 
 
-        expect(Json::encodePrettified(['foo' => 'bar']) == '<pre style="direction:ltr; text-align:left;">{
-    &quot;foo&quot;: &quot;bar&quot;
-}</pre>')
-            ->toBeTrue();
+        expect(str_replace(["\n", " "], "", Json::encodePrettified(['foo' => 'bar'])) == '{&quot;foo&quot;:&quot;bar&quot;}')->toBeTrue();
 
-        expect(Json::encodePrettified(json_encode(['foo' => 'bar'])) == '<pre style="direction:ltr; text-align:left;">{
-    &quot;foo&quot;: &quot;bar&quot;
-}</pre>')
-            ->toBeTrue();
+        expect(str_replace(["\n", " "], "", Json::encodePrettified(json_encode(['foo' => 'bar']))) == '{&quot;foo&quot;:&quot;bar&quot;}')->toBeTrue();
     });
 
     test('decode method returns well-formatted value', function () {
@@ -183,56 +184,79 @@ describe('Json facade using FooinoJsonHandler', function () {
 
         expect(Json::decode($int))
             ->toEqual(json_decode($int))
-            ->and(jsonDecode($int))->toEqual(5);
+            ->and(jsonDecode($int))->toBe(5);
 
         expect(Json::decode($float))
             ->toEqual(json_decode($float))
-            ->and(jsonDecode($float))->toEqual(5.5);
+            ->and(jsonDecode($float))->toBe(5.5);
 
         expect(Json::decode($string))
             ->toEqual(json_decode($string))
-            ->and(jsonDecode($string))->toEqual('foo bar');
+            ->and(jsonDecode($string))->toBe('foo bar');
+
+        expect(Json::decode('0'))
+            ->toEqual(json_decode('0'))
+            ->and(jsonDecode('0'))->toBe(0);
+
+        expect(Json::decode('false'))
+            ->toEqual(json_decode('false'))
+            ->and(jsonDecode('false'))->toBe(false);
+
+        expect(Json::decode('true'))
+            ->toEqual(json_decode('true'))
+            ->and(jsonDecode('true'))->toBe(true);
+
+        expect(Json::decode('null'))
+            ->toEqual(json_decode('null'))
+            ->and(jsonDecode('null'))->toBe(null);
+
+        expect(Json::decode('[]'))
+            ->toEqual(json_decode('[]'))
+            ->and(jsonDecode('[]'))->toBe([]);
 
         expect(Json::decode($null))
             ->toEqual(json_decode($null))
-            ->and(jsonDecode($null))->toEqual(null);
+            ->and(jsonDecode($null))->toBe(null);
 
         expect(Json::decode($boolean))
             ->toEqual(json_decode($boolean))
-            ->and(jsonDecode($boolean))->toEqual(true);
+            ->and(jsonDecode($boolean))->toBe(true);
 
         expect(Json::decode($array))
             ->toEqual(json_decode($array))
-            ->and(jsonDecode($array, true))->toEqual(['foo' => 'bar']);
+            ->and(jsonDecode($array, true))->toBe(['foo' => 'bar']);
 
         expect(Json::decode($object))
             ->toEqual(json_decode($object))
-            ->and(jsonDecode($object)->foo)->toEqual('bar');
+            ->and(jsonDecode($object)->foo)->toBe('bar');
     });
 
     test('decode method returns identical value when the value is not json', function () {
 
-        expect(Json::decode(-5))->toEqual(-5);
-        expect(Json::decode(5))->toEqual(5);
-        expect(Json::decode(0))->toEqual(0);
-        expect(Json::decode(5.5))->toEqual(5.5);
+        expect(Json::decode(-5))->toBe(-5);
+        expect(Json::decode(5))->toBe(5);
+        expect(Json::decode(0))->toBe(0);
+        expect(Json::decode(5.5))->toBe(5.5);
+        expect(Json::decode(5.21E-6))->toBe(5.21E-6);
 
-        expect(Json::decode('foo bar'))->toEqual('foo bar');
-        expect(Json::decode(''))->toEqual('');
-        expect(Json::decode('  '))->toEqual('  ');
+        expect(Json::decode('foo bar'))->toBe('foo bar');
+        expect(Json::decode(''))->toBe('');
+        expect(Json::decode('  '))->toBe('  ');
 
-        expect(Json::decode(null))->toEqual(null);
-        expect(Json::decode(true))->toEqual(true);
-        expect(Json::decode(false))->toEqual(false);
+        expect(Json::decode(null))->toBe(null);
+        expect(Json::decode(true))->toBe(true);
+        expect(Json::decode(false))->toBe(false);
 
-        expect(Json::decode(['foo' => 'bar']))->toEqual(['foo' => 'bar']);
-        expect(Json::decode([0]))->toEqual([0]);
-        expect(Json::decode([]))->toEqual([]);
+        expect(Json::decode(['foo' => 'bar']))->toBe(['foo' => 'bar']);
+        expect(Json::decode([0]))->toBe([0]);
+        expect(Json::decode([null]))->toBe([null]);
+        expect(Json::decode([false]))->toBe([false]);
+        expect(Json::decode([]))->toBe([]);
 
         $object = new stdClass;
         $object->foo = 'bar';
 
-        expect(Json::decode($object)->foo)->toEqual('bar');
+        expect(Json::decode($object)->foo)->toBe('bar');
     });
 
     test('decode json to array format', function () {
@@ -249,36 +273,52 @@ describe('Json facade using FooinoJsonHandler', function () {
         $object = json_encode($object);
 
         expect(Json::decodeToArray($int))
-            ->toEqual([5])
-            ->and(jsonDecodeToArray($int))->toEqual([5]);
+            ->toBe([5])
+            ->and(jsonDecodeToArray($int))->toBe([5]);
 
         expect(Json::decodeToArray($float))
-            ->toEqual([5.5])
-            ->and(jsonDecodeToArray($float))->toEqual([5.5]);
+            ->toBe([5.5])
+            ->and(jsonDecodeToArray($float))->toBe([5.5]);
 
         expect(Json::decodeToArray($string))
-            ->toEqual(['foo bar'])
-            ->and(jsonDecodeToArray($string))->toEqual(['foo bar']);
+            ->toBe(['foo bar'])
+            ->and(jsonDecodeToArray($string))->toBe(['foo bar']);
+
+        expect(Json::decodeToArray('0'))
+            ->toBe([0])
+            ->and(jsonDecodeToArray('0'))->toBe([0]);
+
+        expect(Json::decodeToArray('null'))
+            ->toBe([])
+            ->and(jsonDecodeToArray('null'))->toBe([]);
+
+        expect(Json::decodeToArray('true'))
+            ->toBe([true])
+            ->and(jsonDecodeToArray('true'))->toBe([true]);
+
+        expect(Json::decodeToArray('false'))
+            ->toBe([false])
+            ->and(jsonDecodeToArray('false'))->toBe([false]);
 
         expect(Json::decodeToArray($null))
-            ->toEqual([])
-            ->and(jsonDecodeToArray($null))->toEqual([]);
+            ->toBe([])
+            ->and(jsonDecodeToArray($null))->toBe([]);
 
         expect(Json::decodeToArray($true))
-            ->toEqual([true])
-            ->and(jsonDecodeToArray($true))->toEqual([true]);
+            ->toBe([true])
+            ->and(jsonDecodeToArray($true))->toBe([true]);
 
         expect(Json::decodeToArray($false))
-            ->toEqual([false])
-            ->and(jsonDecodeToArray($false))->toEqual([false]);
+            ->toBe([false])
+            ->and(jsonDecodeToArray($false))->toBe([false]);
 
         expect(Json::decodeToArray($array))
-            ->toEqual(['foo' => 'bar'])
-            ->and(jsonDecodeToArray($array))->toEqual(['foo' => 'bar']);
+            ->toBe(['foo' => 'bar'])
+            ->and(jsonDecodeToArray($array))->toBe(['foo' => 'bar']);
 
         expect(Json::decodeToArray($object))
-            ->toEqual(['foo' => 'bar'])
-            ->and(jsonDecodeToArray($object))->toEqual(['foo' => 'bar']);
+            ->toBe(['foo' => 'bar'])
+            ->and(jsonDecodeToArray($object))->toBe(['foo' => 'bar']);
     });
 
     test('decode json to array returns identical value in array format when the value is not json', function () {
@@ -298,6 +338,9 @@ describe('Json facade using FooinoJsonHandler', function () {
 
         expect(Json::decodeToArray(['foo' => 'bar']))->toEqual(['foo' => 'bar']);
         expect(Json::decodeToArray([0]))->toEqual([0]);
+        expect(Json::decodeToArray([null]))->toBe([null]);
+        expect(Json::decodeToArray([true]))->toBe([true]);
+        expect(Json::decodeToArray([false]))->toBe([false]);
         expect(Json::decodeToArray([]))->toEqual([]);
 
         $object = new stdClass;
@@ -305,7 +348,6 @@ describe('Json facade using FooinoJsonHandler', function () {
 
         expect(Json::decodeToArray($object)['foo'])->toEqual('bar');
     });
-
 
     test('json response return a http response with standarad structure', function () {
 
