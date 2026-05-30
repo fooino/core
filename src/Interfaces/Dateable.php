@@ -23,33 +23,6 @@ interface Dateable
     public function convert(string|int|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string;
 
     /**
-     * Validate Gregorian Date
-     * 
-     * @param string $date
-     * 
-     * @return bool
-     */
-    public function validateGregorian(string $date): bool;
-
-    /**
-     * Validate Jalali Date
-     * 
-     * @param string $date
-     * 
-     * @return bool
-     */
-    public function validateJalali(string $date): bool;
-
-    /**
-     * Validate Hijri Date
-     * 
-     * @param string $date
-     * 
-     * @return bool
-     */
-    public function validateHijri(string $date): bool;
-
-    /**
      * Get timezones list
      * 
      * @return array

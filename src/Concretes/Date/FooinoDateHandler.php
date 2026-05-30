@@ -44,6 +44,8 @@ class FooinoDateHandler extends DateHandler implements Dateable
                 app(CanNotConvertDateException::class)
                     ->setMessage('msg.canNotConvertDateExceptionTheDateIsEmpty')
                     ->setCode(10052)
+                    ->warning()
+                    ->dontReport()
                     ->throw();
             }
 
