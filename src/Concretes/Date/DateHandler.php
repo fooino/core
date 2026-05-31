@@ -199,10 +199,10 @@ class DateHandler
     ): string {
 
         return (new DateTime(
-            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone('UTC')),
-            timezone: $this->getDateTimeZone('UTC')
+            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC')),
+            timezone: $this->getDateTimeZone(timezone: 'UTC')
         ))
-            ->setTimezone(timezone: $this->getDateTimeZone($to))
+            ->setTimezone(timezone: $this->getDateTimeZone(timezone: $to))
             ->format(format: $format);
     }
 
@@ -313,8 +313,8 @@ class DateHandler
             if ($this->getCalendarTypeByTimezone(timezone: $timezone) == 'jalali') {
 
                 $datePart = Jalalian::forge(
-                    timestamp: \strtotime(date('Y-m-d')),
-                    timeZone: $this->getDateTimeZone(timezone: $timezone)
+                    timestamp: \strtotime(date('Y-m-d H:i:s')),
+                    timeZone: $timezone
                 )
                     ->format(format: 'Y-m-d');
 
@@ -322,10 +322,10 @@ class DateHandler
             } else {
 
                 $datePart = (new DateTime(
-                    datetime: date('Y-m-d'),
-                    timezone: $this->getDateTimeZone('UTC')
+                    datetime: date('Y-m-d H:i:s'),
+                    timezone: $this->getDateTimeZone(timezone: 'UTC')
                 ))
-                    ->setTimezone(timezone: $this->getDateTimeZone(timezone: $timezone))
+                    ->setTimezone(timezone: $timezone)
                     ->format(format: 'Y-m-d');
             }
         }

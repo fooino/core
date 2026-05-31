@@ -118,15 +118,15 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '2022/03/20', format: 'Y/m/d', to: $afghanistanTz))->toBe('1400/12/29'); // not leap year
         expect(Date::convert(date: '2021/03/20', format: 'Y/m/d', to: $afghanistanTz))->toBe('1399/12/30'); // leap year
 
-        expect(Date::convert(date: '2022-12-24 19:27:10',                   format: 'Y-m-d H:i:s',      to: $iranTz))->toBe('1401-10-03 22:57:10');
-        expect(Date::convert(date: '2022-12-24 19:10',                      format: 'Y-m-d H:i:s',      to: $iranTz))->toBe('1401-10-03 22:40:00');
+        expect(Date::convert(date: '2022-12-24 19:27:08',                   format: 'Y-m-d H:i:s',      to: $iranTz))->toBe('1401-10-03 22:57:08');
+        expect(Date::convert(date: '2022-12-24 20:30',                      format: 'Y-m-d H:i:s',      to: $iranTz))->toBe('1401-10-04 00:00:00');
         expect(Date::convert(date: '2022-12-24 19',                         format: 'Y-m-d H:i:s',      to: $iranTz))->toBe('1401-10-03 03:30:00'); // it will parse to 2022-12-24 00:00:00
         expect(Date::convert(date: '2022-12-24T19:00:00',                   format: 'Y-m-d H:i:s e',    to: $iranTz))->toBe('1401-10-03 22:30:00 Asia/Tehran');
         expect(Date::convert(date: '2022-12-24 10:27:00 PM',                format: 'Y-m-d h:i:s A',    to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
         expect(Date::convert(date: strtotime('2022-12-24 10:27:00 PM'),     format: 'Y-m-d h:i:s A',    to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
 
-        expect(Date::convert(date: '2022-12-24 19:27:10',                   format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe('1401-10-03 23:57:10');
-        expect(Date::convert(date: '2022-12-24 19:10',                      format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe('1401-10-03 23:40:00');
+        expect(Date::convert(date: '2022-12-24 19:27:08',                   format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe('1401-10-03 23:57:08');
+        expect(Date::convert(date: '2022-12-24 19:30',                      format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe('1401-10-04 00:00:00');
         expect(Date::convert(date: '2022-12-24 19',                         format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe('1401-10-03 04:30:00'); // it will parse to 2022-12-24 00:00:00
         expect(Date::convert(date: '2022-12-24T19:00:00',                   format: 'Y-m-d H:i:s e',    to: $afghanistanTz))->toBe('1401-10-03 23:30:00 Asia/Kabul');
         expect(Date::convert(date: '2022-12-24 10:27:00 PM',                format: 'Y-m-d h:i:s A',    to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
@@ -135,7 +135,7 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '00:00:00',  format: 'H:i:s',            to: $iranTz))->toBe('03:30:00');
         expect(Date::convert(date: '21:27:09',  format: 'h:i:s A',          to: $iranTz))->toBe('12:57:09 قبل از ظهر');
         expect(Date::convert(date: '19:27:00',  format: 'H:i:s',            to: $iranTz))->toBe('22:57:00');
-        expect(Date::convert(date: '19:10',     format: 'Y-m-d H:i:s',      to: $iranTz))->toBe(Date::convert(date: date('Y-m-d'), format: 'Y-m-d', to: $iranTz) . ' 22:40:00');
+        expect(Date::convert(date: '21:10',     format: 'Y-m-d H:i:s',      to: $iranTz))->toBe(Date::convert(date: strtotime('tomorrow'), format: 'Y-m-d', to: $iranTz) . ' 00:40:00'); // it goes to the next day by +3:30 iran timezone
         expect(Date::convert(date: '19',        format: 'H:i:s',            to: $iranTz))->toBe('03:30:19'); // it will parse to 1970-00-00 00:00:19
 
         expect(Date::convert(date: '00:00:00',  format: 'H:i:s',            to: $afghanistanTz))->toBe('04:30:00');
@@ -196,26 +196,26 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '1399/12/30',    format: 'Y/m/d',    from: $afghanistanTz))->toBe('2021/03/20'); // leap year
 
         expect(Date::convert(date: '1401-10-03 22:57:09',       format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-24 19:27:09');
-        expect(Date::convert(date: '1401-10-03 22:40',          format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-24 19:10:00');
-        expect(Date::convert(date: '1401-10-03 04',             format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-24 00:00:00'); // it will parse to 2022-12-24 00:00:00
+        expect(Date::convert(date: '1401-10-03 02:40',          format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-23 23:10:00');
+        expect(Date::convert(date: '1401-10-03 04',             format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-24 00:00:00'); // it will parse to 1401-10-03 00:00:00
         expect(Date::convert(date: '1401-10-03T22:30:00',       format: 'Y-m-d H:i:s e',    from: $iranTz))->toBe('2022-12-24 19:00:00 UTC');
         expect(Date::convert(date: '1401-10-04 01:57:00 AM',    format: 'Y-m-d h:i:s A',    from: $iranTz))->toBe('2022-12-24 10:27:00 PM'); // it goes to the last day
         expect(dateConvert(date: '1401-10-03 22:57:00',         format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-24 19:27:00');
 
         expect(Date::convert(date: '1401-10-03 22:57:09',       format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe('2022-12-24 18:27:09');
-        expect(Date::convert(date: '1401-10-03 22:40',          format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe('2022-12-24 18:10:00');
-        expect(Date::convert(date: '1401-10-03 04',             format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe('2022-12-24 00:00:00'); // it will parse to 2022-12-24 00:00:00
+        expect(Date::convert(date: '1401-10-03 02:40',          format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe('2022-12-23 22:10:00');
+        expect(Date::convert(date: '1401-10-03 04',             format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe('2022-12-24 00:00:00'); // it will parse to 1401-10-03 00:00:00
         expect(Date::convert(date: '1401-10-03T22:30:00',       format: 'Y-m-d H:i:s e',    from: $afghanistanTz))->toBe('2022-12-24 18:00:00 UTC');
         expect(Date::convert(date: '1401-10-04 01:57:00 AM',    format: 'Y-m-d h:i:s A',    from: $afghanistanTz))->toBe('2022-12-24 09:27:00 PM'); // it goes to the last day
 
         expect(Date::convert(date: '00:00:00',      format: 'H:i:s',            from: $iranTz))->toBe('20:30:00');
         expect(Date::convert(date: '22:57:09',      format: 'h:i:s A',          from: $iranTz))->toBe('07:27:09 PM');
-        expect(Date::convert(date: '22:40',         format: 'Y-m-d H:i:s',      from: $iranTz))->toBe(date('Y-m-d') . ' 19:10:00');
+        expect(Date::convert(date: '02:40',         format: 'Y-m-d H:i:s',      from: $iranTz))->toBe(date('Y-m-d') . ' 23:10:00'); // it goes to the last day by 0:00 UTC timezone
         expect(Date::convert(date: '19',            format: 'H:i:s',            from: $iranTz))->toBe('20:30:19'); // it will parse to 1970-00-00 00:00:19
 
         expect(Date::convert(date: '00:00:00',      format: 'H:i:s',            from: $afghanistanTz))->toBe('19:30:00');
         expect(Date::convert(date: '22:57:09',      format: 'h:i:s A',          from: $afghanistanTz))->toBe('06:27:09 PM');
-        expect(Date::convert(date: '22:40',         format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe(date('Y-m-d') . ' 18:10:00');
+        expect(Date::convert(date: '02:40',         format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe(date('Y-m-d') . ' 22:10:00');
         expect(Date::convert(date: '19',            format: 'H:i:s',            from: $afghanistanTz))->toBe('19:30:19'); // it will parse to 1970-00-00 00:00:19
 
         try {
@@ -252,15 +252,20 @@ describe('Date facade using FooinoDateHandler', function () {
         $afghanistanTz = 'Asia/Kabul'; // +4:30
         $pacificEaster = 'Pacific/Easter'; // +18:00
 
-        expect(Date::convert(date: 'test',                format: 'Y/m/d H:i:s', from: $newYorkTz, fallback: 'fooino'))->toBe('fooino');
+        expect(Date::convert(date: 'test',                              format: 'Y/m/d H:i:s',      from: $newYorkTz, fallback: 'fooino'))->toBe('fooino');
 
-        expect(Date::convert(date: '2022-12-24 08:25:00', format: 'Y/m/d H:i:s', from: $newYorkTz))->toBe('2022/12/24 13:25:00');
-        expect(Date::convert(date: '2022-05-24 08:25:00', format: 'Y/m/d H:i:s', from: $newYorkTz))->toBe('2022/05/24 12:25:00');
-        expect(Date::convert(date: '2022-12-24 21:30:00', format: 'Y/m/d H:i:s', from: $tokyoTz))->toBe('2022/12/24 12:30:00');
+        expect(Date::convert(date: '2026-06-01 21:00:00',               format: 'Y/m/d H:i:s',      from: $newYorkTz))->toBe('2026/06/02 01:00:00');
+        expect(Date::convert(date: strtotime('2026-06-01 21:00:00'),    format: 'Y/m/d H:i:s',      from: $newYorkTz))->toBe('2026/06/02 01:00:00');
+        expect(Date::convert(date: '2022-12-24 08:25:05',               format: 'Y/m/d H:i:s',      from: $newYorkTz))->toBe('2022/12/24 13:25:05'); // in some months the New-York timezone is -5:00 from UTC
+        expect(Date::convert(date: '2022-12-24 21:30:00',               format: 'Y/m/d H:i:s',      from: $tokyoTz))->toBe('2022/12/24 12:30:00');
+        expect(Date::convert(date: strtotime('2022-12-25 12:30:10 AM'), format: 'Y/m/d h:i:s A',    from: $tokyoTz))->toBe('2022/12/24 03:30:10 PM');
 
-        expect(Date::convert(date: '2022-12-24 23:00:00', format: 'Y/m/d H:i:s', from: $newYorkTz,      to: $iranTz))->toBe('1401/10/04 07:30:00');
-        expect(Date::convert(date: '2022-12-24 03:15:00', format: 'Y/m/d H:i:s', from: $tokyoTz,        to: $iranTz))->toBe('1401/10/02 21:45:00');
-        expect(Date::convert(date: '19:00:00',            format: 'Y-m-d H:i:s', from: $pacificEaster,  to: $iranTz))->toBe(Date::convert(date: date('Y-m-d'), format: 'Y-m-d', to: $iranTz) . ' 04:30:00');
+        expect(Date::convert(date: '2022-12-25 12:30:10 AM',            format: 'Y/m/d h:i:s A',    from: $tokyoTz,   to: $iranTz))->toBe('1401/10/03 07:00:10 بعد از ظهر');
+        expect(Date::convert(date: '2022-12-25 12:30:10 AM',            format: 'Y/m/d H:i:s',      from: $tokyoTz,   to: $afghanistanTz))->toBe('1401/10/03 20:00:10');
+
+        expect(Date::convert(date: '21:00:10',  format: 'Y-m-d H:i:s', from: $newYorkTz))->toBe(date('Y-m-d', strtotime('tomorrow')) . ' 01:00:10');
+
+        expect(Date::convert(date: '19:00:00',  format: 'Y-m-d H:i:s', from: $pacificEaster,  to: $iranTz))->toBe(Date::convert(date: date('Y-m-d H:i:s'), format: 'Y-m-d', to: $iranTz) . ' 04:30:00');
 
         try {
 
@@ -290,17 +295,21 @@ describe('Date facade using FooinoDateHandler', function () {
 
     test('from UTC and jalali to gregorian', function () {
 
-        $newYorkTz = 'America/New_York';
-        $tokyoTz = 'Asia/Tokyo';
-        $iranTz = 'Asia/Tehran';
+        $newYorkTz = 'America/New_York'; // -4:00
+        $tokyoTz = 'Asia/Tokyo'; // +9:00
+        $iranTz = 'Asia/Tehran'; // +3:30
+        $afghanistanTz = 'Asia/Kabul'; // +4:30
 
-        expect(Date::convert(date: 'test',                format: 'Y/m/d H:i:s', to: $newYorkTz, fallback: 'fooino'))->toBe('fooino');
+        expect(Date::convert(date: 'test',                              format: 'Y/m/d H:i:s',      to: $newYorkTz, fallback: 'fooino'))->toBe('fooino');
 
-        expect(Date::convert(date: '2022/12/25 04:00:00', format: 'Y/m/d H:i:s', to: $newYorkTz))->toBe('2022/12/24 23:00:00');
-        expect(Date::convert(date: '2022/12/23 18:15:00', format: 'Y/m/d H:i:s', to: $tokyoTz))->toBe('2022/12/24 03:15:00');
+        expect(Date::convert(date: '2026/06/02 01:00:00',               format: 'Y/m/d H:i:s',      to: $newYorkTz))->toBe('2026/06/01 21:00:00');
+        expect(Date::convert(date: strtotime('2026/06/02 01:00:00'),    format: 'Y/m/d H:i:s',      to: $newYorkTz))->toBe('2026/06/01 21:00:00');
+        expect(Date::convert(date: '2022/12/24 13:25:05',               format: 'Y/m/d H:i:s',      to: $newYorkTz))->toBe('2022/12/24 08:25:05'); // in some months the New-York timezone is -5:00 from UTC
+        expect(Date::convert(date: '2022/12/24 12:30:00',               format: 'Y/m/d H:i:s',      to: $tokyoTz))->toBe('2022/12/24 21:30:00');
+        expect(Date::convert(date: strtotime('2022/12/24 03:30:10 PM'), format: 'Y/m/d h:i:s A',    to: $tokyoTz))->toBe('2022/12/25 12:30:10 AM');
 
-        expect(Date::convert(date: '1401/10/04 07:30:00', format: 'Y/m/d H:i:s', from: $iranTz, to: $newYorkTz))->toBe('2022/12/24 23:00:00');
-        expect(Date::convert(date: '1401/10/02 21:45:00', format: 'Y/m/d H:i:s', from: $iranTz, to: $tokyoTz))->toBe('2022/12/24 03:15:00');
+        expect(Date::convert(date: '1401/10/03 07:00:10 PM',            format: 'Y/m/d h:i:s A',    from: $iranTz, to: $tokyoTz))->toBe('2022/12/25 12:30:10 AM');
+        expect(Date::convert(date: '1401/10/03 20:00:10',               format: 'Y/m/d H:i:s',      from: $afghanistanTz, to: $tokyoTz))->toBe('2022/12/25 00:30:10');
 
         try {
             Date::convert(date: 'test', from: $iranTz, to: $tokyoTz, throwException: true);

@@ -16,7 +16,7 @@ class FooinoException extends Exception
 
     public function __construct(...$args)
     {
-        // use current state of message and code(the initial value in class property or already setted by setMessage, setCode methods) to make new instance from parent 
+        // use current state of message and code(the initial value in class property or already setted by setMessage, setCode methods)
         parent::__construct(message: $this->message, code: $this->code);
     }
 
@@ -129,25 +129,19 @@ class FooinoException extends Exception
     }
 
     /**
-     * Make a fresh new instance 
-     */
-    public function instance(): FooinoException
-    {
-        return (new static())
-            ->setMessage($this->message)
-            ->setCode($this->code)
-            ->setLevel($this->level)
-            ->setHttpStatusCode($this->httpStatusCode)
-            ->with($this->with)
-            ->report($this->report);
-    }
-
-    /**
      * Throw the exception
      */
     public function throw(): never
     {
-        throw $this->instance();
+        $this
+            ->setMessage($this->getMessage())
+            ->setCode($this->getCode())
+            ->setLevel($this->getLevel())
+            ->setHttpStatusCode($this->getHttpStatusCode())
+            ->with($this->getWith())
+            ->report($this->reportable());
+
+        throw $this;
     }
 
     /**
@@ -155,12 +149,20 @@ class FooinoException extends Exception
      */
     public function log(bool $trace = true): string
     {
-        $e = $this->instance();
-
-        $log = implode('|', [get_class($e), nullIfBlank($e->getMessage(), 'empty message'), $e->getCode(), $e->getHttpStatusCode(), $e->getLevel(), jsonEncode($e->getWith())]);
+        $log = implode(
+            '|',
+            [
+                get_class($this),
+                nullIfBlank(value: $this->getMessage(), fallback: 'empty message'),
+                $this->getCode(),
+                $this->getHttpStatusCode(),
+                $this->getLevel(),
+                jsonEncode($this->getWith())
+            ]
+        );
 
         if ($trace) {
-            $log .= "\n[stacktrace]\n" . $e->getTraceAsString();
+            $log .= "\n[stacktrace]\n" . $this->getTraceAsString();
         }
 
         return $log;
