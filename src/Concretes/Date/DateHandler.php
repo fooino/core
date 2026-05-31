@@ -6,8 +6,6 @@ namespace Fooino\Core\Concretes\Date;
 use Fooino\Core\Exceptions\CanNotConvertDateException;
 use Morilog\Jalali\Jalalian;
 use Morilog\Jalali\CalendarUtils;
-use Illuminate\Support\Facades\Validator;
-use Assert\Assertion;
 use DateTime;
 use DateTimeZone;
 use IntlDateFormatter;
@@ -21,32 +19,47 @@ class DateHandler
 
     protected array $dateTimeZones = [];
 
-    protected const JALALIAN_TIMEZONES = ['Asia/Tehran', 'Asia/Kabul'];
-
+    /**
+     * Get timezones list
+     */
     public function getTimezones(): array
     {
-        if (count($this->validTimezones) == 0) {
+        if (is_null($this->validTimezones[0] ?? null)) {
+
             $this->validTimezones = DateTimeZone::listIdentifiers();
         }
 
         return $this->validTimezones;
     }
 
+    /**
+     * Validate timezone
+     */
     public function validateTimezone(string $timezone): bool
     {
         return $this->validatedTimezones[$timezone] ??= in_array($timezone, $this->getTimezones());
     }
 
+    /**
+     * Convert date from UTC to Jalali timezone
+     */
     protected function UTCToJalali(
         string|null $date,
         string $format = 'Y-m-d H:i:s',
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'Asia/Tehran'
     ): string {
-        return (string) Jalalian::forge(timestamp: \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone($from))), timeZone: $this->getDateTimeZone(timezone: $to))->format(format: $format);
+
+        return Jalalian::forge(
+            timestamp: \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'))),
+            timeZone: $this->getDateTimeZone(timezone: $to)
+        )
+            ->format(format: $format);
     }
 
-
+    /**
+     * Convert date from Jalali to UTC timezone
+     */
     protected function jalaliToUTC(
         string|null $date,
         string $format = 'Y-m-d H:i:s',
@@ -54,24 +67,30 @@ class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone($from));
+        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from));
+
         $hasTimePart = $this->hasTimePart(date: $date);
+
         $baseFormat = $hasTimePart ? 'Y-m-d H:i:s' : 'Y-m-d';
 
-        $converted = CalendarUtils::createCarbonFromFormat(format: $baseFormat, str: $date)->format(format: $hasTimePart ? $baseFormat : $format);
+        $converted = CalendarUtils::createCarbonFromFormat(
+            format: $baseFormat,
+            str: $date
+        )
+            ->format(format: $hasTimePart ? $baseFormat : $format);
 
-        // since Morilog package does not convert the time we change the timezone to utc if the user asks for time part
+        // since Morilog package does not convert the time we change the timezone to UTC if the user asks for time part
         if ($hasTimePart) {
 
             $converted = (new DateTime(
                 datetime: $converted,
-                timezone: $from
+                timezone: $this->getDateTimeZone(timezone: $from)
             ))
-                ->setTimezone($this->getDateTimeZone('UTC'))
+                ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
                 ->format(format: $format);
         }
 
-        return (string) $converted;
+        return $converted;
     }
 
     protected function UTCToHijri(
@@ -151,6 +170,9 @@ class DateHandler
         return $date;
     }
 
+    /**
+     * Convert date from gregorian to UTC timezone
+     */
     protected function gregorianToUTC(
         string|null $date,
         string $format = 'Y-m-d H:i:s',
@@ -159,28 +181,34 @@ class DateHandler
     ): string {
 
         return (new DateTime(
-            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone($from)),
-            timezone: $this->getDateTimeZone($from)
+            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from)),
+            timezone: $this->getDateTimeZone(timezone: $from)
         ))
-            ->setTimezone(timezone: $this->getDateTimeZone('UTC'))
+            ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
             ->format(format: $format);
     }
 
+    /**
+     * Convert date from UTC to UTC gregorian
+     */
     protected function UTCToGregorian(
         string|null $date,
         string $format = 'Y-m-d H:i:s',
-        DateTimeZone|string $from = new DateTimeZone('UTC'),
-        DateTimeZone|string $to = new DateTimeZone('America/New_York'),
+        DateTimeZone|string $from = 'UTC',
+        DateTimeZone|string $to = 'America/New_York',
     ): string {
 
         return (new DateTime(
-            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone($from)),
-            timezone: $this->getDateTimeZone('UTC')
+            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC')),
+            timezone: $this->getDateTimeZone(timezone: 'UTC')
         ))
-            ->setTimezone(timezone: $this->getDateTimeZone($to))
+            ->setTimezone(timezone: $this->getDateTimeZone(timezone: $to))
             ->format(format: $format);
     }
 
+    /**
+     * Format the date
+     */
     protected function UTCToUTC(
         string|null $date,
         string $format = 'Y-m-d H:i:s',
@@ -188,70 +216,7 @@ class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        return date($format, \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone($from))));
-    }
-
-
-    public function validateJalali(string $date): bool
-    {
-        try {
-
-            list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: $date);
-
-            Assertion::between((int)$year, 1, 10000);
-            Assertion::between((int)$month, 1, 12);
-            Assertion::between((int)$day, 1, 31);
-
-            if ($month > 6) {
-                Assertion::between((int)$day, 1, 30);
-            }
-
-            if (
-                !CalendarUtils::isLeapJalaliYear($year) && $month === 12
-            ) {
-                Assertion::between((int)$day, 1, 29);
-            }
-
-            return $this->validateTime((int)$hour, (int)$minute, (int)$second);
-
-            //
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    public function validateHijri(string $date): bool
-    {
-        try {
-
-            list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: $date);
-
-            Assertion::between((int)$year, 1, 10000);
-            Assertion::between((int)$month, 1, 12);
-            Assertion::between((int)$day, 1, 31);
-
-            return $this->validateTime((int)$hour, (int)$minute, (int)$second);
-
-            //
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    public function validateGregorian(string $date): bool
-    {
-        $date = $this->standardize(date: $date);
-
-        $validator = Validator::make(
-            ['date' => $date],
-            ['date' => "date_format:" . ($this->hasTimePart(date: $date) ? 'Y-m-d H:i:s' : 'Y-m-d')]
-        );
-        return !$validator->fails();
-    }
-
-    private function validateTime(int $hour, int $minute, int $second): bool
-    {
-        return ($hour >= 0 && $hour < 24) && ($minute >= 0 && $minute <= 59) && ($second >= 0 && $second <= 59);
+        return date($format, \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone('UTC'))));
     }
 
     private function convertFormatToPattern(string $format): string
@@ -302,8 +267,10 @@ class DateHandler
     }
 
 
-
-    public function dateParts(string $date): array
+    /**
+     * Get parts of date
+     */
+    protected function dateParts(string $date): array
     {
         $parts = \explode(" ", $date);
 
@@ -313,59 +280,50 @@ class DateHandler
         ];
     }
 
-    public function hasTimePart(string $date): bool
+    /**
+     * Check the date has time
+     */
+    protected function hasTimePart(string $date): bool
     {
-        return filled($this->dateParts($date)[1]);
+        return !is_null($this->dateParts($date)[1]);
     }
 
     /**
      * Standardize given date to Y-m-d H:i:s format
-     *
-     * @param string|null $date
-     * 
-     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException when non parts of date is valid
-     * 
-     * @return string
      */
     protected function standardize(string|null $date, DateTimeZone $timezone): string
     {
-        list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string)$date);
+        list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
 
+        $datePart = $this->addZeroToBeginning($year) . '-' . $this->addZeroToBeginning($month) . '-' . $this->addZeroToBeginning($day);
         $timePart = '';
-        $datePart = $year . '-' . $month . '-' . $day;
 
         if (
-            $hour != '00' ||
-            $minute != '00' ||
-            $second != '00'
+            $hour   !== false ||
+            $minute !== false ||
+            $second !== false // since the timezone can change the day, add timePart when exists
         ) {
-            $timePart = $hour . ':' . $minute . ':' . $second;
+            $timePart = $this->addZeroToBeginning($hour) . ':' . $this->addZeroToBeginning($minute) . ':' . $this->addZeroToBeginning($second);
         }
 
         if (
-            $datePart == '00-00-00' &&
-            (blank($timePart) || $timePart == '00:00:00')
+            $datePart == '00-00-00' // the user want to just convert time part, so we make the datePart from now to have Y-m-d H:i:s
         ) {
-            app(CanNotConvertDateException::class)
-                ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
-                ->setCode(10053)
-                ->error()
-                ->shouldReport()
-                ->throw();
-        }
 
-        if ($datePart == '00-00-00') {
+            if ($this->getCalendarTypeByTimezone(timezone: $timezone) == 'jalali') {
 
-            if (in_array($timezone->getName(), self::JALALIAN_TIMEZONES)) {
-
-                $datePart = Jalalian::forge(timestamp: \strtotime(date('Y-m-d')), timeZone: $timezone)->format('Y-m-d');
+                $datePart = Jalalian::forge(
+                    timestamp: \strtotime(date('Y-m-d H:i:s')),
+                    timeZone: $timezone
+                )
+                    ->format(format: 'Y-m-d');
 
                 // 
             } else {
 
                 $datePart = (new DateTime(
-                    datetime: date('Y-m-d'),
-                    timezone: $this->getDateTimeZone('UTC')
+                    datetime: date('Y-m-d H:i:s'),
+                    timezone: $this->getDateTimeZone(timezone: 'UTC')
                 ))
                     ->setTimezone(timezone: $timezone)
                     ->format(format: 'Y-m-d');
@@ -380,30 +338,38 @@ class DateHandler
     /**
      * Parse date with date_parse php function
      * 
-     * @param string $date
-     * 
-     * @return array
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
      */
     protected function parseDate(string $date): array
     {
-        $parsed  = \date_parse(\trim($date));
+        $parsed = \date_parse(\trim($date));
 
-        return [
-            $this->addZeroToBeginning($parsed['year']),
-            $this->addZeroToBeginning($parsed['month']),
-            $this->addZeroToBeginning($parsed['day']),
-            $this->addZeroToBeginning($parsed['hour']),
-            $this->addZeroToBeginning($parsed['minute']),
-            $this->addZeroToBeginning($parsed['second']),
+        $parsed = [
+            $parsed['year'],
+            $parsed['month'],
+            $parsed['day'],
+            $parsed['hour'],
+            $parsed['minute'],
+            $parsed['second']
         ];
+
+        if (
+            count(array_filter($parsed, fn($p) => $p !== false)) === 0 // non part of the date is valid
+        ) {
+
+            app(CanNotConvertDateException::class)
+                ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
+                ->setCode(10053)
+                ->error()
+                ->shouldReport()
+                ->throw();
+        }
+
+        return $parsed;
     }
 
     /**
      * Adds a zero at the beginning of the value if the length is 1.
-     *
-     * @param string|false|int|null $value
-     * 
-     * @return string
      */
     protected function addZeroToBeginning(string|false|int|null $value): string
     {
@@ -417,17 +383,13 @@ class DateHandler
     /**
      * Make DateTimeZone object if the timezone is string.
      *
-     * @param DateTimeZone|string $timezone
-     * 
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException when the timezone is invalid
-     * 
-     * @return DateTimeZone
      */
     protected function getDateTimeZone(DateTimeZone|string $timezone): DateTimeZone
     {
         if (is_string($timezone)) {
 
-            if (filled($this->dateTimeZones[$timezone] ?? null)) {
+            if (!is_null($this->dateTimeZones[$timezone] ?? null)) {
 
                 return $this->dateTimeZones[$timezone];
             }
@@ -449,5 +411,21 @@ class DateHandler
         }
 
         return $timezone;
+    }
+
+    /**
+     * Get calendar type base on timezone
+     */
+    protected function getCalendarTypeByTimezone(DateTimeZone $timezone): string
+    {
+        return match ($timezone->getName()) {
+            'Asia/Tehran'           => 'jalali',
+            'Asia/Kabul'            => 'jalali',
+            // 'Asia/Muscat'           => 'hijri',
+            // 'Asia/Riyadh'           => 'hijri',
+            // 'Asia/Dubai'            => 'hijri',
+            'UTC'                   => 'UTC',
+            default                 => 'gregorian',
+        };
     }
 }

@@ -64,6 +64,8 @@ describe('FooinoException for better error handling', function () {
 
         $e = app(CustomException::class);
 
+        expect($e->log())->toContain('[stacktrace]');
+
         expect($e->log(false))->toEqual('Fooino\Core\Tests\Unit\CustomException|fooino|10|422|fooino|{"foo":"ino"}');
 
         $e = app(CustomException::class)->setMessage('nasty error')->setCode(100)->alert()->setHttpStatusCode(503)->with(['timestamp' => '123123123'])->shouldReport();
