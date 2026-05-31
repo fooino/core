@@ -50,8 +50,8 @@ class DateHandler
         DateTimeZone|string $to = 'Asia/Tehran'
     ): string {
 
-        return (string) Jalalian::forge(
-            timestamp: \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from))),
+        return Jalalian::forge(
+            timestamp: \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'))),
             timeZone: $this->getDateTimeZone(timezone: $to)
         )
             ->format(format: $format);
@@ -67,8 +67,10 @@ class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone($from));
+        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from));
+
         $hasTimePart = $this->hasTimePart(date: $date);
+
         $baseFormat = $hasTimePart ? 'Y-m-d H:i:s' : 'Y-m-d';
 
         $converted = CalendarUtils::createCarbonFromFormat(
@@ -77,18 +79,18 @@ class DateHandler
         )
             ->format(format: $hasTimePart ? $baseFormat : $format);
 
-        // since Morilog package does not convert the time we change the timezone to utc if the user asks for time part
+        // since Morilog package does not convert the time we change the timezone to UTC if the user asks for time part
         if ($hasTimePart) {
 
             $converted = (new DateTime(
                 datetime: $converted,
-                timezone: $this->getDateTimeZone($from)
+                timezone: $this->getDateTimeZone(timezone: $from)
             ))
-                ->setTimezone($this->getDateTimeZone('UTC'))
+                ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
                 ->format(format: $format);
         }
 
-        return (string) $converted;
+        return $converted;
     }
 
     protected function UTCToHijri(
@@ -179,10 +181,10 @@ class DateHandler
     ): string {
 
         return (new DateTime(
-            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone($from)),
-            timezone: $this->getDateTimeZone($from)
+            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from)),
+            timezone: $this->getDateTimeZone(timezone: $from)
         ))
-            ->setTimezone(timezone: $this->getDateTimeZone('UTC'))
+            ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
             ->format(format: $format);
     }
 
@@ -288,45 +290,33 @@ class DateHandler
 
     /**
      * Standardize given date to Y-m-d H:i:s format
-     *
-     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException when non parts of date is valid
      */
     protected function standardize(string|null $date, DateTimeZone $timezone): string
     {
-        list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string)$date);
+        list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
 
+        $datePart = $this->addZeroToBeginning($year) . '-' . $this->addZeroToBeginning($month) . '-' . $this->addZeroToBeginning($day);
         $timePart = '';
-        $datePart = $year . '-' . $month . '-' . $day;
 
         if (
-            $hour != '00' ||
-            $minute != '00' ||
-            $second != '00'
+            $hour   !== false ||
+            $minute !== false ||
+            $second !== false // since the timezone can change the day, add timePart when exists
         ) {
-            $timePart = $hour . ':' . $minute . ':' . $second;
+            $timePart = $this->addZeroToBeginning($hour) . ':' . $this->addZeroToBeginning($minute) . ':' . $this->addZeroToBeginning($second);
         }
 
         if (
-            $datePart == '00-00-00' &&
-            (blank($timePart) || $timePart == '00:00:00')
+            $datePart == '00-00-00' // the user want to just convert time part, so we make the datePart from now to have Y-m-d H:i:s
         ) {
-            app(CanNotConvertDateException::class)
-                ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
-                ->setCode(10053)
-                ->error()
-                ->shouldReport()
-                ->throw();
-        }
 
-        if ($datePart == '00-00-00') {
-
-            if ($this->getCalendarTypeByTimezone($timezone) == 'jalali') {
+            if ($this->getCalendarTypeByTimezone(timezone: $timezone) == 'jalali') {
 
                 $datePart = Jalalian::forge(
                     timestamp: \strtotime(date('Y-m-d')),
-                    timeZone: $this->getDateTimeZone($timezone)
+                    timeZone: $this->getDateTimeZone(timezone: $timezone)
                 )
-                    ->format('Y-m-d');
+                    ->format(format: 'Y-m-d');
 
                 // 
             } else {
@@ -335,7 +325,7 @@ class DateHandler
                     datetime: date('Y-m-d'),
                     timezone: $this->getDateTimeZone('UTC')
                 ))
-                    ->setTimezone(timezone: $this->getDateTimeZone($timezone))
+                    ->setTimezone(timezone: $this->getDateTimeZone(timezone: $timezone))
                     ->format(format: 'Y-m-d');
             }
         }
@@ -347,19 +337,35 @@ class DateHandler
 
     /**
      * Parse date with date_parse php function
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
      */
     protected function parseDate(string $date): array
     {
-        $parsed  = \date_parse(\trim($date));
+        $parsed = \date_parse(\trim($date));
 
-        return [
-            $this->addZeroToBeginning($parsed['year']),
-            $this->addZeroToBeginning($parsed['month']),
-            $this->addZeroToBeginning($parsed['day']),
-            $this->addZeroToBeginning($parsed['hour']),
-            $this->addZeroToBeginning($parsed['minute']),
-            $this->addZeroToBeginning($parsed['second']),
+        $parsed = [
+            $parsed['year'],
+            $parsed['month'],
+            $parsed['day'],
+            $parsed['hour'],
+            $parsed['minute'],
+            $parsed['second']
         ];
+
+        if (
+            count(array_filter($parsed, fn($p) => $p !== false)) === 0 // non part of the date is valid
+        ) {
+
+            app(CanNotConvertDateException::class)
+                ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
+                ->setCode(10053)
+                ->error()
+                ->shouldReport()
+                ->throw();
+        }
+
+        return $parsed;
     }
 
     /**

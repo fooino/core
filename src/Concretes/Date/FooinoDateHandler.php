@@ -21,6 +21,8 @@ class FooinoDateHandler extends DateHandler implements Dateable
         bool $throwException = false
     ): string {
 
+        $originalDate = $date;
+
         $date = is_numeric($date) ? date('Y-m-d H:i:s', $date) : $date;
 
         $date = nullIfBlank(value: replaceSlashToDash(value: (string) $date));
@@ -74,10 +76,11 @@ class FooinoDateHandler extends DateHandler implements Dateable
                     ->with(array_merge(
                         callMethodIfExists(object: $e, method: 'getWith', fallback: []),
                         [
-                            'date'      => $date,
-                            'format'    => $format,
-                            'from'      => is_string($from) ? $from : $from->getName(),
-                            'to'        => is_string($to)   ? $to   : $to->getName(),
+                            'original_date' => $originalDate,
+                            'date'          => $date,
+                            'format'        => $format,
+                            'from'          => is_string($from) ? $from : $from->getName(),
+                            'to'            => is_string($to)   ? $to   : $to->getName(),
                         ]
                     ))
                     ->throw();
