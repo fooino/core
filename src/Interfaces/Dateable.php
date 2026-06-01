@@ -23,6 +23,21 @@ interface Dateable
     public function convert(string|int|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string;
 
     /**
+     * Get calendar usage: OFFICIAL or UNOFFICIAL
+     */
+    public function getCalendarUsage(): string;
+
+    /**
+     * Use official calendar which set by governments
+     */
+    public function officialCalendar(): static;
+
+    /**
+     * Use unofficial calendar which used for religious, cultural events
+     */
+    public function unofficialCalendar(): static;
+
+    /**
      * Get timezones list
      * 
      * @return array

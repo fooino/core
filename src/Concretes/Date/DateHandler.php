@@ -13,11 +13,43 @@ use Exception;
 
 class DateHandler
 {
+    protected array $instances = [];
+
+    private const OFFICIAL   = 'OFFICIAL';
+
+    private const UNOFFICIAL = 'UNOFFICIAL';
+
     protected array $validTimezones = [];
 
     protected array $validatedTimezones = [];
 
     protected array $dateTimeZones = [];
+
+    public function __construct(protected string $calendarUsage = self::OFFICIAL) {}
+
+    /**
+     * Get calendar usage: OFFICIAL or UNOFFICIAL
+     */
+    public function getCalendarUsage(): string
+    {
+        return $this->calendarUsage;
+    }
+
+    /**
+     * Use official calendar which set by governments
+     */
+    public function officialCalendar(): static
+    {
+        return $this->instances[self::OFFICIAL] ??= (new static(calendarUsage: self::OFFICIAL));
+    }
+
+    /**
+     * Use unofficial calendar which used for religious, cultural events
+     */
+    public function unofficialCalendar(): static
+    {
+        return $this->instances[self::UNOFFICIAL] ??= (new static(calendarUsage: self::UNOFFICIAL));
+    }
 
     /**
      * Get timezones list
@@ -414,16 +446,50 @@ class DateHandler
     }
 
     /**
-     * Get calendar type base on timezone
+     * Get calendar type base on timezone and usage
      */
     protected function getCalendarTypeByTimezone(DateTimeZone $timezone): string
     {
+        return $this->{'get' . ucfirst(strtolower($this->getCalendarUsage()) . 'CalendarTypeByTimezone')}(timezone: $timezone);
+    }
+
+    /**
+     * Get official calendar type base on timezone
+     */
+    protected function getOfficialCalendarTypeByTimezone(DateTimeZone $timezone): string
+    {
         return match ($timezone->getName()) {
-            'Asia/Tehran'           => 'jalali',
-            'Asia/Kabul'            => 'jalali',
-            // 'Asia/Muscat'           => 'hijri',
-            // 'Asia/Riyadh'           => 'hijri',
-            // 'Asia/Dubai'            => 'hijri',
+
+            'Asia/Tehran'           => 'jalali',    // +3:30
+            'Asia/Kabul'            => 'jalali',    // +4:30
+
+            'UTC'                   => 'UTC',
+            default                 => 'gregorian',
+        };
+    }
+
+    /**
+     * Get unofficial calendar type base on timezone
+     */
+    protected function getUnofficialCalendarTypeByTimezone(DateTimeZone $timezone): string
+    {
+        return match ($timezone->getName()) {
+
+            'Asia/Tehran'           => 'jalali',    // +3:30
+            'Asia/Kabul'            => 'jalali',    // +4:30
+
+            'Asia/Dubai'            => 'hijri',     // +4:00
+            'Asia/Qatar'            => 'hijri',     // +3:00
+            'Asia/Riyadh'           => 'hijri',     // +3:00
+            'Asia/Muscat'           => 'hijri',     // +4:00
+            'Asia/Bahrain'          => 'hijri',     // +3:00
+            'Asia/Kuwait'           => 'hijri',     // +3:00
+            'Asia/Baghdad'          => 'hijri',     // +3:00
+            'Asia/Amman'            => 'hijri',     // +3:00
+            'Asia/Beirut'           => 'hijri',     // +3:00
+            'Asia/Damascus'         => 'hijri',     // +3:00
+            'Asia/Aden'             => 'hijri',     // +3:00
+
             'UTC'                   => 'UTC',
             default                 => 'gregorian',
         };
