@@ -189,7 +189,7 @@ class DateHandler
     }
 
     /**
-     * Convert date from UTC to UTC gregorian
+     * Convert date from UTC to gregorian timezone
      */
     protected function UTCToGregorian(
         string|null $date,
@@ -216,7 +216,7 @@ class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        return date($format, \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone('UTC'))));
+        return date($format, \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'))));
     }
 
     private function convertFormatToPattern(string $format): string

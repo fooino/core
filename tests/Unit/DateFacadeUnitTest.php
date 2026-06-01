@@ -210,12 +210,12 @@ describe('Date facade using FooinoDateHandler', function () {
 
         expect(Date::convert(date: '00:00:00',      format: 'H:i:s',            from: $iranTz))->toBe('20:30:00');
         expect(Date::convert(date: '22:57:09',      format: 'h:i:s A',          from: $iranTz))->toBe('07:27:09 PM');
-        expect(Date::convert(date: '02:40',         format: 'Y-m-d H:i:s',      from: $iranTz))->toBe(date('Y-m-d') . ' 23:10:00'); // it goes to the last day by 0:00 UTC timezone
+        expect(Date::convert(date: '02:40',         format: 'Y-m-d H:i:s',      from: $iranTz))->toBe(Date::convert(date: explode(" ", Date::convert(date: date('Y-m-d H:i:s', strtotime('yesterday')), to: $iranTz))[0], format: 'Y-m-d', from: $iranTz) . ' 23:10:00');
         expect(Date::convert(date: '19',            format: 'H:i:s',            from: $iranTz))->toBe('20:30:19'); // it will parse to 1970-00-00 00:00:19
 
         expect(Date::convert(date: '00:00:00',      format: 'H:i:s',            from: $afghanistanTz))->toBe('19:30:00');
         expect(Date::convert(date: '22:57:09',      format: 'h:i:s A',          from: $afghanistanTz))->toBe('06:27:09 PM');
-        expect(Date::convert(date: '02:40',         format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe(date('Y-m-d') . ' 22:10:00');
+        expect(Date::convert(date: '15:40',         format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe(Date::convert(date: explode(" ", Date::convert(date: date('Y-m-d H:i:s'), to: $afghanistanTz))[0], format: 'Y-m-d', from: $afghanistanTz) . ' 11:10:00');
         expect(Date::convert(date: '19',            format: 'H:i:s',            from: $afghanistanTz))->toBe('19:30:19'); // it will parse to 1970-00-00 00:00:19
 
         try {
@@ -250,7 +250,6 @@ describe('Date facade using FooinoDateHandler', function () {
         $tokyoTz = 'Asia/Tokyo'; // +9:00
         $iranTz = 'Asia/Tehran'; // +3:30
         $afghanistanTz = 'Asia/Kabul'; // +4:30
-        $pacificEaster = 'Pacific/Easter'; // +18:00
 
         expect(Date::convert(date: 'test',                              format: 'Y/m/d H:i:s',      from: $newYorkTz, fallback: 'fooino'))->toBe('fooino');
 
@@ -260,12 +259,16 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '2022-12-24 21:30:00',               format: 'Y/m/d H:i:s',      from: $tokyoTz))->toBe('2022/12/24 12:30:00');
         expect(Date::convert(date: strtotime('2022-12-25 12:30:10 AM'), format: 'Y/m/d h:i:s A',    from: $tokyoTz))->toBe('2022/12/24 03:30:10 PM');
 
-        expect(Date::convert(date: '2022-12-25 12:30:10 AM',            format: 'Y/m/d h:i:s A',    from: $tokyoTz,   to: $iranTz))->toBe('1401/10/03 07:00:10 بعد از ظهر');
-        expect(Date::convert(date: '2022-12-25 12:30:10 AM',            format: 'Y/m/d H:i:s',      from: $tokyoTz,   to: $afghanistanTz))->toBe('1401/10/03 20:00:10');
+        expect(Date::convert(date: '2022-12-25 00:30:10',               format: 'Y/m/d h:i:s A',    from: $tokyoTz,   to: $iranTz))->toBe('1401/10/03 07:00:10 بعد از ظهر'); // 2022-12-25 00:30:10 Tokyo ---> 2022-12-24 15:30:10 UTC ---> 1401-10-03 19:00:10 Tehran
+        expect(Date::convert(date: '2022-12-25 00:30:10',               format: 'Y/m/d H:i:s',      from: $tokyoTz,   to: $afghanistanTz))->toBe('1401/10/03 20:00:10');
 
-        expect(Date::convert(date: '21:00:10',  format: 'Y-m-d H:i:s', from: $newYorkTz))->toBe(date('Y-m-d', strtotime('tomorrow')) . ' 01:00:10');
 
-        expect(Date::convert(date: '19:00:00',  format: 'Y-m-d H:i:s', from: $pacificEaster,  to: $iranTz))->toBe(Date::convert(date: date('Y-m-d H:i:s'), format: 'Y-m-d', to: $iranTz) . ' 04:30:00');
+        expect(Date::convert(date: '00:00:00',  format: 'H:i:s',        from: $newYorkTz))->toBeIn(['04:00:00', '05:00:00']);
+        expect(Date::convert(date: '15:30:00',  format: 'H:i:s',        from: $newYorkTz))->toBeIn(['19:30:00', '20:30:00']);
+        expect(Date::convert(date: '15:30',     format: 'H:i:s',        from: $newYorkTz))->toBeIn(['19:30:00', '20:30:00']);
+        expect(Date::convert(date: '15',        format: 'H:i:s',        from: $newYorkTz))->toBeIn(['04:00:15', '05:00:15']);
+        expect(Date::convert(date: '21:00:10',  format: 'Y-m-d H:i:s',  from: $newYorkTz))->toBeIn([date('Y-m-d', strtotime('tomorrow')) . ' 01:00:10', date('Y-m-d', strtotime('tomorrow')) . ' 02:00:10']);
+        expect(Date::convert(date: '15:30',     format: 'H:i:s',        from: $newYorkTz, to: $iranTz))->toBeIn(['23:00:00', '00:00:00']);
 
         try {
 
@@ -308,10 +311,18 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '2022/12/24 12:30:00',               format: 'Y/m/d H:i:s',      to: $tokyoTz))->toBe('2022/12/24 21:30:00');
         expect(Date::convert(date: strtotime('2022/12/24 03:30:10 PM'), format: 'Y/m/d h:i:s A',    to: $tokyoTz))->toBe('2022/12/25 12:30:10 AM');
 
-        expect(Date::convert(date: '1401/10/03 07:00:10 PM',            format: 'Y/m/d h:i:s A',    from: $iranTz, to: $tokyoTz))->toBe('2022/12/25 12:30:10 AM');
-        expect(Date::convert(date: '1401/10/03 20:00:10',               format: 'Y/m/d H:i:s',      from: $afghanistanTz, to: $tokyoTz))->toBe('2022/12/25 00:30:10');
+        expect(Date::convert(date: '1401/10/03 19:00:10',               format: 'Y/m/d h:i:s A',    from: $iranTz,          to: $tokyoTz))->toBe('2022/12/25 12:30:10 AM'); // 1401-10-03 19:00:10 Tehran ---> 2022-12-24 15:30:10 UTC ---> 2022-12-25 00:30:10 Tokyo
+        expect(Date::convert(date: '1401/10/03 20:00:10',               format: 'Y/m/d H:i:s',      from: $afghanistanTz,   to: $tokyoTz))->toBe('2022/12/25 00:30:10');
+
+        expect(Date::convert(date: '00:00:00',  format: 'H:i:s',        to: $newYorkTz))->toBeIn(['20:00:00', '19:00:00']);
+        expect(Date::convert(date: '15:30:00',  format: 'H:i:s',        to: $newYorkTz))->toBeIn(['11:30:00', '10:30:00']);
+        expect(Date::convert(date: '15:30',     format: 'H:i:s',        to: $newYorkTz))->toBeIn(['11:30:00', '10:30:00']);
+        expect(Date::convert(date: '15',        format: 'H:i:s',        to: $newYorkTz))->toBeIn(['20:00:15', '19:00:15']);
+        expect(Date::convert(date: '02:00:10',  format: 'Y-m-d H:i:s',  to: $newYorkTz))->toBeIn([date('Y-m-d', strtotime('yesterday')) . ' 22:00:10', date('Y-m-d', strtotime('yesterday')) . ' 21:00:10']);
+        expect(Date::convert(date: '15:30',     format: 'H:i:s',        from: $iranTz, to: $newYorkTz))->toBeIn(['08:00:00', '07:00:00']);
 
         try {
+
             Date::convert(date: 'test', from: $iranTz, to: $tokyoTz, throwException: true);
 
             // 
@@ -331,6 +342,38 @@ describe('Date facade using FooinoDateHandler', function () {
                     "format"            => "Y-m-d H:i:s",
                     "from"              => "Asia/Tehran",
                     "to"                => "Asia/Tokyo",
+                ]
+            );
+        };
+    });
+
+    test('UTCToUTC change the format', function () {
+
+
+        expect(Date::convert(date: '2024-01-10 15:20',              format: 'Y-m-d h:i:s A'))->toBe('2024-01-10 03:20:00 PM');
+        expect(Date::convert(date: strtotime('2024-01-10 15:20'),   format: 'Y-m-d h:i:s A'))->toBe('2024-01-10 03:20:00 PM');
+
+        try {
+
+            Date::convert(date: 'test', throwException: true);
+
+            // 
+        } catch (CanNotConvertDateException | Exception $e) {
+
+            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCode())->toEqual(10053);
+
+            expect($e->getLevel())->toEqual('error');
+            expect($e->getHttpStatusCode())->toEqual(500);
+            expect($e->reportable())->toBeTrue();
+
+            expect($e->getWith())->toEqual(
+                [
+                    "original_date"     => "test",
+                    "date"              => "test",
+                    "format"            => "Y-m-d H:i:s",
+                    "from"              => "UTC",
+                    "to"                => "UTC",
                 ]
             );
         };
