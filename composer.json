@@ -13,6 +13,7 @@
     "require": {
         "php": "^8.5",
         "ext-bcmath": "*",
+        "ext-intl": "*",
         "morilog/jalali": "^3.5"
     },
     "require-dev": {

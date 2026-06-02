@@ -9,6 +9,7 @@ use Morilog\Jalali\CalendarUtils;
 use DateTime;
 use DateTimeZone;
 use IntlDateFormatter;
+use IntlCalendar;
 use Exception;
 
 class DateHandler
@@ -125,81 +126,74 @@ class DateHandler
         return $converted;
     }
 
+    /**
+     * Convert date from UTC to lunar hijri 
+     */
     protected function UTCToHijri(
         string|null $date,
         string $format = 'Y-m-d H:i:s',
-        DateTimeZone $from = new DateTimeZone('UTC'),
-        DateTimeZone $to = new DateTimeZone('Asia/Riyadh')
+        DateTimeZone|string $from = 'UTC',
+        DateTimeZone|string $to = 'Asia/Riyadh'
     ): string {
 
-        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone($from));
+        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'));
 
-        throw_if(
-            \is_null($date),
-            Exception::class,
-            'The date is empty'
+        $locale = $this->getDateTimeZone(timezone: $to)->getName() == 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
+
+        $islamicCal = IntlCalendar::createInstance(
+            timezone: $this->getDateTimeZone(timezone: $to),
+            locale: $locale
         );
 
-        $dateToTime = \strtotime($date);
+        $islamicCal->setTime(timestamp: strtotime($date) * 1000);
 
-        throw_if(
-            !\is_numeric($dateToTime),
-            Exception::class,
-            'strtotime can not convert date to timestamp'
-        );
-
-        $pattern = $this->convertFormatToPattern(format: $format);
-
-        $hijriDate = IntlDateFormatter::create(
-            locale: 'en_US@calendar=islamic-civil',
+        $formatter = new IntlDateFormatter(
+            locale: $locale,
             dateType: IntlDateFormatter::FULL,
             timeType: IntlDateFormatter::FULL,
-            timezone: $to,
+            timezone: $this->getDateTimeZone(timezone: $to),
             calendar: IntlDateFormatter::TRADITIONAL,
-            pattern: $pattern
+            pattern: $this->convertPhpDateFormatToICU(format: $format)
         );
 
-        return $hijriDate->format($dateToTime);
+        return $formatter->format(datetime: $islamicCal);
     }
 
+    /**
+     * Convert date from lunar hijri to UTC
+     */
     protected function hijriToUTC(
         string|null $date,
         string $format = 'Y-m-d H:i:s',
-        DateTimeZone $from = new DateTimeZone('Asia/Riyadh'),
-        DateTimeZone $to = new DateTimeZone('UTC')
+        DateTimeZone|string $from = 'Asia/Riyadh',
+        DateTimeZone|string $to = 'UTC'
     ): string {
 
-        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone($from));
+        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from));
 
-        throw_if(
-            \is_null($date),
-            Exception::class,
-            'The date is empty'
+        list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
+
+        $locale = $this->getDateTimeZone(timezone: $from)->getName() == 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
+
+        $hijriCalendar = IntlCalendar::createInstance(
+            $this->getDateTimeZone(timezone: $from),
+            $locale
         );
 
-        $parts = \explode(' ', $date);
-        $datePart = $parts[0];
-        $timePart = $parts[1] ?? null;
-        $dateParts = \explode('-', $datePart);
-        $year = $dateParts[0];
-        $month = $dateParts[1];
-        $day = $dateParts[2];
+        $hijriCalendar->set(
+            year: $year,
+            month: $month - 1, // Subtract 1 because of the 0-based index!
+            dayOfMonth: $day === false ? null : $day,
+            hour: $hour === false ? null : $hour,
+            minute: $minute === false ? null : $minute,
+            second: $second === false ? null : $second
+        );
 
-        $julianDay = \floor((11 * $year + 3) / 30) + \floor(354 * $year) + \floor(30 * $month) - \floor(($month - 1) / 2) + $day + 1948440 - 385;
+        $timestamp = (int)($hijriCalendar->getTime() / 1000);
 
-        $date = $this->standardize(date: \jdtogregorian($julianDay) . ' ' . $timePart, timezone: $this->getDateTimeZone($from));
-
-        $date = date($format, \strtotime($date));
-
-        if (
-            filled($timePart)
-        ) {
-            $date = (new DateTime(datetime: $date, timezone: $from))
-                ->setTimezone(new DateTimeZone('UTC'))
-                ->format(format: $format);
-        }
-
-        return $date;
+        return (new DateTime(datetime: date($format, $timestamp)))
+            ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
+            ->format(format: $format);
     }
 
     /**
@@ -251,53 +245,109 @@ class DateHandler
         return date($format, \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'))));
     }
 
-    private function convertFormatToPattern(string $format): string
+    /**
+     * Converts a PHP date() format string to an ICU/Unicode date pattern.
+     */
+    protected function convertPhpDateFormatToICU(string $format): string
     {
-        $replaces = [
-            // year
-            ' y '   => ' yy ',
-            'y-'    => 'yy-',
-            'y/'    => 'yy/',
+        /** Mapping from PHP date() specifier → ICU pattern.
+         *  Order matters: longer keys (like escaped ones) are processed first.
+         *  Escaped characters – ICU requires them to be wrapped in single quotes.
+         *  These mappings preserve literal characters that should not be interpreted.
+         */
+        $map = [
+            '\d' => "'d'",
+            '\D' => "'D'",
+            '\j' => "'j'",
+            '\l' => "'l'",
+            '\N' => "'N'",
+            '\S' => "'S'",
+            '\w' => "'w'",
+            '\z' => "'z'",
+            '\W' => "'W'",
+            '\F' => "'F'",
+            '\m' => "'m'",
+            '\M' => "'M'",
+            '\n' => "'n'",
+            '\t' => "'t'",
+            '\L' => "'L'",
+            '\o' => "'o'",
+            '\Y' => "'Y'",
+            '\y' => "'y'",
+            '\a' => "'a'",
+            '\A' => "'A'",
+            '\B' => "'B'",
+            '\g' => "'g'",
+            '\G' => "'G'",
+            '\h' => "'h'",
+            '\H' => "'H'",
+            '\i' => "'i'",
+            '\s' => "'s'",
+            '\u' => "'u'",
+            '\e' => "'e'",
+            '\I' => "'I'",
+            '\O' => "'O'",
+            '\P' => "'P'",
+            '\T' => "'T'",
+            '\Z' => "'Z'",
+            '\c' => "'c'",
+            '\r' => "'r'",
 
-            ' Y '   => ' yyyy ',
-            'Y-'    => 'yyyy-',
-            'Y/'    => 'yyyy/',
+            // Day -----------------------------------------------------------------
+            'd' => 'dd',      // Day of month, 2 digits with leading zeros (01–31)
+            'D' => 'eee',     // Textual day, three letters (Mon–Sun)
+            'j' => 'd',       // Day of month without leading zeros (1–31)
+            'l' => 'eeee',    // Full textual day (Sunday–Saturday)
+            'N' => 'e',       // ISO-8601 numeric day (1=Monday, 7=Sunday)
+            'S' => '',        // Ordinal suffix (st, nd, rd, th) – not supported in ICU
+            'w' => '',        // Numeric day of week (0=Sunday, 6=Saturday) – no ICU equivalent
+            'z' => 'D',       // Day of year (0–365)
 
-            // month
-            ' M '   => ' MMM ',
-            'M-'    => 'MMM-',
-            'M/'    => 'MMM/',
+            // Week ----------------------------------------------------------------
+            'W' => 'w',       // ISO-8601 week number of year
 
-            ' m '   => ' MM ',
-            'm-'    => 'MM-',
-            'm/'    => 'MM/',
+            // Month ---------------------------------------------------------------
+            'F' => 'MMMM',    // Full month name (January–December)
+            'm' => 'MM',      // Month with leading zeros (01–12)
+            'M' => 'MMM',     // Short month name (Jan–Dec)
+            'n' => 'M',       // Month without leading zeros (1–12)
+            't' => '',        // Days in month (28–31) – not supported in ICU
 
-            // day
-            ' d '   => ' dd ',
-            'd'     => 'dd',
+            // Year ----------------------------------------------------------------
+            'L' => '',        // Leap year indicator – no ICU equivalent
+            'o' => 'Y',       // ISO-8601 year number
+            'Y' => 'yyyy',    // 4-digit year
+            'y' => 'yy',      // 2-digit year
 
-            // hour
-            ' H '   => ' HH ',
-            'H:'    => 'HH:',
+            // Time ----------------------------------------------------------------
+            'a' => 'a',       // Lowercase am/pm
+            'A' => 'a',       // Uppercase AM/PM (ICU only has lowercase 'a')
+            'B' => '',        // Swatch Internet time – not supported in ICU
+            'g' => 'h',       // 12-hour hour without leading zeros (1–12)
+            'G' => 'H',       // 24-hour hour without leading zeros (0–23)
+            'h' => 'hh',      // 12-hour hour with leading zeros (01–12)
+            'H' => 'HH',      // 24-hour hour with leading zeros (00–23)
+            'i' => 'mm',      // Minutes with leading zeros (00–59)
+            's' => 'ss',      // Seconds with leading zeros (00–59)
+            'u' => '',        // Microseconds – no ICU equivalent (use 'A' for milliseconds)
+            'e' => 'VV',      // Timezone identifier (e.g., Europe/Paris) – ICU uses 'VV'
+            'I' => '',        // DST indicator – not supported in ICU
+            'O' => 'Z',       // Difference to GMT in hours – ICU uses 'Z'
+            'P' => 'ZZZZZ',   // Difference to GMT with colon – ICU uses 'ZZZZZ'
+            'T' => 'zzzz',    // Timezone abbreviation – ICU uses 'zzzz'
+            'Z' => 'XXXXX',   // Timezone offset in seconds – ICU uses 'XXXXX'
 
-            ' h '   => ' hh ',
-            'h:'    => 'hh:',
-
-            // minute
-            ' i '   => ' mm ',
-            ':i'    => ':mm',
-
-            // seconds
-            ' s '   => ' ss ',
-            ':s'    => ':ss',
+            // Full date/time -------------------------------------------------------
+            'c' => "yyyy-MM-dd'T'HH:mm:ssXXX", // ISO 8601 date – ICU equivalent
+            'r' => 'EEE, dd MMM yyyy HH:mm:ss Z', // RFC 2822 – ICU equivalent
         ];
 
-        foreach ($replaces as $key => $intl) {
-            $format = \str_replace($key, $intl, $format);
-        }
-        return $format;
-    }
+        // Escape percent signs to prevent any unexpected interpretation.
+        $format = str_replace('%', '%%', $format);
 
+        // Replace each PHP specifier with its ICU equivalent.
+        return strtr($format, $map);
+    }
 
     /**
      * Get parts of date

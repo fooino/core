@@ -266,7 +266,7 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '2022-12-24 08:25:05',                                   format: 'Y/m/d H:i:s',      from: $newYorkTz))->toBe('2022/12/24 13:25:05'); // in some months the New-York timezone is -5:00 from UTC
         expect(Date::convert(date: '2022-12-24 21:30:00',                                   format: 'Y/m/d H:i:s',      from: $tokyoTz))->toBe('2022/12/24 12:30:00');
         expect(Date::officialCalendar()->convert(date: '2022-12-24 21:30:00',               format: 'Y/m/d H:i:s',      from: $tokyoTz))->toBe('2022/12/24 12:30:00');
-        expect(Date::unofficialCalendar()->convert(date: '2022-12-24 21:30:00',format: 'Y/m/d H:i:s',      from: $tokyoTz))->toBe('2022/12/24 12:30:00');
+        expect(Date::unofficialCalendar()->convert(date: '2022-12-24 21:30:00',             format: 'Y/m/d H:i:s',      from: $tokyoTz))->toBe('2022/12/24 12:30:00');
         expect(Date::convert(date: strtotime('2022-12-25 12:30:10 AM'),                     format: 'Y/m/d h:i:s A',    from: $tokyoTz))->toBe('2022/12/24 03:30:10 PM');
 
         expect(Date::convert(date: '2022-12-25 00:30:10',                                   format: 'Y/m/d h:i:s A',    from: $tokyoTz,   to: $iranTz))->toBe('1401/10/03 07:00:10 بعد از ظهر'); // 2022-12-25 00:30:10 Tokyo ---> 2022-12-24 15:30:10 UTC ---> 1401-10-03 19:00:10 Tehran
@@ -385,6 +385,103 @@ describe('Date facade using FooinoDateHandler', function () {
                     "date"              => "test",
                     "format"            => "Y-m-d H:i:s",
                     "from"              => "UTC",
+                    "to"                => "UTC",
+                ]
+            );
+        };
+    });
+
+    test('from UTC to hijri', function () {
+
+        $UAE = 'Asia/Dubai'; // +4:00
+        $riyadh = 'Asia/Riyadh'; // +3:00
+
+        expect(Date::unofficialCalendar()->convert(date: 'test', to: $UAE, fallback: 'fooino'))->toBe('fooino');
+
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02',              format: 'Y-m-d',            to: $UAE))->toBe('1447-12-16');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02',              format: 'Y/m/d',            to: $riyadh))->toBe('1447/12/16');
+        expect(Date::unofficialCalendar()->convert(date: strtotime('2026-06-02'),   format: 'Y/m/d H:i:s',      to: $riyadh))->toBe('1447/12/16 03:00:00');
+
+        expect(Date::officialCalendar()->convert(date: '2026-06-02 12:30:08',       format: 'Y-m-d H:i:s',      to: $UAE))->toBe('2026-06-02 16:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: 'Y-m-d H:i:s',      to: $UAE))->toBe('1447-12-16 16:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 10:30:08 PM',  format: 'Y-m-d h:i:s A',    to: $UAE))->toBe('1447-12-17 02:30:08 AM');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: 'Y/m/d H:i:s',      to: $riyadh))->toBe('1447/12/16 15:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 21:00:00',     format: 'Y/m/d h:i:s A e',  to: $riyadh))->toBe('1447/12/17 12:00:00 AM Asia/Riyadh');
+
+        expect(Date::unofficialCalendar()->convert(date: '00:00:00',                format: 'H:i:s',            to: $riyadh))->toBe('03:00:00');
+        expect(Date::unofficialCalendar()->convert(date: '22:00:00',                format: 'h:i:s A',          to: $riyadh))->toBe('01:00:00 AM');
+        expect(Date::unofficialCalendar()->convert(date: '19:38',                   format: 'H:i:s',            to: $riyadh))->toBe('22:38:00');
+        expect(Date::unofficialCalendar()->convert(date: '19',                      format: 'H:i:s',            to: $riyadh))->toBe('03:00:19');
+        expect(Date::unofficialCalendar()->convert(date: '19:38',                   format: 'H:i:s',            to: $UAE))->toBe('23:38:00');
+
+        try {
+
+            Date::unofficialCalendar()->convert(date: 'test', to: $UAE, throwException: true);
+
+            // 
+        } catch (CanNotConvertDateException | Exception $e) {
+
+            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCode())->toEqual(10053);
+
+            expect($e->getLevel())->toEqual('error');
+            expect($e->getHttpStatusCode())->toEqual(500);
+            expect($e->reportable())->toBeTrue();
+
+            expect($e->getWith())->toEqual(
+                [
+                    "original_date"     => "test",
+                    "date"              => "test",
+                    "format"            => "Y-m-d H:i:s",
+                    "from"              => "UTC",
+                    "to"                => "Asia/Dubai",
+                ]
+            );
+        };
+    });
+
+    test('from hijri to UTC', function () {
+
+        $UAE = 'Asia/Dubai'; // +4:00
+        $riyadh = 'Asia/Riyadh'; // +3:00
+
+        expect(Date::unofficialCalendar()->convert(date: 'test', from: $UAE, fallback: 'fooino'))->toBe('fooino');
+
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16',              format: 'Y-m-d',            from: $UAE))->toBe('2026-06-01');
+        expect(Date::unofficialCalendar()->convert(date: '1447/12/16',              format: 'Y/m/d',            from: $riyadh))->toBe('2026/06/01');
+
+        expect(Date::officialCalendar()->convert(date: '2026-06-02 16:30:08',       format: 'Y-m-d H:i:s',      from: $UAE))->toBe('2026-06-02 12:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 16:30:08',     format: 'Y-m-d H:i:s',      from: $UAE))->toBe('2026-06-02 12:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-17 02:30:08 AM',  format: 'Y-m-d h:i:s A',    from: $UAE))->toBe('2026-06-02 10:30:08 PM');
+        expect(Date::unofficialCalendar()->convert(date: '1447/12/16 15:30:08',     format: 'Y/m/d H:i:s',      from: $riyadh))->toBe('2026/06/02 12:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447/12/17 12:00:00 AM',  format: 'Y/m/d h:i:s A e',  from: $riyadh))->toBe('2026/06/02 09:00:00 PM UTC');
+
+        expect(Date::unofficialCalendar()->convert(date: '00:00:00',                format: 'H:i:s',            from: $riyadh))->toBe('21:00:00');
+        expect(Date::unofficialCalendar()->convert(date: '02:00:00',                format: 'h:i:s A',          from: $riyadh))->toBe('11:00:00 PM');
+        expect(Date::unofficialCalendar()->convert(date: '19:38',                   format: 'H:i:s',            from: $riyadh))->toBe('16:38:00');
+        expect(Date::unofficialCalendar()->convert(date: '19',                      format: 'H:i:s',            from: $riyadh))->toBe('21:00:19');
+        expect(Date::unofficialCalendar()->convert(date: '19:38',                   format: 'H:i:s',            from: $UAE))->toBe('15:38:00');
+
+        try {
+
+            Date::unofficialCalendar()->convert(date: 'test', from: $UAE, throwException: true);
+
+            // 
+        } catch (CanNotConvertDateException | Exception $e) {
+
+            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCode())->toEqual(10053);
+
+            expect($e->getLevel())->toEqual('error');
+            expect($e->getHttpStatusCode())->toEqual(500);
+            expect($e->reportable())->toBeTrue();
+
+            expect($e->getWith())->toEqual(
+                [
+                    "original_date"     => "test",
+                    "date"              => "test",
+                    "format"            => "Y-m-d H:i:s",
+                    "from"              => "Asia/Dubai",
                     "to"                => "UTC",
                 ]
             );
