@@ -9,7 +9,7 @@ class FooinoJsonHandler implements Jsonable
 {
     public function is(int|float|string|null|bool|array|object $value): bool
     {
-        return !is_string($value) ? false : json_validate(json: $value);
+        return is_string($value) && json_validate(json: $value);
     }
 
     public function encode(
@@ -23,7 +23,7 @@ class FooinoJsonHandler implements Jsonable
 
     public function encodePrettified(string|array $value): string
     {
-        return blank($value) ? '' : '<pre style="direction:ltr; text-align:left;">' . htmlspecialchars(string: $this->encode(value: ($this->is(value: $value) ? $this->decodeToArray(json: $value) : $value), flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), flags: ENT_QUOTES, encoding: 'UTF-8') . '</pre>';
+        return is_null(nullIfBlank($value)) ? '' : htmlspecialchars(string: $this->encode(value: ($this->is(value: $value) ? $this->decodeToArray(json: $value) : $value), flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), flags: ENT_QUOTES, encoding: 'UTF-8');
     }
 
     public function decode(
@@ -55,7 +55,7 @@ class FooinoJsonHandler implements Jsonable
             ->json(
                 data: [
                     'status'                => $status,
-                    'success'               => ($status >= 200 && $status <= 299) ? true : false,
+                    'success'               => $status >= 200 && $status <= 299,
                     'message'               => $message,
                     'errors'                => $errors,
                     'data'                  => $data,

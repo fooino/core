@@ -65,7 +65,7 @@ You can generate a coverage report with:
 ---
 
 ### Testing
-We use [Pest PHP]((https://pestphp.com)) for automated testing.
+We use [Pest PHP](https://pestphp.com) for automated testing.
 All tests live in the `tests/` directory and should be written in a clear, descriptive style.
 
 ### For new features

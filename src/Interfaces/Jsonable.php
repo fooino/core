@@ -15,7 +15,6 @@ interface Jsonable
      */
     public function is(int|float|string|null|bool|array|object $value): bool;
 
-
     /**
      * Encode a value to json format.
      *
@@ -37,9 +36,9 @@ interface Jsonable
     public function encodePrettified(string|array $value): string;
 
     /**
-     * Decode a json to value.
+     * Decode a json to the original format.
      *
-     * @param  int|float|string|null|bool|array|object  $json
+     * @param  int|float|string|null|bool|array|object $json
      * @param  bool|null  $associative
      * @param  int  $depth
      * @param  int  $flags
@@ -48,11 +47,10 @@ interface Jsonable
      */
     public function decode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed;
 
-
     /**
      * Decode a json to array.
      *
-     * @param  int|float|string|null|bool|array|object  $json
+     * @param  int|float|string|null|bool|array|object $json
      * 
      * @return array
      */
@@ -61,18 +59,17 @@ interface Jsonable
     /**
      * Return response to user.
      *
-     * @param  int  $status
-     * @param  string  $message
-     * @param  array  $errors
-     * @param  array  $data
-     * @param  array  $additional
-     * @param  array  $headers
-     * @param  int  $options
+     * @param  int $status
+     * @param  string $message
+     * @param  array $errors
+     * @param  array $data
+     * @param  array $additional
+     * @param  array $headers
+     * @param  int $options
      * 
      * @return JsonResponse
      */
     public function response(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse;
-
 
     /**
      * return template for response.
