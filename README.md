@@ -2,10 +2,25 @@
 
 ## ⬇️ Installation
 
-You can install the package via composer:
+You can install the package
+
+
+1. With composer:
 
 ```bash
 composer require fooino/core
+```
+
+2. Docker
+```bash
+git clone https://github.com/fooino/laravel-fooino-packages-docker.git
+cd ./laravel-fooino-packages-docker
+docker-compose -p fooino up -d --build
+docker exec -it fooino_php bash
+cd ../packages/core
+composer update
+./vendor/bin/pest
+exit
 ```
 
 ## 📝 Documentation
