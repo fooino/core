@@ -11,13 +11,14 @@ You can install the package
 composer require fooino/core
 ```
 
-2. Docker
+2. With Docker(for running and modify the package)
 ```bash
+git clone https://github.com/fooino/core.git
 git clone https://github.com/fooino/laravel-fooino-packages-docker.git
 cd ./laravel-fooino-packages-docker
 docker-compose -p fooino up -d --build
 docker exec -it fooino_php bash
-cd ../packages/core
+cd ../core
 composer update
 ./vendor/bin/pest
 exit
