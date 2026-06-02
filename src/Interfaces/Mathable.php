@@ -18,4 +18,9 @@ interface Mathable
      * Convert scientific number to numeric string
      */
     public function convertScientificNumber(string|int|float|null $number): string;
+
+    /**
+     * Trim trailing Zeros from end of number base on decimal separator
+     */
+    public function trimTrailingZeros(string|int|float|null $number, string $decimalSeparator = '.'): string;
 }

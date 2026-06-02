@@ -32,4 +32,11 @@ class FooinoMathHandler implements Mathable
 
         return (string) (preg_match(pattern: '/^-?\d*\.?\d+[Ee][+-]?\d+$/', subject: $number) ? sprintf("%." . self::BC_SCALE . "f", floatval($number)) : $number);
     }
+
+    public function trimTrailingZeros(string|int|float|null $number, string $decimalSeparator = '.'): string
+    {
+        $number = $this->convertScientificNumber(number: $number);
+
+        return strpos($number, $decimalSeparator) !== false ? rtrim(rtrim($number, '0'), $decimalSeparator) : $number;
+    }
 }

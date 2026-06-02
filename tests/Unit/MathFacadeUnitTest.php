@@ -35,4 +35,22 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::convertScientificNumber('abc1E+3xyz'))->toBe('abc1E+3xyz'); // contains 1E+3 which is valid Scientific Number but the method must not convert it
         expect(Math::convertScientificNumber('test'))->toBe('test');
     });
+
+    test('trimTrailingZeros method', function () {
+
+        expect(Math::trimTrailingZeros(11))->toBe('11');
+        expect(Math::trimTrailingZeros(11.11))->toBe('11.11');
+        expect(Math::trimTrailingZeros(11.1100000000))->toBe('11.11');
+        expect(Math::trimTrailingZeros(11.0000000000))->toBe('11');
+        expect(Math::trimTrailingZeros("11-0000000000", '-'))->toBe('11');
+        expect(Math::trimTrailingZeros("11-2100000000", '-'))->toBe('11-21');
+
+        expect(Math::trimTrailingZeros("1.1e+8"))->toBe('110000000');
+        expect(Math::trimTrailingZeros("-1.1e+8"))->toBe('-110000000');
+        expect(Math::trimTrailingZeros("1.1E-8"))->toBe('0.000000011');
+        expect(Math::trimTrailingZeros(0))->toBe('0');
+        expect(Math::trimTrailingZeros(0.0))->toBe('0');
+        expect(Math::trimTrailingZeros(null))->toBe('0');
+        expect(Math::trimTrailingZeros('test'))->toBe('test');
+    });
 });
