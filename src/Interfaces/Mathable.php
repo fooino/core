@@ -25,7 +25,17 @@ interface Mathable
     public function trimTrailingZeros(string|int|float|null $number, string $decimalSeparator = '.'): string;
 
     /**
+     * Get decimal count of number
+     */
+    public function decimalPlaceNumber(string|int|float|null $number, string $decimalSeparator = '.'): int;
+
+    /**
      * Convert number to well-formatted base on precision
      */
     public function number(string|int|float|null $number): string;
+
+    /**
+     * Convert number to currency format base on precision
+     */
+    public function numberFormat(string|int|float|null $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string;
 }

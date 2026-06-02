@@ -3,6 +3,7 @@
 namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Facades\Math;
+use TypeError;
 
 describe('Math facade using FooinoMathHandler', function () {
 
@@ -54,6 +55,17 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::trimTrailingZeros('test'))->toBe('test');
     });
 
+    test('decimalPlaceNumber method', function () {
+        expect(Math::decimalPlaceNumber(0.000000000100))->toBe(10);
+        expect(Math::decimalPlaceNumber('0.00000000100'))->toBe(9);
+        expect(Math::decimalPlaceNumber(1.1e-8))->toBe(9);
+        expect(Math::decimalPlaceNumber(1))->toBe(0);
+        expect(Math::decimalPlaceNumber(0))->toBe(0);
+        expect(Math::decimalPlaceNumber(null))->toBe(0);
+        expect(Math::decimalPlaceNumber('test'))->toBe(0);
+        expect(Math::decimalPlaceNumber('0-0123', '-'))->toBe(4);
+    });
+
     test('number method', function () {
 
         expect(Math::setPrecision(precision: 4)->number(0.44015042))->toBe('0.4401');
@@ -79,11 +91,45 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(number(1.1e+8))->toBe('110000000');
         expect(number(1.101e-5))->toBe('0.00001101');
         expect(number(1.1e+20))->toBe('110000000000000000000');
-        
+
         expect(number('test'))->toBe('test');
         expect(number('foo.bar'))->toBe('foo.bar');
         expect(number(null))->toBe('0');
         expect(number(0))->toBe('0');
         expect(number(0.0))->toBe('0');
+    });
+
+    test('numberFormat method', function () {
+
+        expect(Math::numberFormat(number: null))->toBe('0');
+        expect(Math::numberFormat(number: 0))->toBe('0');
+        expect(Math::numberFormat(number: 0.0))->toBe('0');
+        expect(Math::numberFormat(number: 1.1e-8))->toBe("0.000000011");
+        expect(Math::numberFormat(number: 1.1e+8))->toBe("110,000,000");
+        expect(Math::numberFormat(number: 5000000))->toBe("5,000,000");
+        expect(Math::numberFormat(number: 5000000.50))->toBe("5,000,000.5");
+        expect(Math::numberFormat(number: 5000000.5))->toBe("5,000,000.5");
+        expect(Math::numberFormat(number: 5000000.05))->toBe("5,000,000.05");
+        expect(Math::numberFormat(number: 5000000.015))->toBe("5,000,000.015");
+        expect(Math::numberFormat(number: 5000000.0150))->toBe("5,000,000.015");
+        expect(Math::numberFormat(number: 5000000.01501))->toBe("5,000,000.01501");
+        expect(Math::numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
+        expect(fn() => Math::numberFormat(number: 'test'))->toThrow(TypeError::class);
+
+
+        expect(numberFormat(number: null))->toBe('0');
+        expect(numberFormat(number: 0))->toBe('0');
+        expect(numberFormat(number: 0.0))->toBe('0');
+        expect(numberFormat(number: 1.1e-8))->toBe("0.000000011");
+        expect(numberFormat(number: 1.1e+8))->toBe("110,000,000");
+        expect(numberFormat(number: 5000000))->toBe("5,000,000");
+        expect(numberFormat(number: 5000000.50))->toBe("5,000,000.5");
+        expect(numberFormat(number: 5000000.5))->toBe("5,000,000.5");
+        expect(numberFormat(number: 5000000.05))->toBe("5,000,000.05");
+        expect(numberFormat(number: 5000000.015))->toBe("5,000,000.015");
+        expect(numberFormat(number: 5000000.0150))->toBe("5,000,000.015");
+        expect(numberFormat(number: 5000000.01501))->toBe("5,000,000.01501");
+        expect(numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
+        expect(fn() => numberFormat(number: 'test'))->toThrow(TypeError::class);
     });
 });

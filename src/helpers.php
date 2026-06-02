@@ -99,6 +99,16 @@ if (!function_exists('number')) {
     }
 }
 
+if (!function_exists('numberFormat')) {
+    /**
+     * Convert number to currency format base on precision
+     */
+    function numberFormat(string|int|float|null $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
+    {
+        return Math::numberFormat(number: $number, decimalSeparator: $decimalSeparator, thousandsSeparator: $thousandsSeparator,);
+    }
+}
+
 if (!function_exists('nullIfBlank')) {
     /**
      * Returns a fallback value when the input is considered "blank" or a null-like string which usually produce by js.

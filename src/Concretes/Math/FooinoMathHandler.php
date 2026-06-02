@@ -40,6 +40,11 @@ class FooinoMathHandler implements Mathable
         return strpos($number, $decimalSeparator) !== false ? rtrim(rtrim($number, '0'), $decimalSeparator) : $number;
     }
 
+    public function decimalPlaceNumber(string|int|float|null $number, string $decimalSeparator = '.'): int
+    {
+        return (int) (strlen(substr(strrchr($this->number(number: $number), $decimalSeparator), 1)));
+    }
+
     public function number(string|int|float|null $number): string
     {
         $number = $this->convertScientificNumber(number: $number);
@@ -53,5 +58,20 @@ class FooinoMathHandler implements Mathable
         $number = $real . "." . $decimal;
 
         return $this->trimTrailingZeros(number: $number);
+    }
+
+    public function numberFormat(string|int|float|null $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
+    {
+        $number = number_format(
+            num: $this->number(number: $number),
+            decimals: $this->decimalPlaceNumber(number: $this->trimTrailingZeros(number: $number), decimalSeparator: $decimalSeparator),
+            decimal_separator: $decimalSeparator,
+            thousands_separator: $thousandsSeparator
+        );
+
+        return $this->trimTrailingZeros(
+            number: $number,
+            decimalSeparator: $decimalSeparator
+        );
     }
 }

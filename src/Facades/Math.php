@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\Facade;
  * 
  * @method static string convertScientificNumber(string|int|float|null $number)
  * @method static string trimTrailingZeros(string|int|float|null $number, string $decimalSeparator = '.')
+ * @method static int decimalPlaceNumber(string|int|float|null $number, string $decimalSeparator = '.')
  * 
  * @method static string number(string|int|float|null $number) 
+ * @method static string numberFormat(string|int|float|null $number, string $decimalSeparator = '.', string $thousandsSeparator = ',')
  * 
  * @see \Fooino\Core\Interfaces\Mathable
  * @see \Fooino\Core\Concretes\Math\MathManager
