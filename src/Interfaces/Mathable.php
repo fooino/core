@@ -13,4 +13,9 @@ interface Mathable
      * Set the precision
      */
     public function setPrecision(int $precision): Mathable;
+
+    /**
+     * Convert scientific number to numeric string
+     */
+    public function convertScientificNumber(string|int|float|null $number): string;
 }
