@@ -2,6 +2,9 @@
 
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
+use Fooino\Core\Facades\Math;
+
+use Fooino\Core\Interfaces\Mathable;
 use Illuminate\Http\JsonResponse;
 
 if (!function_exists('isJson')) {
@@ -73,6 +76,16 @@ if (!function_exists('dateConvert')) {
     function dateConvert(string|int|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
     {
         return Date::convert(date: $date, format: $format, from: $from, to: $to, fallback: $fallback, throwException: $throwException);
+    }
+}
+
+if (!function_exists('math')) {
+    /**
+     * Get math instance base on precision
+     */
+    function math(int $precision = 10): Mathable
+    {
+        return Math::setPrecision(precision: $precision);
     }
 }
 
