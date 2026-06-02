@@ -53,4 +53,37 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::trimTrailingZeros(null))->toBe('0');
         expect(Math::trimTrailingZeros('test'))->toBe('test');
     });
+
+    test('number method', function () {
+
+        expect(Math::setPrecision(precision: 4)->number(0.44015042))->toBe('0.4401');
+
+        expect(Math::number('.44015042'))->toBe('0.44015042');
+        expect(Math::number(11))->toBe('11');
+        expect(Math::number(-11.))->toBe('-11');
+        expect(Math::number(11.000001000))->toBe('11.000001');
+        expect(Math::number(1.1e+8))->toBe('110000000');
+        expect(Math::number(1.101e-5))->toBe('0.00001101');
+        expect(Math::number(1.1E+20))->toBe('110000000000000000000');
+
+        expect(Math::number('test'))->toBe('test');
+        expect(Math::number('foo.bar'))->toBe('foo.bar');
+        expect(Math::number(null))->toBe('0');
+        expect(Math::number(0))->toBe('0');
+        expect(Math::number(0.0))->toBe('0');
+
+        expect(math(precision: 4)->number(0.44015042))->toBe('0.4401');
+
+        expect(number('.44015042'))->toBe('0.44015042');
+        expect(number(11.000001000))->toBe('11.000001');
+        expect(number(1.1e+8))->toBe('110000000');
+        expect(number(1.101e-5))->toBe('0.00001101');
+        expect(number(1.1e+20))->toBe('110000000000000000000');
+        
+        expect(number('test'))->toBe('test');
+        expect(number('foo.bar'))->toBe('foo.bar');
+        expect(number(null))->toBe('0');
+        expect(number(0))->toBe('0');
+        expect(number(0.0))->toBe('0');
+    });
 });

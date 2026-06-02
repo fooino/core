@@ -23,4 +23,9 @@ interface Mathable
      * Trim trailing Zeros from end of number base on decimal separator
      */
     public function trimTrailingZeros(string|int|float|null $number, string $decimalSeparator = '.'): string;
+
+    /**
+     * Convert number to well-formatted base on precision
+     */
+    public function number(string|int|float|null $number): string;
 }

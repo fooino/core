@@ -39,4 +39,19 @@ class FooinoMathHandler implements Mathable
 
         return strpos($number, $decimalSeparator) !== false ? rtrim(rtrim($number, '0'), $decimalSeparator) : $number;
     }
+
+    public function number(string|int|float|null $number): string
+    {
+        $number = $this->convertScientificNumber(number: $number);
+
+        $parts = explode('.', $number);
+
+        $real = nullIfBlank(value: $parts[0] ?? 0, fallback: 0);
+
+        $decimal = substr(nullIfBlank(value: $parts[1] ?? 0, fallback: 0), 0, $this->getPrecision());
+
+        $number = $real . "." . $decimal;
+
+        return $this->trimTrailingZeros(number: $number);
+    }
 }

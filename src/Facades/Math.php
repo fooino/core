@@ -7,8 +7,11 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static int getPrecision()
  * @method static \Fooino\Core\Interfaces\Mathable setPrecision(int $precision)
+ * 
  * @method static string convertScientificNumber(string|int|float|null $number)
  * @method static string trimTrailingZeros(string|int|float|null $number, string $decimalSeparator = '.')
+ * 
+ * @method static string number(string|int|float|null $number) 
  * 
  * @see \Fooino\Core\Interfaces\Mathable
  * @see \Fooino\Core\Concretes\Math\MathManager

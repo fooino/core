@@ -89,6 +89,16 @@ if (!function_exists('math')) {
     }
 }
 
+if (!function_exists('number')) {
+    /**
+     * Convert number to well-formatted base on precision
+     */
+    function number(string|int|float|null $number): string
+    {
+        return Math::number(number: $number);
+    }
+}
+
 if (!function_exists('nullIfBlank')) {
     /**
      * Returns a fallback value when the input is considered "blank" or a null-like string which usually produce by js.
