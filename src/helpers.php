@@ -99,6 +99,120 @@ if (!function_exists('number')) {
     }
 }
 
+if (!function_exists('sum')) {
+    /**
+     * Sum series of number or array of numbers
+     */
+    function sum(mixed ...$args): string
+    {
+        return Math::sum(...$args);
+    }
+}
+
+if (!function_exists('subtract')) {
+    /**
+     * Subtract series of number or array of numbers
+     */
+    function subtract(mixed ...$args): string
+    {
+        return Math::subtract(...$args);
+    }
+}
+
+if (!function_exists('multiply')) {
+    /**
+     * Multiply series of number or array of numbers
+     */
+    function multiply(mixed ...$args): string
+    {
+        return Math::multiply(...$args);
+    }
+}
+
+if (!function_exists('divide')) {
+    /**
+     * Divide series of number or array of numbers
+     */
+    function divide(mixed ...$args): string
+    {
+        return Math::divide(...$args);
+    }
+}
+
+if (!function_exists('roundUp')) {
+    /**
+     * Round the number up
+     */
+    function roundUp(string|int|float|null $number): string
+    {
+        return Math::roundUp(number: $number);
+    }
+}
+
+if (!function_exists('roundDown')) {
+    /**
+     * Round the number down
+     */
+    function roundDown(string|int|float|null $number): string
+    {
+        return Math::roundDown(number: $number);
+    }
+}
+
+if (!function_exists('roundClose')) {
+    /**
+     * Round the number to the nearest integer
+     */
+    function roundClose(string|int|float|null $number, int $precision = 0): string
+    {
+        return Math::roundClose(number: $number, precision: $precision);
+    }
+}
+
+
+if (!function_exists('greaterThan')) {
+    function greaterThan(string|int|float|null $a, string|int|float|null $b): bool
+    {
+        return Math::greaterThan(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('greaterThanOrEqual')) {
+    function greaterThanOrEqual(string|int|float|null $a, string|int|float|null $b): bool
+    {
+        return Math::greaterThanOrEqual(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('lessThan')) {
+    function lessThan(string|int|float|null $a, string|int|float|null $b): bool
+    {
+        return Math::lessThan(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('lessThanOrEqual')) {
+    function lessThanOrEqual(string|int|float|null $a, string|int|float|null $b): bool
+    {
+        return Math::lessThanOrEqual(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('equal')) {
+    function equal(string|int|float|null $a, string|int|float|null $b): bool
+    {
+        return Math::equal(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('notEqual')) {
+    function notEqual(string|int|float|null $a, string|int|float|null $b): bool
+    {
+        return Math::notEqual(a: $a, b: $b);
+    }
+}
+
+
 if (!function_exists('numberFormat')) {
     /**
      * Convert number to currency format base on precision
