@@ -119,6 +119,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
         expect(Math::convertScientificNumber('abc1E+3xyz'))->toBe('abc1E+3xyz'); // contains 1E+3 which is valid Scientific Number but the method must not convert it
         expect(Math::convertScientificNumber('test'))->toBe('test');
+        expect(Math::convertScientificNumber(''))->toBe('');
     });
 
     test('trimTrailingZeros method', function () {
@@ -159,42 +160,84 @@ describe('Math facade using FooinoMathHandler', function () {
 
     test('decimalPlaceNumber method', function () {
 
+        expect(Math::decimalPlaceNumber(0))->toBe(0);
+        expect(Math::decimalPlaceNumber(11))->toBe(0);
+        expect(Math::decimalPlaceNumber(11.01))->toBe(2);
         expect(Math::decimalPlaceNumber(0.000000000100))->toBe(10);
         expect(Math::decimalPlaceNumber('0.00000000100'))->toBe(9);
+
         expect(Math::decimalPlaceNumber(1.1e-8))->toBe(9);
-        expect(Math::decimalPlaceNumber(1))->toBe(0);
-        expect(Math::decimalPlaceNumber(0))->toBe(0);
-        expect(Math::decimalPlaceNumber('test'))->toBe(0);
+        expect(Math::decimalPlaceNumber(0.1e-8))->toBe(9);
+        expect(Math::decimalPlaceNumber('.1e-8'))->toBe(9);
+        expect(Math::decimalPlaceNumber('-.1e-8'))->toBe(9);
+
         expect(Math::decimalPlaceNumber('0-0123', '-'))->toBe(4);
+        expect(Math::decimalPlaceNumber('-0-0123', '-'))->toBe(4);
+
+        expect(Math::decimalPlaceNumber('test'))->toBe(0);
     });
 
     test('number method', function () {
 
-        expect(Math::setPrecision(precision: 4)->number(0.44015042))->toBe('0.4401');
+        expect(Math::number(0))->toBe('0');
 
-        expect(Math::number('.44015042'))->toBe('0.44015042');
         expect(Math::number(11))->toBe('11');
         expect(Math::number(-11.))->toBe('-11');
+
+        expect(Math::number(.11))->toBe('0.11');
+        expect(Math::number(-.11))->toBe('-0.11');
+
         expect(Math::number(11.000001000))->toBe('11.000001');
+        expect(Math::number(-11.000001000))->toBe('-11.000001');
+
+        expect(Math::number('.44015042'))->toBe('0.44015042');
+        expect(Math::setPrecision(precision: 4)->number(0.44015042))->toBe('0.4401');
+
+        expect(Math::number(1e8))->toBe('100000000');
+        expect(Math::number(-1e8))->toBe('-100000000');
+
         expect(Math::number(1.1e+8))->toBe('110000000');
+        expect(Math::number(.1e+8))->toBe('10000000');
+
         expect(Math::number(1.101e-5))->toBe('0.00001101');
+        expect(Math::number(-0.101e-5))->toBe('-0.00000101');
+
         expect(Math::number(1.1E+20))->toBe('110000000000000000000');
+        expect(Math::number(1.1E-20))->toBe('0'); // the decimal numbers is very more than precision
 
         expect(Math::number('test'))->toBe('test');
         expect(Math::number('foo.bar'))->toBe('foo.bar');
-        expect(Math::number(0))->toBe('0');
+        expect(Math::number(''))->toBe('0');
 
-        expect(math(precision: 4)->number(0.44015042))->toBe('0.4401');
+
+        expect(number(0))->toBe('0');
+
+        expect(number(11))->toBe('11');
+        expect(number(-11.))->toBe('-11');
+
+        expect(number(.11))->toBe('0.11');
+        expect(number(-.11))->toBe('-0.11');
+
+        expect(number(11.000001000))->toBe('11.000001');
+        expect(number(-11.000001000))->toBe('-11.000001');
 
         expect(number('.44015042'))->toBe('0.44015042');
-        expect(number(11.000001000))->toBe('11.000001');
+        expect(math(precision: 4)->number(0.44015042))->toBe('0.4401');
+
+        expect(number(1e8))->toBe('100000000');
+        expect(number(-1e8))->toBe('-100000000');
+
         expect(number(1.1e+8))->toBe('110000000');
+        expect(number(.1e+8))->toBe('10000000');
+
         expect(number(1.101e-5))->toBe('0.00001101');
-        expect(number(1.1e+20))->toBe('110000000000000000000');
+        expect(number(-0.101e-5))->toBe('-0.00000101');
+
+        expect(number(1.1E+20))->toBe('110000000000000000000');
+        expect(number(1.1E-20))->toBe('0'); // the decimal numbers is very more than precision
 
         expect(number('test'))->toBe('test');
         expect(number('foo.bar'))->toBe('foo.bar');
-        expect(number(0))->toBe('0');
     });
 
     test('numberFormat method', function () {
@@ -211,27 +254,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::numberFormat(number: 5000000.01501))->toBe("5,000,000.01501");
         expect(Math::numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
         expect(Math::numberFormat(number: '1234_01230', decimalSeparator: "_"))->toBe("1,234_0123");
-
-        try {
-
-            Math::numberFormat('test');
-
-            // 
-        } catch (FooinoException $e) {
-
-            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-            expect($e->getCode())->toBe(10102);
-            expect($e->getLevel())->toBe('error');
-            expect($e->reportable())->toBeTrue();
-            expect($e->getWith())->toBe([
-                'func'  => 'numberFormat',
-                'args'  => [
-                    'number'                => 'test',
-                    'decimalSeparator'      => '.',
-                    'thousandsSeparator'    => ','
-                ]
-            ]);
-        }
 
         expect(numberFormat(number: 0))->toBe('0');
         expect(numberFormat(number: 0.0))->toBe('0');

@@ -68,14 +68,7 @@ class FooinoMathHandler implements Mathable
         $exponent  = (int) $matches[3];    // e.g. -2, +5, 3
 
         // Split mantissa into integer and decimal parts
-        $dotPos = strpos($mantissa, '.');
-        if ($dotPos === false) {
-            $intPart  = $mantissa;
-            $decPart  = '';
-        } else {
-            $intPart  = substr($mantissa, 0, $dotPos);
-            $decPart  = substr($mantissa, $dotPos + 1);
-        }
+        list($sign, $intPart, $decPart) = $this->numberParts(number: ($sign . $mantissa));
 
         // All significant digits, without decimal point
         $digits = ltrim($intPart . $decPart, '0');
@@ -132,78 +125,28 @@ class FooinoMathHandler implements Mathable
     {
         $number = $this->convertScientificNumber(number: $number);
 
-        $parts = explode('.', $number);
+        list($sign, $integer, $decimal) = $this->numberParts(number: $number);
 
-        $real = nullIfBlank(value: $parts[0] ?? 0, fallback: 0);
-
-        $decimal = substr(nullIfBlank(value: $parts[1] ?? 0, fallback: 0), 0, $this->getPrecision());
-
-        $number = $real . "." . $decimal;
+        $number = $sign . $integer . '.' . substr($decimal, 0, $this->getPrecision());
 
         return $this->trimTrailingZeros(number: $number);
     }
 
     public function numberFormat(string|int|float $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
     {
-        // 1. Convert the input to a standard numeric string
-        //    (first replace the decimal separator, then remove the thousands separator)
-        $cleaned = str_replace(
-            $thousandsSeparator,
-            '',
-            str_replace($decimalSeparator, '.', (string) $number)
-        );
+        $sanitized = $this->number(str_replace($thousandsSeparator, '', str_replace($decimalSeparator, '.', (string) $number)));
 
-        // 2. Validate that what remains is truly numeric
-        if (!is_numeric($cleaned)) {
-            app(MathCalculationException::class)
-                ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
-                ->setCode(10102)
-                ->with([
-                    'func' => 'numberFormat',
-                    'args' => [
-                        'number'             => $number,
-                        'decimalSeparator'   => $decimalSeparator,
-                        'thousandsSeparator' => $thousandsSeparator,
-                    ],
-                ])
-                ->throw();
-        }
+        list($sign, $integer, $decimal) = $this->numberParts(number: $sanitized);
 
-        // 3. Apply the handler's precision and trailing zero trimming
-        //    (internally uses convertScientificNumber, so no float loss)
-        $sanitized = $this->number($cleaned);   // e.g. "-1234567.890"  or "0"  or "5.2"
-
-        // 4. Extract the sign (if any)
-        $sign = '';
-        if ($sanitized[0] === '-') {
-            $sign = '-';
-            $sanitized = substr($sanitized, 1);
-        }
-
-        // 5. Split into integer and decimal parts
-        $dotPos = strpos($sanitized, '.');
-        if ($dotPos === false) {
-            $integer = $sanitized;
-            $decimal = '';
-        } else {
-            $integer = substr($sanitized, 0, $dotPos);
-            $decimal = substr($sanitized, $dotPos + 1);
-        }
-
-        // 6. Add thousands separators to the integer part (absolute value)
         $integerWithSeparators = (string) preg_replace(
             '/\B(?=(\d{3})+(?!\d))/',
             $thousandsSeparator,
             $integer
         );
 
-        // 7. Assemble the final formatted number
-        $result = $sign . $integerWithSeparators;
-        if ($decimal !== '') {
-            $result .= $decimalSeparator . $decimal;
-        }
+        $number = $sign . $integerWithSeparators . $decimalSeparator . $decimal;
 
-        return $result;
+        return $this->trimTrailingZeros(number: $number, decimalSeparator: $decimalSeparator);
     }
 
     public function sum(mixed ...$args): string
@@ -284,6 +227,31 @@ class FooinoMathHandler implements Mathable
     public function notEqual(string|int|float $a, string|int|float $b): bool
     {
         return !$this->equal($a, $b);
+    }
+
+    private function numberParts(string|int|float $number): array
+    {
+        $sign = '';
+        if (($number[0] ?? '') === '-') {
+            $sign = '-';
+            $number = substr($number, 1);
+        }
+
+        $dotPos = strpos($number, '.');
+
+        if ($dotPos === false) {
+            return [
+                $sign,
+                nullIfBlank(value: $number, fallback: 0),
+                0
+            ];
+        }
+
+        return [
+            $sign,
+            nullIfBlank(value: substr($number, 0, $dotPos), fallback: 0),
+            nullIfBlank(value: substr($number, $dotPos + 1), fallback: 0)
+        ];
     }
 
     private function bccomp(string|int|float $a, string|int|float $b): int
