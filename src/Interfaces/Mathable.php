@@ -17,27 +17,27 @@ interface Mathable
     /**
      * Convert scientific number to numeric string
      */
-    public function convertScientificNumber(string|int|float|null $number): string;
+    public function convertScientificNumber(string|int|float $number): string;
 
     /**
      * Trim trailing Zeros from end of number base on decimal separator
      */
-    public function trimTrailingZeros(string|int|float|null $number, string $decimalSeparator = '.'): string;
+    public function trimTrailingZeros(string|int|float $number, string $decimalSeparator = '.'): string;
 
     /**
      * Get decimal count of number
      */
-    public function decimalPlaceNumber(string|int|float|null $number, string $decimalSeparator = '.'): int;
+    public function decimalPlaceNumber(string|int|float $number, string $decimalSeparator = '.'): int;
 
     /**
      * Convert number to well-formatted base on precision
      */
-    public function number(string|int|float|null $number): string;
+    public function number(string|int|float $number): string;
 
     /**
      * Convert number to currency format base on precision
      */
-    public function numberFormat(string|int|float|null $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string;
+    public function numberFormat(string|int|float $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string;
 
     /**
      * Sum series of number or array of numbers
@@ -45,22 +45,22 @@ interface Mathable
     public function sum(mixed ...$args): string;
 
     /**
-     * subtract series of number or array of numbers
+     * Subtract series of number or array of numbers
      */
     public function subtract(mixed ...$args): string;
 
     /**
-     * multiply series of number or array of numbers
+     * Multiply series of number or array of numbers
      */
     public function multiply(mixed ...$args): string;
 
     /**
-     * divide series of number or array of numbers
+     * Divide series of number or array of numbers
      */
     public function divide(mixed ...$args): string;
 
     /**
-     * modulus series of number or array of numbers
+     * Modulus series of number or array of numbers
      */
     public function modulus(mixed ...$args): string;
 
@@ -77,45 +77,45 @@ interface Mathable
     /**
      * Round the number up
      */
-    public function roundUp(string|int|float|null $number): string;
+    public function roundUp(string|int|float $number): string;
 
     /**
      * Round the number down
      */
-    public function roundDown(string|int|float|null $number): string;
+    public function roundDown(string|int|float $number): string;
 
     /**
      * Round the number to the nearest integer
      */
-    public function roundClose(string|int|float|null $number, int $precision = 0): string;
+    public function roundClose(string|int|float $number, int $precision = 0): string;
 
     /**
      * compare two number
      */
-    public function greaterThan(string|int|float|null $a, string|int|float|null $b): bool;
+    public function greaterThan(string|int|float $a, string|int|float $b): bool;
 
     /**
      * compare two number
      */
-    public function greaterThanOrEqual(string|int|float|null $a, string|int|float|null $b): bool;
+    public function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool;
 
     /**
      * compare two number
      */
-    public function lessThan(string|int|float|null $a, string|int|float|null $b): bool;
+    public function lessThan(string|int|float $a, string|int|float $b): bool;
 
     /**
      * compare two number
      */
-    public function lessThanOrEqual(string|int|float|null $a, string|int|float|null $b): bool;
+    public function lessThanOrEqual(string|int|float $a, string|int|float $b): bool;
 
     /**
      * compare two number
      */
-    public function equal(string|int|float|null $a, string|int|float|null $b): bool;
+    public function equal(string|int|float $a, string|int|float $b): bool;
 
     /**
      * compare two number
      */
-    public function notEqual(string|int|float|null $a, string|int|float|null $b): bool;
+    public function notEqual(string|int|float $a, string|int|float $b): bool;
 }

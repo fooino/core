@@ -7,10 +7,11 @@ use Fooino\Core\Interfaces\Mathable;
 
 class FooinoMathHandler implements Mathable
 {
-    private const BC_SCALE = 10;
+    private const int BC_SCALE = 12;
+
     private array $instances = [];
 
-    public function __construct(private int $precision = 10)
+    public function __construct(private int $precision = 12)
     {
         bcscale(self::BC_SCALE);
     }
@@ -25,30 +26,73 @@ class FooinoMathHandler implements Mathable
         return $this->instances[$precision] ??= new static(precision: $precision);
     }
 
-    public function convertScientificNumber(string|int|float|null $number): string
+    public function convertScientificNumber(string|int|float $number): string
     {
-        if (is_null($number)) {
+        $number = (string) $number;
+
+        // Matches optional minus, mantissa (integer or decimal), and exponent
+        if (!preg_match('/^(-?)(\d*\.?\d+)[Ee]([+-]?\d+)$/', $number, $matches)) {
+            return $number; // Not scientific notation; return as-is
+        }
+
+        $sign      = $matches[1];          // '-' or ''
+        $mantissa  = $matches[2];          // e.g. "1.23", ".5", "5."
+        $exponent  = (int) $matches[3];    // e.g. -2, +5, 3
+
+        // Split mantissa into integer and decimal parts
+        $dotPos = strpos($mantissa, '.');
+        if ($dotPos === false) {
+            $intPart  = $mantissa;
+            $decPart  = '';
+        } else {
+            $intPart  = substr($mantissa, 0, $dotPos);
+            $decPart  = substr($mantissa, $dotPos + 1);
+        }
+
+        // All significant digits, without decimal point
+        $digits = ltrim($intPart . $decPart, '0');
+
+        // If mantissa is zero, the whole number is zero
+        if ($digits === '') {
             return '0';
         }
 
-        $number = (string) $number;
+        $decPlaces = strlen($decPart);
+        $shift     = $exponent - $decPlaces; // right shift (+), left shift (-)
 
-        return preg_match(pattern: '/^-?\d*\.?\d+[Ee][+-]?\d+$/', subject: $number) ? sprintf("%." . self::BC_SCALE . "f", floatval($number)) : $number;
+        if ($shift >= 0) {
+            // No decimal point needed (or decimal shifted right beyond end)
+            $result = $digits . str_repeat('0', $shift);
+        } else {
+            $absShift = abs($shift);
+            $len      = strlen($digits);
+
+            if ($absShift >= $len) {
+                // Decimal point goes after '0.', padding with leading zeros
+                $result = '0.' . str_repeat('0', $absShift - $len) . $digits;
+            } else {
+                // Insert decimal point inside the digit string
+                $splitPos = $len - $absShift;
+                $result   = substr($digits, 0, $splitPos) . '.' . substr($digits, $splitPos);
+            }
+        }
+
+        return $sign . $result;
     }
 
-    public function trimTrailingZeros(string|int|float|null $number, string $decimalSeparator = '.'): string
+    public function trimTrailingZeros(string|int|float $number, string $decimalSeparator = '.'): string
     {
         $number = $this->convertScientificNumber(number: $number);
 
         return strpos($number, $decimalSeparator) !== false ? rtrim(rtrim($number, '0'), $decimalSeparator) : $number;
     }
 
-    public function decimalPlaceNumber(string|int|float|null $number, string $decimalSeparator = '.'): int
+    public function decimalPlaceNumber(string|int|float $number, string $decimalSeparator = '.'): int
     {
         return (int) (strlen(substr(strrchr($this->number(number: $number), $decimalSeparator), 1)));
     }
 
-    public function number(string|int|float|null $number): string
+    public function number(string|int|float $number): string
     {
         $number = $this->convertScientificNumber(number: $number);
 
@@ -63,11 +107,29 @@ class FooinoMathHandler implements Mathable
         return $this->trimTrailingZeros(number: $number);
     }
 
-    public function numberFormat(string|int|float|null $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
+    public function numberFormat(string|int|float $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
     {
+        if (!is_numeric(str_replace([$decimalSeparator, $thousandsSeparator], '', $number))) {
+
+            app(MathCalculationException::class)
+                ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
+                ->setCode(10102)
+                ->with([
+                    'func' => 'numberFormat',
+                    'args' => [
+                        'number'                => $number,
+                        'decimalSeparator'      => $decimalSeparator,
+                        'thousandsSeparator'    => $thousandsSeparator,
+                    ]
+                ])
+                ->throw();
+        }
+
+        $sanitized = $this->number(number: str_replace($thousandsSeparator, '', str_replace($decimalSeparator, '.', $number)));
+
         $number = number_format(
-            num: $this->number(number: $number),
-            decimals: $this->decimalPlaceNumber(number: $this->trimTrailingZeros(number: $number), decimalSeparator: $decimalSeparator),
+            num: $sanitized,
+            decimals: $this->decimalPlaceNumber(number: $this->trimTrailingZeros(number: $sanitized)),
             decimal_separator: $decimalSeparator,
             thousands_separator: $thousandsSeparator
         );
@@ -105,12 +167,7 @@ class FooinoMathHandler implements Mathable
 
     public function power(string|int|float $number, int $exponent = 2): string
     {
-        return $this->number(
-            number: bcpow(
-                $this->convertScientificNumber(number: $number),
-                $exponent,
-            )
-        );
+        return $this->number(number: bcpow($this->convertScientificNumber(number: $number), $exponent));
     }
 
     public function sqrt(string|int|float $number): string
@@ -118,57 +175,52 @@ class FooinoMathHandler implements Mathable
         return $this->number(number: bcsqrt($this->convertScientificNumber(number: $number)));
     }
 
-    public function roundUp(string|int|float|null $number): string
+    public function roundUp(string|int|float $number): string
     {
         return $this->number(number: bcceil($this->convertScientificNumber(number: $number)));
     }
 
-    public function roundDown(string|int|float|null $number): string
+    public function roundDown(string|int|float $number): string
     {
         return $this->number(number: bcfloor($this->convertScientificNumber(number: $number)));
     }
 
-    public function roundClose(string|int|float|null $number, int $precision = 0): string
+    public function roundClose(string|int|float $number, int $precision = 0): string
     {
-        return $this->number(
-            number: bcround(
-                num: $this->convertScientificNumber(number: $number),
-                precision: $precision
-            )
-        );
+        return $this->number(number: bcround(num: $this->convertScientificNumber(number: $number), precision: $precision));
     }
 
-    public function greaterThan(string|int|float|null $a, string|int|float|null $b): bool
+    public function greaterThan(string|int|float $a, string|int|float $b): bool
     {
         return $this->bccomp($a, $b) === 1;
     }
 
-    public function greaterThanOrEqual(string|int|float|null $a, string|int|float|null $b): bool
+    public function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
     {
         return $this->bccomp($a, $b) !== -1;
     }
 
-    public function lessThan(string|int|float|null $a, string|int|float|null $b): bool
+    public function lessThan(string|int|float $a, string|int|float $b): bool
     {
         return $this->bccomp($a, $b) === -1;
     }
 
-    public function lessThanOrEqual(string|int|float|null $a, string|int|float|null $b): bool
+    public function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
     {
         return $this->bccomp($a, $b) !== 1;
     }
 
-    public function equal(string|int|float|null $a, string|int|float|null $b): bool
+    public function equal(string|int|float $a, string|int|float $b): bool
     {
         return $this->bccomp($a, $b) === 0;
     }
 
-    public function notEqual(string|int|float|null $a, string|int|float|null $b): bool
+    public function notEqual(string|int|float $a, string|int|float $b): bool
     {
         return !$this->equal($a, $b);
     }
 
-    private function bccomp(string|int|float|null $a, string|int|float|null $b): int
+    private function bccomp(string|int|float $a, string|int|float $b): int
     {
         return bccomp($this->convertScientificNumber(number: $a), $this->convertScientificNumber(number: $b));
     }
@@ -189,8 +241,6 @@ class FooinoMathHandler implements Mathable
                 ->throw();
         }
 
-        $numbers = array_map($this->convertScientificNumber(...), $numbers);
-
         foreach ($numbers as $number) {
 
             if (!is_numeric($number)) {
@@ -204,7 +254,24 @@ class FooinoMathHandler implements Mathable
                     ])
                     ->throw();
             }
+
+            if (
+                in_array($func, ['bcdiv', 'bcmod']) &&
+                ((float)$number) == 0
+            ) {
+                app(MathCalculationException::class)
+                    ->setMessage('msg.mathCalculationExceptionDivisionByZero')
+                    ->setCode(10103)
+                    ->critical()
+                    ->with([
+                        'func' => $func,
+                        'args' => $args
+                    ])
+                    ->throw();
+            }
         }
+
+        $numbers = array_map($this->convertScientificNumber(...), $numbers);
 
         list($result, $start) = match ($func) {
             'bcadd'             => [0, 0],
@@ -221,7 +288,7 @@ class FooinoMathHandler implements Mathable
             // since we are in the loop and 0 will be + - * / to number for first time it can effect on scale and make not accurate result. so we increase the scale
             // using bc function directly does not make non accurate result
 
-            $result = call_user_func($func, $result, $number, self::BC_SCALE + 5);
+            $result = call_user_func($func, $result, $number, self::BC_SCALE + 3);
         }
 
 

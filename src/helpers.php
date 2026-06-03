@@ -83,7 +83,7 @@ if (!function_exists('math')) {
     /**
      * Get math instance base on precision
      */
-    function math(int $precision = 10): Mathable
+    function math(int $precision = 12): Mathable
     {
         return Math::setPrecision(precision: $precision);
     }
@@ -93,9 +93,19 @@ if (!function_exists('number')) {
     /**
      * Convert number to well-formatted base on precision
      */
-    function number(string|int|float|null $number): string
+    function number(string|int|float $number): string
     {
         return Math::number(number: $number);
+    }
+}
+
+if (!function_exists('numberFormat')) {
+    /**
+     * Convert number to currency format base on precision
+     */
+    function numberFormat(string|int|float $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
+    {
+        return Math::numberFormat(number: $number, decimalSeparator: $decimalSeparator, thousandsSeparator: $thousandsSeparator,);
     }
 }
 
@@ -143,7 +153,7 @@ if (!function_exists('roundUp')) {
     /**
      * Round the number up
      */
-    function roundUp(string|int|float|null $number): string
+    function roundUp(string|int|float $number): string
     {
         return Math::roundUp(number: $number);
     }
@@ -153,7 +163,7 @@ if (!function_exists('roundDown')) {
     /**
      * Round the number down
      */
-    function roundDown(string|int|float|null $number): string
+    function roundDown(string|int|float $number): string
     {
         return Math::roundDown(number: $number);
     }
@@ -163,7 +173,7 @@ if (!function_exists('roundClose')) {
     /**
      * Round the number to the nearest integer
      */
-    function roundClose(string|int|float|null $number, int $precision = 0): string
+    function roundClose(string|int|float $number, int $precision = 0): string
     {
         return Math::roundClose(number: $number, precision: $precision);
     }
@@ -171,55 +181,44 @@ if (!function_exists('roundClose')) {
 
 
 if (!function_exists('greaterThan')) {
-    function greaterThan(string|int|float|null $a, string|int|float|null $b): bool
+    function greaterThan(string|int|float $a, string|int|float $b): bool
     {
         return Math::greaterThan(a: $a, b: $b);
     }
 }
 
 if (!function_exists('greaterThanOrEqual')) {
-    function greaterThanOrEqual(string|int|float|null $a, string|int|float|null $b): bool
+    function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
     {
         return Math::greaterThanOrEqual(a: $a, b: $b);
     }
 }
 
 if (!function_exists('lessThan')) {
-    function lessThan(string|int|float|null $a, string|int|float|null $b): bool
+    function lessThan(string|int|float $a, string|int|float $b): bool
     {
         return Math::lessThan(a: $a, b: $b);
     }
 }
 
 if (!function_exists('lessThanOrEqual')) {
-    function lessThanOrEqual(string|int|float|null $a, string|int|float|null $b): bool
+    function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
     {
         return Math::lessThanOrEqual(a: $a, b: $b);
     }
 }
 
 if (!function_exists('equal')) {
-    function equal(string|int|float|null $a, string|int|float|null $b): bool
+    function equal(string|int|float $a, string|int|float $b): bool
     {
         return Math::equal(a: $a, b: $b);
     }
 }
 
 if (!function_exists('notEqual')) {
-    function notEqual(string|int|float|null $a, string|int|float|null $b): bool
+    function notEqual(string|int|float $a, string|int|float $b): bool
     {
         return Math::notEqual(a: $a, b: $b);
-    }
-}
-
-
-if (!function_exists('numberFormat')) {
-    /**
-     * Convert number to currency format base on precision
-     */
-    function numberFormat(string|int|float|null $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
-    {
-        return Math::numberFormat(number: $number, decimalSeparator: $decimalSeparator, thousandsSeparator: $thousandsSeparator,);
     }
 }
 

@@ -12,18 +12,14 @@ class CoreServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
-     *
-     * @return void
      */
-    public function register()
+    public function register(): void
     {
         $this->registerSingletons();
     }
 
     /**
      * Register singleton files
-     *
-     * @return self
      */
     protected function registerSingletons(): self
     {

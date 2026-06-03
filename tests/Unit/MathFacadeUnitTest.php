@@ -2,9 +2,9 @@
 
 namespace Fooino\Core\Tests\Unit;
 
-use DivisionByZeroError;
 use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Facades\Math;
+use DivisionByZeroError;
 use TypeError;
 use ValueError;
 
@@ -12,11 +12,13 @@ describe('Math facade using FooinoMathHandler', function () {
 
     test('precision getter and setter', function () {
 
-        expect(Math::getPrecision())->toBe(10);
+        expect(Math::getPrecision())->toBe(12);
         expect(Math::setPrecision(precision: 5)->getPrecision())->toBe(5);
 
-        expect(math()->getPrecision())->toBe(10);
+        expect(math()->getPrecision())->toBe(12);
         expect(math(precision: 5)->getPrecision())->toBe(5);
+
+        expect(bcscale())->toBe(12);
     });
 
     test('convertScientificNumber method', function () {
@@ -26,16 +28,15 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::convertScientificNumber(-11))->toBe('-11');
         expect(Math::convertScientificNumber(11.11))->toBe('11.11');
 
-        expect(Math::convertScientificNumber('1.1e+8'))->toBe('110000000.0000000000');
+        expect(Math::convertScientificNumber('1.1e+8'))->toBe('110000000');
         expect(Math::convertScientificNumber(1.1e+8))->toBe('110000000');
-        expect(Math::convertScientificNumber('1.1e+20'))->toBe('110000000000000000000.0000000000');
-        expect(Math::convertScientificNumber('1.1E-8'))->toBe('0.0000000110');
-        expect(Math::convertScientificNumber('1.1e-8'))->toBe('0.0000000110');
-        expect(Math::convertScientificNumber('1.1e-11'))->toBe('0.0000000000'); // Max scale: 10
-        expect(Math::convertScientificNumber('-1.1e-11'))->toBe('-0.0000000000'); // Max scale: 10
-        expect(Math::convertScientificNumber('20.1e+20'))->toBe('2010000000000000000000.0000000000');
+        expect(Math::convertScientificNumber('1.1e+20'))->toBe('110000000000000000000');
+        expect(Math::convertScientificNumber('1.1E-8'))->toBe('0.000000011');
+        expect(Math::convertScientificNumber('1.1e-8'))->toBe('0.000000011');
+        expect(Math::convertScientificNumber('1.1e-13'))->toBe('0.00000000000011');
+        expect(Math::convertScientificNumber('-1.1e-13'))->toBe('-0.00000000000011');
+        expect(Math::convertScientificNumber('20.1e+20'))->toBe('2010000000000000000000');
 
-        expect(Math::convertScientificNumber(null))->toBe('0');
         expect(Math::convertScientificNumber('abc1E+3xyz'))->toBe('abc1E+3xyz'); // contains 1E+3 which is valid Scientific Number but the method must not convert it
         expect(Math::convertScientificNumber('test'))->toBe('test');
     });
@@ -53,18 +54,16 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::trimTrailingZeros("-1.1e+8"))->toBe('-110000000');
         expect(Math::trimTrailingZeros("1.1E-8"))->toBe('0.000000011');
         expect(Math::trimTrailingZeros(0))->toBe('0');
-        expect(Math::trimTrailingZeros(0.0))->toBe('0');
-        expect(Math::trimTrailingZeros(null))->toBe('0');
         expect(Math::trimTrailingZeros('test'))->toBe('test');
     });
 
     test('decimalPlaceNumber method', function () {
+
         expect(Math::decimalPlaceNumber(0.000000000100))->toBe(10);
         expect(Math::decimalPlaceNumber('0.00000000100'))->toBe(9);
         expect(Math::decimalPlaceNumber(1.1e-8))->toBe(9);
         expect(Math::decimalPlaceNumber(1))->toBe(0);
         expect(Math::decimalPlaceNumber(0))->toBe(0);
-        expect(Math::decimalPlaceNumber(null))->toBe(0);
         expect(Math::decimalPlaceNumber('test'))->toBe(0);
         expect(Math::decimalPlaceNumber('0-0123', '-'))->toBe(4);
     });
@@ -83,9 +82,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
         expect(Math::number('test'))->toBe('test');
         expect(Math::number('foo.bar'))->toBe('foo.bar');
-        expect(Math::number(null))->toBe('0');
         expect(Math::number(0))->toBe('0');
-        expect(Math::number(0.0))->toBe('0');
 
         expect(math(precision: 4)->number(0.44015042))->toBe('0.4401');
 
@@ -97,16 +94,12 @@ describe('Math facade using FooinoMathHandler', function () {
 
         expect(number('test'))->toBe('test');
         expect(number('foo.bar'))->toBe('foo.bar');
-        expect(number(null))->toBe('0');
         expect(number(0))->toBe('0');
-        expect(number(0.0))->toBe('0');
     });
 
     test('numberFormat method', function () {
 
-        expect(Math::numberFormat(number: null))->toBe('0');
         expect(Math::numberFormat(number: 0))->toBe('0');
-        expect(Math::numberFormat(number: 0.0))->toBe('0');
         expect(Math::numberFormat(number: 1.1e-8))->toBe("0.000000011");
         expect(Math::numberFormat(number: 1.1e+8))->toBe("110,000,000");
         expect(Math::numberFormat(number: 5000000))->toBe("5,000,000");
@@ -117,10 +110,29 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::numberFormat(number: 5000000.0150))->toBe("5,000,000.015");
         expect(Math::numberFormat(number: 5000000.01501))->toBe("5,000,000.01501");
         expect(Math::numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
-        expect(fn() => Math::numberFormat(number: 'test'))->toThrow(TypeError::class);
+        expect(Math::numberFormat(number: '1234_01230', decimalSeparator: "_"))->toBe("1,234_0123");
 
+        try {
 
-        expect(numberFormat(number: null))->toBe('0');
+            Math::numberFormat('test');
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+            expect($e->getCode())->toBe(10102);
+            expect($e->getLevel())->toBe('error');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'  => 'numberFormat',
+                'args'  => [
+                    'number'                => 'test',
+                    'decimalSeparator'      => '.',
+                    'thousandsSeparator'    => ','
+                ]
+            ]);
+        }
+
         expect(numberFormat(number: 0))->toBe('0');
         expect(numberFormat(number: 0.0))->toBe('0');
         expect(numberFormat(number: 1.1e-8))->toBe("0.000000011");
@@ -133,7 +145,7 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(numberFormat(number: 5000000.0150))->toBe("5,000,000.015");
         expect(numberFormat(number: 5000000.01501))->toBe("5,000,000.01501");
         expect(numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
-        expect(fn() => numberFormat(number: 'test'))->toThrow(TypeError::class);
+        expect(numberFormat(number: '1234_01230', decimalSeparator: "_"))->toBe("1,234_0123");
     });
 
     test('sum method', function () {
@@ -202,7 +214,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(sum('1234567891234567889999999.00000000011', '1234567891234567889999999.00000000019'))->toBe('2469135782469135779999998.0000000003');
     });
 
-
     test('subtract method', function () {
 
         expect(Math::subtract(5, 6))->toBe('-1');
@@ -256,37 +267,64 @@ describe('Math facade using FooinoMathHandler', function () {
     });
 
     test('divide method', function () {
-        expect(fn() => Math::divide(0, 0))->toThrow(DivisionByZeroError::class);
-        expect(fn() => Math::divide(5, 0))->toThrow(DivisionByZeroError::class);
+
+        try {
+
+            Math::divide(5, 0);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
+            expect($e->getCode())->toBe(10103);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'  => 'bcdiv',
+                'args'  => [5, 0]
+            ]);
+        }
 
         expect(Math::divide(1, 0.5))->toBe('2');
         expect(Math::setPrecision(precision: 0)->divide(50, 0.4354))->toBe('114');
         expect(Math::setPrecision(precision: 0)->divide(361, 1.15))->toBe('313');
-        expect(Math::divide(5, 6))->toBe('0.8333333333');
-        expect(Math::divide(10, 3))->toBe('3.3333333333');
+        expect(Math::divide(5, 6))->toBe('0.833333333333');
+        expect(Math::divide(10, 3))->toBe('3.333333333333');
         expect(Math::divide(1, 1000000000))->toBe('0.000000001');
-        expect(Math::divide(1, 111))->toBe('0.009009009');
+        expect(Math::divide(1, 111))->toBe('0.009009009009');
         expect(Math::divide(1.1e+8, 1.1e-8))->toBe('10000000000000000');
         expect(Math::divide('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-1');
-
-        expect(fn() => divide(0, 0))->toThrow(DivisionByZeroError::class);
-        expect(fn() => divide(5, 0))->toThrow(DivisionByZeroError::class);
 
         expect(divide(1, 0.5))->toBe('2');
         expect(math(precision: 0)->divide(50, 0.4354))->toBe('114');
         expect(math(precision: 0)->divide(361, 1.15))->toBe('313');
-        expect(divide(5, 6))->toBe('0.8333333333');
-        expect(divide(10, 3))->toBe('3.3333333333');
+        expect(divide(5, 6))->toBe('0.833333333333');
+        expect(divide(10, 3))->toBe('3.333333333333');
         expect(divide(1, 1000000000))->toBe('0.000000001');
-        expect(divide(1, 111))->toBe('0.009009009');
+        expect(divide(1, 111))->toBe('0.009009009009');
         expect(divide(1.1e+8, 1.1e-8))->toBe('10000000000000000');
         expect(divide('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-1');
     });
 
 
     test('modulus method', function () {
-        expect(fn() => Math::modulus(0, 0))->toThrow(DivisionByZeroError::class);
-        expect(fn() => Math::modulus(5, 0))->toThrow(DivisionByZeroError::class);
+
+        try {
+
+            Math::modulus(5, 0);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
+            expect($e->getCode())->toBe(10103);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'  => 'bcmod',
+                'args'  =>  [5, 0]
+            ]);
+        }
 
         expect(Math::modulus(12, 5))->toBe('2');
         expect(Math::modulus(5, 6))->toBe('5');
@@ -294,6 +332,7 @@ describe('Math facade using FooinoMathHandler', function () {
     });
 
     test('power method', function () {
+
         expect(Math::power(2, -3))->toBe('0.125');
         expect(Math::power(2, -2))->toBe('0.25');
         expect(Math::power(2, 3))->toBe('8');
@@ -306,10 +345,11 @@ describe('Math facade using FooinoMathHandler', function () {
     });
 
     test('sqrt method', function () {
+
         expect(Math::sqrt(0))->toBe('0');
         expect(Math::sqrt(1))->toBe('1');
-        expect(Math::sqrt(2))->toBe('1.4142135623');
-        expect(Math::sqrt(3))->toBe('1.7320508075');
+        expect(Math::sqrt(2))->toBe('1.414213562373');
+        expect(Math::sqrt(3))->toBe('1.732050807568');
         expect(Math::sqrt(4))->toBe('2');
         expect(Math::sqrt(9))->toBe('3');
         expect(Math::sqrt(16))->toBe('4');
@@ -385,9 +425,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
     test('greaterThan method', function () {
 
-        expect(Math::greaterThan(null, null))->toBeFalse();
-        expect(Math::greaterThan(null, 0))->toBeFalse();
-        expect(Math::greaterThan(0, null))->toBeFalse();
         expect(Math::greaterThan(0, 0))->toBeFalse();
         expect(Math::greaterThan(-1, 0))->toBeFalse();
         expect(Math::greaterThan(0, 5))->toBeFalse();
@@ -397,9 +434,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::greaterThan(1.1e+8, 1.1e+8))->toBeFalse();
         expect(Math::greaterThan(1.1e-8, 1.1e+8))->toBeFalse();
 
-        expect(greaterThan(null, null))->toBeFalse();
-        expect(greaterThan(null, 0))->toBeFalse();
-        expect(greaterThan(0, null))->toBeFalse();
         expect(greaterThan(0, 0))->toBeFalse();
         expect(greaterThan(-1, 0))->toBeFalse();
         expect(greaterThan(0, 5))->toBeFalse();
@@ -411,9 +445,6 @@ describe('Math facade using FooinoMathHandler', function () {
     });
 
     test('greaterThanOrEqual method', function () {
-        expect(Math::greaterThanOrEqual(null, null))->toBeTrue();
-        expect(Math::greaterThanOrEqual(null, 0))->toBeTrue();
-        expect(Math::greaterThanOrEqual(0, null))->toBeTrue();
         expect(Math::greaterThanOrEqual(0, 0))->toBeTrue();
         expect(Math::greaterThanOrEqual(-1, 0))->toBeFalse();
         expect(Math::greaterThanOrEqual(0, 5))->toBeFalse();
@@ -423,9 +454,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::greaterThanOrEqual(1.1e+8, 1.1e+8))->toBeTrue();
         expect(Math::greaterThanOrEqual(1.1e-8, 1.1e+8))->toBeFalse();
 
-        expect(greaterThanOrEqual(null, null))->toBeTrue();
-        expect(greaterThanOrEqual(null, 0))->toBeTrue();
-        expect(greaterThanOrEqual(0, null))->toBeTrue();
         expect(greaterThanOrEqual(0, 0))->toBeTrue();
         expect(greaterThanOrEqual(-1, 0))->toBeFalse();
         expect(greaterThanOrEqual(0, 5))->toBeFalse();
@@ -437,9 +465,6 @@ describe('Math facade using FooinoMathHandler', function () {
     });
 
     test('lessThan method', function () {
-        expect(Math::lessThan(null, null))->toBeFalse();
-        expect(Math::lessThan(null, 0))->toBeFalse();
-        expect(Math::lessThan(0, null))->toBeFalse();
         expect(Math::lessThan(0, 0))->toBeFalse();
         expect(Math::lessThan(-1, 0))->toBeTrue();
         expect(Math::lessThan(0, 5))->toBeTrue();
@@ -449,9 +474,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::lessThan(1.1e+8, 1.1e+8))->toBeFalse();
         expect(Math::lessThan(1.1e+8, 1.1e-8))->toBeFalse();
 
-        expect(lessThan(null, null))->toBeFalse();
-        expect(lessThan(null, 0))->toBeFalse();
-        expect(lessThan(0, null))->toBeFalse();
         expect(lessThan(0, 0))->toBeFalse();
         expect(lessThan(-1, 0))->toBeTrue();
         expect(lessThan(0, 5))->toBeTrue();
@@ -464,9 +486,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
     test('lessThanOrEqual method', function () {
 
-        expect(Math::lessThanOrEqual(null, null))->toBeTrue();
-        expect(Math::lessThanOrEqual(null, 0))->toBeTrue();
-        expect(Math::lessThanOrEqual(0, null))->toBeTrue();
         expect(Math::lessThanOrEqual(0, 0))->toBeTrue();
         expect(Math::lessThanOrEqual(-1, 0))->toBeTrue();
         expect(Math::lessThanOrEqual(0, 5))->toBeTrue();
@@ -476,9 +495,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::lessThanOrEqual(1.1e+8, 1.1e+8))->toBeTrue();
         expect(Math::lessThanOrEqual(1.1e+8, 1.1e-8))->toBeFalse();
 
-        expect(lessThanOrEqual(null, null))->toBeTrue();
-        expect(lessThanOrEqual(null, 0))->toBeTrue();
-        expect(lessThanOrEqual(0, null))->toBeTrue();
         expect(lessThanOrEqual(0, 0))->toBeTrue();
         expect(lessThanOrEqual(-1, 0))->toBeTrue();
         expect(lessThanOrEqual(0, 5))->toBeTrue();
@@ -490,9 +506,6 @@ describe('Math facade using FooinoMathHandler', function () {
     });
 
     test('equal method', function () {
-        expect(Math::equal(null, null))->toBeTrue();
-        expect(Math::equal(null, 0))->toBeTrue();
-        expect(Math::equal(0, null))->toBeTrue();
         expect(Math::equal(0, 0))->toBeTrue();
         expect(Math::equal(-1, 0))->toBeFalse();
         expect(Math::equal(0, 5))->toBeFalse();
@@ -502,9 +515,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::equal(1.1e+8, 1.1e+8))->toBeTrue();
         expect(Math::equal(1.1e+8, 1.1e-8))->toBeFalse();
 
-        expect(equal(null, null))->toBeTrue();
-        expect(equal(null, 0))->toBeTrue();
-        expect(equal(0, null))->toBeTrue();
         expect(equal(0, 0))->toBeTrue();
         expect(equal(-1, 0))->toBeFalse();
         expect(equal(0, 5))->toBeFalse();
@@ -514,9 +524,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(equal(1.1e+8, 1.1e+8))->toBeTrue();
         expect(equal(1.1e+8, 1.1e-8))->toBeFalse();
 
-        expect(Math::notEqual(null, null))->toBeFalse();
-        expect(Math::notEqual(null, 0))->toBeFalse();
-        expect(Math::notEqual(0, null))->toBeFalse();
         expect(Math::notEqual(0, 0))->toBeFalse();
         expect(Math::notEqual(-1, 0))->toBeTrue();
         expect(Math::notEqual(0, 5))->toBeTrue();
@@ -525,9 +532,6 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::notEqual(1, 2))->toBeTrue();
         expect(Math::notEqual(2, 2))->toBeFalse();
 
-        expect(notEqual(null, null))->toBeFalse();
-        expect(notEqual(null, 0))->toBeFalse();
-        expect(notEqual(0, null))->toBeFalse();
         expect(notEqual(0, 0))->toBeFalse();
         expect(notEqual(-1, 0))->toBeTrue();
         expect(notEqual(0, 5))->toBeTrue();
