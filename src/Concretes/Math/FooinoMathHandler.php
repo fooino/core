@@ -13,7 +13,35 @@ class FooinoMathHandler implements Mathable
 
     public function __construct(private int $precision = 12)
     {
+        /**
+         *  Difference Between BC_SCALE and $precision
+         * 
+         *  All bc functions must use BC_SCALE for calculations
+         *  The $precision is just for returning number, not using in calculations
+         * 
+         *  Example: Math::setPrecision(precision: 0)->sum(5.599, 5.499));
+         * 
+         *  Base on BC_SCALE the result is 11.098. if we assumed BC_SCALE = $precision = 0 the result was 10 which is wrong
+         *  To output number we use $precision = 0 and the result is 11
+         * 
+         */
+
         bcscale(self::BC_SCALE);
+
+        if (
+            $this->getPrecision() > self::BC_SCALE ||
+            $this->getPrecision() < 0
+        ) {
+            app(MathCalculationException::class)
+                ->setMessage('msg.mathCalculationExceptionInvalidPrecision')
+                ->setCode(10101)
+                ->critical()
+                ->with([
+                    'precision' => $this->getPrecision(),
+                    'bc_scale'  => bcscale()
+                ])
+                ->throw();
+        }
     }
 
     public function getPrecision(): int
@@ -23,12 +51,12 @@ class FooinoMathHandler implements Mathable
 
     public function setPrecision(int $precision): Mathable
     {
-        return $this->instances[$precision] ??= new static(precision: $precision);
+        return $this->instances[$precision] ??= new static(precision: $precision); // Facade in laravel use singleton design pattern and we need new fresh instance by $precision
     }
 
     public function convertScientificNumber(string|int|float $number): string
     {
-        $number = (string) $number;
+        $number = trim((string) $number);
 
         // Matches optional minus, mantissa (integer or decimal), and exponent
         if (!preg_match('/^(-?)(\d*\.?\d+)[Ee]([+-]?\d+)$/', $number, $matches)) {
@@ -61,16 +89,24 @@ class FooinoMathHandler implements Mathable
         $shift     = $exponent - $decPlaces; // right shift (+), left shift (-)
 
         if ($shift >= 0) {
+
             // No decimal point needed (or decimal shifted right beyond end)
             $result = $digits . str_repeat('0', $shift);
+
+            // 
         } else {
+
             $absShift = abs($shift);
             $len      = strlen($digits);
 
             if ($absShift >= $len) {
+
                 // Decimal point goes after '0.', padding with leading zeros
                 $result = '0.' . str_repeat('0', $absShift - $len) . $digits;
+
+                // 
             } else {
+
                 // Insert decimal point inside the digit string
                 $splitPos = $len - $absShift;
                 $result   = substr($digits, 0, $splitPos) . '.' . substr($digits, $splitPos);
@@ -109,35 +145,65 @@ class FooinoMathHandler implements Mathable
 
     public function numberFormat(string|int|float $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
     {
-        if (!is_numeric(str_replace([$decimalSeparator, $thousandsSeparator], '', $number))) {
+        // 1. Convert the input to a standard numeric string
+        //    (first replace the decimal separator, then remove the thousands separator)
+        $cleaned = str_replace(
+            $thousandsSeparator,
+            '',
+            str_replace($decimalSeparator, '.', (string) $number)
+        );
 
+        // 2. Validate that what remains is truly numeric
+        if (!is_numeric($cleaned)) {
             app(MathCalculationException::class)
                 ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
                 ->setCode(10102)
                 ->with([
                     'func' => 'numberFormat',
                     'args' => [
-                        'number'                => $number,
-                        'decimalSeparator'      => $decimalSeparator,
-                        'thousandsSeparator'    => $thousandsSeparator,
-                    ]
+                        'number'             => $number,
+                        'decimalSeparator'   => $decimalSeparator,
+                        'thousandsSeparator' => $thousandsSeparator,
+                    ],
                 ])
                 ->throw();
         }
 
-        $sanitized = $this->number(number: str_replace($thousandsSeparator, '', str_replace($decimalSeparator, '.', $number)));
+        // 3. Apply the handler's precision and trailing zero trimming
+        //    (internally uses convertScientificNumber, so no float loss)
+        $sanitized = $this->number($cleaned);   // e.g. "-1234567.890"  or "0"  or "5.2"
 
-        $number = number_format(
-            num: $sanitized,
-            decimals: $this->decimalPlaceNumber(number: $this->trimTrailingZeros(number: $sanitized)),
-            decimal_separator: $decimalSeparator,
-            thousands_separator: $thousandsSeparator
+        // 4. Extract the sign (if any)
+        $sign = '';
+        if ($sanitized[0] === '-') {
+            $sign = '-';
+            $sanitized = substr($sanitized, 1);
+        }
+
+        // 5. Split into integer and decimal parts
+        $dotPos = strpos($sanitized, '.');
+        if ($dotPos === false) {
+            $integer = $sanitized;
+            $decimal = '';
+        } else {
+            $integer = substr($sanitized, 0, $dotPos);
+            $decimal = substr($sanitized, $dotPos + 1);
+        }
+
+        // 6. Add thousands separators to the integer part (absolute value)
+        $integerWithSeparators = (string) preg_replace(
+            '/\B(?=(\d{3})+(?!\d))/',
+            $thousandsSeparator,
+            $integer
         );
 
-        return $this->trimTrailingZeros(
-            number: $number,
-            decimalSeparator: $decimalSeparator
-        );
+        // 7. Assemble the final formatted number
+        $result = $sign . $integerWithSeparators;
+        if ($decimal !== '') {
+            $result .= $decimalSeparator . $decimal;
+        }
+
+        return $result;
     }
 
     public function sum(mixed ...$args): string

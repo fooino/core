@@ -4,8 +4,6 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Facades\Math;
-use DivisionByZeroError;
-use TypeError;
 use ValueError;
 
 describe('Math facade using FooinoMathHandler', function () {
@@ -19,22 +17,104 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(math(precision: 5)->getPrecision())->toBe(5);
 
         expect(bcscale())->toBe(12);
+
+        try {
+
+            Math::setPrecision(precision: 20);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidPrecision');
+            expect($e->getCode())->toBe(10101);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'precision' => 20,
+                'bc_scale'  => 12
+            ]);
+        }
+
+        try {
+
+            Math::setPrecision(precision: -1);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidPrecision');
+            expect($e->getCode())->toBe(10101);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'precision' => -1,
+                'bc_scale'  => 12
+            ]);
+        }
     });
 
     test('convertScientificNumber method', function () {
 
+        expect(Math::convertScientificNumber(0))->toBe('0');
+        expect(Math::convertScientificNumber(+0))->toBe('0');
+        expect(Math::convertScientificNumber(-0))->toBe('0');
+
+        expect(Math::convertScientificNumber('11'))->toBe('11');
+        expect(Math::convertScientificNumber('11 '))->toBe('11');
+        expect(Math::convertScientificNumber(' 11'))->toBe('11');
+        expect(Math::convertScientificNumber(' 11 '))->toBe('11');
+
         expect(Math::convertScientificNumber(11.000000))->toBe('11');
         expect(Math::convertScientificNumber(11))->toBe('11');
+        expect(Math::convertScientificNumber(+11))->toBe('11');
         expect(Math::convertScientificNumber(-11))->toBe('-11');
+        expect(Math::convertScientificNumber(11.110000))->toBe('11.11');
         expect(Math::convertScientificNumber(11.11))->toBe('11.11');
+        expect(Math::convertScientificNumber(+11.11))->toBe('11.11');
+        expect(Math::convertScientificNumber(-11.1100))->toBe('-11.11');
+        expect(Math::convertScientificNumber(.11))->toBe('0.11');
+        expect(Math::convertScientificNumber(.1100))->toBe('0.11');
 
-        expect(Math::convertScientificNumber('1.1e+8'))->toBe('110000000');
+        expect(Math::convertScientificNumber(0.e+8))->toBe('0');
+        expect(Math::convertScientificNumber(+0.e+8))->toBe('0');
+        expect(Math::convertScientificNumber(-0.e+8))->toBe('-0');
+        expect(Math::convertScientificNumber('.0e+8'))->toBe('0');
+        expect(Math::convertScientificNumber('-.0e+8'))->toBe('0');
+
+        expect(Math::convertScientificNumber(1e8))->toBe('100000000');
+        expect(Math::convertScientificNumber(-1e8))->toBe('-100000000');
+        expect(Math::convertScientificNumber(0.1e8))->toBe('10000000');
+        expect(Math::convertScientificNumber(.1e8))->toBe('10000000');
+        expect(Math::convertScientificNumber(+.1e8))->toBe('10000000');
+        expect(Math::convertScientificNumber(-.1e8))->toBe('-10000000');
+
         expect(Math::convertScientificNumber(1.1e+8))->toBe('110000000');
-        expect(Math::convertScientificNumber('1.1e+20'))->toBe('110000000000000000000');
+        expect(Math::convertScientificNumber(-1.1e+8))->toBe('-110000000');
+        expect(Math::convertScientificNumber('1.1e+8'))->toBe('110000000');
+        expect(Math::convertScientificNumber('1.1e+8 '))->toBe('110000000');
+        expect(Math::convertScientificNumber(' 1.1e+8'))->toBe('110000000');
+        expect(Math::convertScientificNumber(' 1.1e+8 '))->toBe('110000000');
+        expect(Math::convertScientificNumber('-1.1e+8'))->toBe('-110000000');
+
+        expect(Math::convertScientificNumber('0.1e+8'))->toBe('10000000');
+        expect(Math::convertScientificNumber('-0.1e+8'))->toBe('-10000000');
+        expect(Math::convertScientificNumber('.1e+8'))->toBe('10000000');
+        expect(Math::convertScientificNumber('-.1e+8'))->toBe('-10000000');
+
+        expect(Math::convertScientificNumber(1.1E-8))->toBe('0.000000011');
+        expect(Math::convertScientificNumber(-1.1E-8))->toBe('-0.000000011');
         expect(Math::convertScientificNumber('1.1E-8'))->toBe('0.000000011');
-        expect(Math::convertScientificNumber('1.1e-8'))->toBe('0.000000011');
-        expect(Math::convertScientificNumber('1.1e-13'))->toBe('0.00000000000011');
-        expect(Math::convertScientificNumber('-1.1e-13'))->toBe('-0.00000000000011');
+        expect(Math::convertScientificNumber('-1.1E-8'))->toBe('-0.000000011');
+
+        expect(Math::convertScientificNumber('0.1E-8'))->toBe('0.000000001');
+        expect(Math::convertScientificNumber('-0.1E-8'))->toBe('-0.000000001');
+        expect(Math::convertScientificNumber('.1E-8'))->toBe('0.000000001');
+        expect(Math::convertScientificNumber('-.1E-8'))->toBe('-0.000000001');
+
+        expect(Math::convertScientificNumber('1.1e-20'))->toBe('0.000000000000000000011');
+        expect(Math::convertScientificNumber('-1.1e-20'))->toBe('-0.000000000000000000011');
+
+        expect(Math::convertScientificNumber('1.1e+20'))->toBe('110000000000000000000');
         expect(Math::convertScientificNumber('20.1e+20'))->toBe('2010000000000000000000');
 
         expect(Math::convertScientificNumber('abc1E+3xyz'))->toBe('abc1E+3xyz'); // contains 1E+3 which is valid Scientific Number but the method must not convert it
@@ -43,17 +123,37 @@ describe('Math facade using FooinoMathHandler', function () {
 
     test('trimTrailingZeros method', function () {
 
+        expect(Math::trimTrailingZeros(0))->toBe('0');
+
         expect(Math::trimTrailingZeros(11))->toBe('11');
+        expect(Math::trimTrailingZeros(+11))->toBe('11');
+        expect(Math::trimTrailingZeros(-11))->toBe('-11');
+
+        expect(Math::trimTrailingZeros(1100))->toBe('1100');
+        expect(Math::trimTrailingZeros(+1100))->toBe('1100');
+        expect(Math::trimTrailingZeros(-1100))->toBe('-1100');
+
         expect(Math::trimTrailingZeros(11.11))->toBe('11.11');
         expect(Math::trimTrailingZeros(11.1100000000))->toBe('11.11');
         expect(Math::trimTrailingZeros(11.0000000000))->toBe('11');
+
+        expect(Math::trimTrailingZeros(0.1100000000))->toBe('0.11');
+        expect(Math::trimTrailingZeros(.1100000000))->toBe('0.11');
+        expect(Math::trimTrailingZeros(-.1100000000))->toBe('-0.11');
+
         expect(Math::trimTrailingZeros("11-0000000000", '-'))->toBe('11');
         expect(Math::trimTrailingZeros("11-2100000000", '-'))->toBe('11-21');
+        expect(Math::trimTrailingZeros("-11-2100000000", '-'))->toBe('-11-21');
 
         expect(Math::trimTrailingZeros("1.1e+8"))->toBe('110000000');
         expect(Math::trimTrailingZeros("-1.1e+8"))->toBe('-110000000');
         expect(Math::trimTrailingZeros("1.1E-8"))->toBe('0.000000011');
-        expect(Math::trimTrailingZeros(0))->toBe('0');
+
+        expect(Math::trimTrailingZeros("1.1e+20"))->toBe('110000000000000000000');
+        expect(Math::trimTrailingZeros("-1.1e+20"))->toBe('-110000000000000000000');
+        expect(Math::trimTrailingZeros("1.1E-20"))->toBe('0.000000000000000000011');
+        expect(Math::trimTrailingZeros("-1.1E-20"))->toBe('-0.000000000000000000011');
+
         expect(Math::trimTrailingZeros('test'))->toBe('test');
     });
 
