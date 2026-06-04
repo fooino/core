@@ -26,10 +26,10 @@ class FooinoMathHandler implements Mathable
          * 
          */
 
-        bcscale(self::BC_SCALE);
+        bcscale(scale: self::BC_SCALE);
 
         if (
-            $this->getPrecision() > self::BC_SCALE ||
+            $this->getPrecision() > bcscale() ||
             $this->getPrecision() < 0
         ) {
             app(MathCalculationException::class)
@@ -58,28 +58,38 @@ class FooinoMathHandler implements Mathable
     {
         $number = trim((string) $number);
 
-        // Matches optional minus, mantissa (integer or decimal), and exponent
-        if (!preg_match('/^(-?)(\d*\.?\d+)[Ee]([+-]?\d+)$/', $number, $matches)) {
-            return $number; // Not scientific notation; return as-is
+        $regex = [
+            '/',
+            '^',                    // start with
+            '([+-]?)',              // the sign can be '+' or '-' or '' ---> first group: sign
+            '(\d*\.?\d*)',          // zero or more digits before dot  optional decimal dot  zero or more digits after decimal dot ---> second group: mantissa. it can be 123 or .5 or 5. or 1.23
+            '[Ee]',                 // the letter E or e: the exponent separator
+            '([+-]?\d+)',           // optional '+' or '-' sign   one or more digits ---> third group: exponent. it can be 3 or +3 or -3
+            '$',                    // end with
+            '/'
+        ];
+
+        if (!preg_match(implode('', $regex), $number, $matches)) {
+
+            return $this->standardizeNumber(number: $number);
         }
 
-        $sign      = $matches[1];          // '-' or ''
-        $mantissa  = $matches[2];          // e.g. "1.23", ".5", "5."
-        $exponent  = (int) $matches[3];    // e.g. -2, +5, 3
+        $sign      = $matches[1];
+        $mantissa  = $matches[2];
+        $exponent  = (int) $matches[3]; // safe – exponent is always a small integer
 
         // Split mantissa into integer and decimal parts
-        list($sign, $intPart, $decPart) = $this->numberParts(number: ($sign . $mantissa));
+        list($sign, $integerPart, $decimalPart) = $this->numberParts(number: ($sign . $mantissa));
 
         // All significant digits, without decimal point
-        $digits = ltrim($intPart . $decPart, '0');
+        $digits = ltrim($integerPart . $decimalPart, '0');
 
-        // If mantissa is zero, the whole number is zero
+        // If mantissa is zero, the whole number is zero like 0.1E+8
         if ($digits === '') {
             return '0';
         }
 
-        $decPlaces = strlen($decPart);
-        $shift     = $exponent - $decPlaces; // right shift (+), left shift (-)
+        $shift = $exponent - strlen($decimalPart); // right shift (+), left shift (-)
 
         if ($shift >= 0) {
 
@@ -95,14 +105,14 @@ class FooinoMathHandler implements Mathable
             if ($absShift >= $len) {
 
                 // Decimal point goes after '0.', padding with leading zeros
-                $result = '0.' . str_repeat('0', $absShift - $len) . $digits;
+                $result = '0.' . str_repeat('0', $absShift - $len) . rtrim($digits, '0');
 
                 // 
             } else {
 
                 // Insert decimal point inside the digit string
                 $splitPos = $len - $absShift;
-                $result   = substr($digits, 0, $splitPos) . '.' . substr($digits, $splitPos);
+                $result   = substr($digits, 0, $splitPos) . '.' . rtrim(substr($digits, $splitPos), '0');
             }
         }
 
@@ -229,29 +239,55 @@ class FooinoMathHandler implements Mathable
         return !$this->equal($a, $b);
     }
 
+    /**
+     * return sign, integer, decimal part of number
+     */
     private function numberParts(string|int|float $number): array
     {
+        $number = trim((string) $number);
         $sign = '';
-        if (($number[0] ?? '') === '-') {
-            $sign = '-';
+
+        if (in_array($number[0] ?? '', ['-', '+'])) {
+
+            $sign = $number[0];
+
             $number = substr($number, 1);
         }
 
         $dotPos = strpos($number, '.');
 
-        if ($dotPos === false) {
-            return [
-                $sign,
-                nullIfBlank(value: $number, fallback: 0),
-                0
-            ];
-        }
+        list($integer, $decimal) = match ($dotPos) {
+
+            false           => [
+                (string) nullIfBlankOrZero(value: $number, fallback: '0'),
+                '0'
+            ],
+
+            default         => [
+                (string) nullIfBlankOrZero(value: substr($number, 0, $dotPos), fallback: '0'),
+                (string) nullIfBlankOrZero(value: substr($number, $dotPos + 1), fallback: '0')
+            ]
+        };
+
+        $num = nullIfBlankOrZero($integer . '.' . $decimal);
+
+        $sign = ((is_numeric($num) && $sign === '+') || is_null($num)) ? '' : $sign;
 
         return [
             $sign,
-            nullIfBlank(value: substr($number, 0, $dotPos), fallback: 0),
-            nullIfBlank(value: substr($number, $dotPos + 1), fallback: 0)
+            $integer,
+            $decimal
         ];
+    }
+
+    /**
+     * Make number base on parts
+     */
+    private function standardizeNumber(string|int|float $number, int|null $precision = null): string
+    {
+        list($sign, $integer, $decimal) = $this->numberParts(number: $number);
+
+        return trim($sign . $integer . (nullIfBlankOrZero($decimal) ? ('.' . (is_null($precision) ? $decimal : substr($decimal, 0, $precision))) : ''));
     }
 
     private function bccomp(string|int|float $a, string|int|float $b): int
