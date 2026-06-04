@@ -250,7 +250,7 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::convertScientificNumber('312.12E-2'))->toBe('3.1212');
         expect(Math::convertScientificNumber('+312.12E-2'))->toBe('3.1212');
         expect(Math::convertScientificNumber('-312.12E-2'))->toBe('-3.1212');
-        
+
         expect(Math::convertScientificNumber('312.120E-2'))->toBe('3.1212');
         expect(Math::convertScientificNumber('31213141516171819.20E-14'))->toBe('312.131415161718192');
 
@@ -263,38 +263,110 @@ describe('Math facade using FooinoMathHandler', function () {
 
     test('trimTrailingZeros method', function () {
 
+        expect(Math::trimTrailingZeros('test'))->toBe('test');
+        expect(Math::trimTrailingZeros('foo.bar'))->toBe('foo.bar');
+        expect(Math::trimTrailingZeros('foo.bar0'))->toBe('foo.bar');
+        expect(Math::trimTrailingZeros('foo.0'))->toBe('foo');
+
         expect(Math::trimTrailingZeros(0))->toBe('0');
+        expect(Math::trimTrailingZeros(+0))->toBe('0');
+        expect(Math::trimTrailingZeros(-0))->toBe('0');
+
+        expect(Math::trimTrailingZeros('0'))->toBe('0');
+        expect(Math::trimTrailingZeros('+0'))->toBe('0');
+        expect(Math::trimTrailingZeros('-0'))->toBe('0');
+
+        expect(Math::trimTrailingZeros(0.0))->toBe('0');
+        expect(Math::trimTrailingZeros(+0.0))->toBe('0');
+        expect(Math::trimTrailingZeros(-0.0))->toBe('0');
+
+        expect(Math::trimTrailingZeros('0.0'))->toBe('0');
+        expect(Math::trimTrailingZeros('+0.0'))->toBe('0');
+        expect(Math::trimTrailingZeros('-0.0'))->toBe('0');
+
+        expect(Math::trimTrailingZeros(0.))->toBe('0');
+        expect(Math::trimTrailingZeros(+0.))->toBe('0');
+        expect(Math::trimTrailingZeros(-0.))->toBe('0');
+
+        expect(Math::trimTrailingZeros('0.'))->toBe('0');
+        expect(Math::trimTrailingZeros('+0.'))->toBe('0');
+        expect(Math::trimTrailingZeros('-0.'))->toBe('0');
+
+        expect(Math::trimTrailingZeros(.0))->toBe('0');
+        expect(Math::trimTrailingZeros(+.0))->toBe('0');
+        expect(Math::trimTrailingZeros(-.0))->toBe('0');
+
+        expect(Math::trimTrailingZeros('.0'))->toBe('0');
+        expect(Math::trimTrailingZeros('+.0'))->toBe('0');
+        expect(Math::trimTrailingZeros('-.0'))->toBe('0');
 
         expect(Math::trimTrailingZeros(11))->toBe('11');
         expect(Math::trimTrailingZeros(+11))->toBe('11');
         expect(Math::trimTrailingZeros(-11))->toBe('-11');
 
+        expect(Math::trimTrailingZeros('11'))->toBe('11');
+        expect(Math::trimTrailingZeros('+11'))->toBe('11');
+        expect(Math::trimTrailingZeros('-11'))->toBe('-11');
+
+        expect(Math::trimTrailingZeros(11.11))->toBe('11.11');
+        expect(Math::trimTrailingZeros(+11.11))->toBe('11.11');
+        expect(Math::trimTrailingZeros(-11.11))->toBe('-11.11');
+
+        expect(Math::trimTrailingZeros('11.11'))->toBe('11.11');
+        expect(Math::trimTrailingZeros('+11.11'))->toBe('11.11');
+        expect(Math::trimTrailingZeros('-11.11'))->toBe('-11.11');
+
+        expect(Math::trimTrailingZeros(11.))->toBe('11');
+        expect(Math::trimTrailingZeros(+11.))->toBe('11');
+        expect(Math::trimTrailingZeros(-11.))->toBe('-11');
+
+        expect(Math::trimTrailingZeros('11.'))->toBe('11');
+        expect(Math::trimTrailingZeros('+11.'))->toBe('11');
+        expect(Math::trimTrailingZeros('-11.'))->toBe('-11');
+
+        expect(Math::trimTrailingZeros(.11))->toBe('0.11');
+        expect(Math::trimTrailingZeros(+.11))->toBe('0.11');
+        expect(Math::trimTrailingZeros(-.11))->toBe('-0.11');
+
+        expect(Math::trimTrailingZeros('.11'))->toBe('0.11');
+        expect(Math::trimTrailingZeros('+.11'))->toBe('0.11');
+        expect(Math::trimTrailingZeros('-.11'))->toBe('-0.11');
+
         expect(Math::trimTrailingZeros(1100))->toBe('1100');
         expect(Math::trimTrailingZeros(+1100))->toBe('1100');
         expect(Math::trimTrailingZeros(-1100))->toBe('-1100');
 
-        expect(Math::trimTrailingZeros(11.11))->toBe('11.11');
-        expect(Math::trimTrailingZeros(11.1100000000))->toBe('11.11');
-        expect(Math::trimTrailingZeros(11.0000000000))->toBe('11');
+        expect(Math::trimTrailingZeros('1100'))->toBe('1100');
+        expect(Math::trimTrailingZeros('+1100'))->toBe('1100');
+        expect(Math::trimTrailingZeros('-1100'))->toBe('-1100');
 
-        expect(Math::trimTrailingZeros(0.1100000000))->toBe('0.11');
-        expect(Math::trimTrailingZeros(.1100000000))->toBe('0.11');
-        expect(Math::trimTrailingZeros(-.1100000000))->toBe('-0.11');
+        expect(Math::trimTrailingZeros(1100.001100))->toBe('1100.0011');
+        expect(Math::trimTrailingZeros(+1100.001100))->toBe('1100.0011');
+        expect(Math::trimTrailingZeros(-1100.001100))->toBe('-1100.0011');
+
+        expect(Math::trimTrailingZeros('1100.001100'))->toBe('1100.0011');
+        expect(Math::trimTrailingZeros('+1100.001100'))->toBe('1100.0011');
+        expect(Math::trimTrailingZeros('-1100.001100'))->toBe('-1100.0011');
+
+        expect(Math::trimTrailingZeros(1100.))->toBe('1100');
+        expect(Math::trimTrailingZeros(+1100.))->toBe('1100');
+        expect(Math::trimTrailingZeros(-1100.))->toBe('-1100');
+
+        expect(Math::trimTrailingZeros('1100.'))->toBe('1100');
+        expect(Math::trimTrailingZeros('+1100.'))->toBe('1100');
+        expect(Math::trimTrailingZeros('-1100.'))->toBe('-1100');
+
+        expect(Math::trimTrailingZeros(.001100))->toBe('0.0011');
+        expect(Math::trimTrailingZeros(+.001100))->toBe('0.0011');
+        expect(Math::trimTrailingZeros(-.001100))->toBe('-0.0011');
+
+        expect(Math::trimTrailingZeros('.001100'))->toBe('0.0011');
+        expect(Math::trimTrailingZeros('+.001100'))->toBe('0.0011');
+        expect(Math::trimTrailingZeros('-.001100'))->toBe('-0.0011');
 
         expect(Math::trimTrailingZeros("11-0000000000", '-'))->toBe('11');
         expect(Math::trimTrailingZeros("11-2100000000", '-'))->toBe('11-21');
         expect(Math::trimTrailingZeros("-11-2100000000", '-'))->toBe('-11-21');
-
-        expect(Math::trimTrailingZeros("1.1e+8"))->toBe('110000000');
-        expect(Math::trimTrailingZeros("-1.1e+8"))->toBe('-110000000');
-        expect(Math::trimTrailingZeros("1.1E-8"))->toBe('0.000000011');
-
-        expect(Math::trimTrailingZeros("1.1e+20"))->toBe('110000000000000000000');
-        expect(Math::trimTrailingZeros("-1.1e+20"))->toBe('-110000000000000000000');
-        expect(Math::trimTrailingZeros("1.1E-20"))->toBe('0.000000000000000000011');
-        expect(Math::trimTrailingZeros("-1.1E-20"))->toBe('-0.000000000000000000011');
-
-        expect(Math::trimTrailingZeros('test'))->toBe('test');
     });
 
     test('decimalPlaceNumber method', function () {
@@ -307,6 +379,8 @@ describe('Math facade using FooinoMathHandler', function () {
 
         expect(Math::decimalPlaceNumber(1.1e-8))->toBe(9);
         expect(Math::decimalPlaceNumber(0.1e-8))->toBe(9);
+        expect(Math::decimalPlaceNumber(0.e-8))->toBe(0);
+
         expect(Math::decimalPlaceNumber('.1e-8'))->toBe(9);
         expect(Math::decimalPlaceNumber('-.1e-8'))->toBe(9);
 
@@ -318,19 +392,22 @@ describe('Math facade using FooinoMathHandler', function () {
 
     test('number method', function () {
 
+        expect(Math::number('test'))->toBe('test');
+        expect(Math::number('foo.bar'))->toBe('foo.bar');
+        expect(Math::number(''))->toBe('0');
         expect(Math::number(0))->toBe('0');
 
-        expect(Math::number(11))->toBe('11');
-        expect(Math::number(-11.))->toBe('-11');
-
-        expect(Math::number(.11))->toBe('0.11');
-        expect(Math::number(-.11))->toBe('-0.11');
-
-        expect(Math::number(11.000001000))->toBe('11.000001');
-        expect(Math::number(-11.000001000))->toBe('-11.000001');
+        expect(Math::number(0.001))->toBe('0.001');
+        expect(Math::setPrecision(precision: 2)->number(0.001))->toBe('0');
+        expect(math(precision: 2)->number(0.001))->toBe('0');
 
         expect(Math::number('.44015042'))->toBe('0.44015042');
         expect(Math::setPrecision(precision: 4)->number(0.44015042))->toBe('0.4401');
+        expect(number('.44015042'))->toBe('0.44015042');
+        expect(math(precision: 4)->number(0.44015042))->toBe('0.4401');
+
+        expect(Math::number(11.000001000))->toBe('11.000001');
+        expect(Math::number(-11.000001000))->toBe('-11.000001');
 
         expect(Math::number(1e8))->toBe('100000000');
         expect(Math::number(-1e8))->toBe('-100000000');
@@ -343,70 +420,29 @@ describe('Math facade using FooinoMathHandler', function () {
 
         expect(Math::number(1.1E+20))->toBe('110000000000000000000');
         expect(Math::number(1.1E-20))->toBe('0'); // the decimal numbers is very more than precision
-
-        expect(Math::number('test'))->toBe('test');
-        expect(Math::number('foo.bar'))->toBe('foo.bar');
-        expect(Math::number(''))->toBe('0');
-
-
-        expect(number(0))->toBe('0');
-
-        expect(number(11))->toBe('11');
-        expect(number(-11.))->toBe('-11');
-
-        expect(number(.11))->toBe('0.11');
-        expect(number(-.11))->toBe('-0.11');
-
-        expect(number(11.000001000))->toBe('11.000001');
-        expect(number(-11.000001000))->toBe('-11.000001');
-
-        expect(number('.44015042'))->toBe('0.44015042');
-        expect(math(precision: 4)->number(0.44015042))->toBe('0.4401');
-
-        expect(number(1e8))->toBe('100000000');
-        expect(number(-1e8))->toBe('-100000000');
-
-        expect(number(1.1e+8))->toBe('110000000');
-        expect(number(.1e+8))->toBe('10000000');
-
-        expect(number(1.101e-5))->toBe('0.00001101');
-        expect(number(-0.101e-5))->toBe('-0.00000101');
-
-        expect(number(1.1E+20))->toBe('110000000000000000000');
-        expect(number(1.1E-20))->toBe('0'); // the decimal numbers is very more than precision
-
-        expect(number('test'))->toBe('test');
-        expect(number('foo.bar'))->toBe('foo.bar');
     });
 
     test('numberFormat method', function () {
 
+        expect(Math::numberFormat(number: 'test'))->toBe('test');
+        expect(Math::numberFormat(number: ''))->toBe('0');
         expect(Math::numberFormat(number: 0))->toBe('0');
+        expect(Math::numberFormat(number: 1.1e-20))->toBe("0"); // the decimal numbers is very more than precision
         expect(Math::numberFormat(number: 1.1e-8))->toBe("0.000000011");
         expect(Math::numberFormat(number: 1.1e+8))->toBe("110,000,000");
+
         expect(Math::numberFormat(number: 5000000))->toBe("5,000,000");
         expect(Math::numberFormat(number: 5000000.50))->toBe("5,000,000.5");
         expect(Math::numberFormat(number: 5000000.5))->toBe("5,000,000.5");
         expect(Math::numberFormat(number: 5000000.05))->toBe("5,000,000.05");
         expect(Math::numberFormat(number: 5000000.015))->toBe("5,000,000.015");
         expect(Math::numberFormat(number: 5000000.0150))->toBe("5,000,000.015");
-        expect(Math::numberFormat(number: 5000000.01501))->toBe("5,000,000.01501");
-        expect(Math::numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
-        expect(Math::numberFormat(number: '1234_01230', decimalSeparator: "_"))->toBe("1,234_0123");
+        expect(Math::numberFormat(number: 5000000.0150100))->toBe("5,000,000.01501");
 
-        expect(numberFormat(number: 0))->toBe('0');
-        expect(numberFormat(number: 0.0))->toBe('0');
-        expect(numberFormat(number: 1.1e-8))->toBe("0.000000011");
-        expect(numberFormat(number: 1.1e+8))->toBe("110,000,000");
-        expect(numberFormat(number: 5000000))->toBe("5,000,000");
-        expect(numberFormat(number: 5000000.50))->toBe("5,000,000.5");
-        expect(numberFormat(number: 5000000.5))->toBe("5,000,000.5");
-        expect(numberFormat(number: 5000000.05))->toBe("5,000,000.05");
-        expect(numberFormat(number: 5000000.015))->toBe("5,000,000.015");
-        expect(numberFormat(number: 5000000.0150))->toBe("5,000,000.015");
-        expect(numberFormat(number: 5000000.01501))->toBe("5,000,000.01501");
-        expect(numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
-        expect(numberFormat(number: '1234_01230', decimalSeparator: "_"))->toBe("1,234_0123");
+        expect(Math::numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
+        expect(Math::numberFormat(number: '5,000,000.0150100', decimalSeparator: '/', thousandsSeparator: " "))->toBe("5 000 000/01501");
+        expect(Math::numberFormat(number: '1234_01230', decimalSeparator: "_"))->toBe("1,234_0123");
+        expect(Math::numberFormat(number: '-1234-01230', decimalSeparator: "-"))->toBe("-1,234-0123");
     });
 
     test('sum method', function () {

@@ -128,25 +128,31 @@ class FooinoMathHandler implements Mathable
 
     public function decimalPlaceNumber(string|int|float $number, string $decimalSeparator = '.'): int
     {
-        return (int) (strlen(substr(strrchr($this->number(number: $number), $decimalSeparator), 1)));
+        return (int) (strlen(substr(strrchr($this->trimTrailingZeros(number: $number), $decimalSeparator), 1)));
     }
 
     public function number(string|int|float $number): string
     {
-        $number = $this->convertScientificNumber(number: $number);
-
-        list($sign, $integer, $decimal) = $this->numberParts(number: $number);
-
-        $number = $sign . $integer . '.' . substr($decimal, 0, $this->getPrecision());
-
-        return $this->trimTrailingZeros(number: $number);
+        return $this->trimTrailingZeros(number: $this->standardizeNumber(number: $this->convertScientificNumber(number: $number), precision: $this->getPrecision()));
     }
 
     public function numberFormat(string|int|float $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
     {
-        $sanitized = $this->number(str_replace($thousandsSeparator, '', str_replace($decimalSeparator, '.', (string) $number)));
+        $number = trim((string) $number);
+        $sign = '';
+        
+        if (in_array($number[0] ?? '', ['-', '+'])) {
 
-        list($sign, $integer, $decimal) = $this->numberParts(number: $sanitized);
+            $sign = $number[0];
+
+            $number = substr($number, 1);
+        }
+
+        $sanitized = str_replace([$thousandsSeparator, ','], '', str_replace($decimalSeparator, '.', (string) $number));
+
+        $number = $this->convertScientificNumber(number: $sanitized);
+
+        list($sign, $integer, $decimal) = $this->numberParts(number: $sign . $number);
 
         $integerWithSeparators = (string) preg_replace(
             '/\B(?=(\d{3})+(?!\d))/',
@@ -156,7 +162,7 @@ class FooinoMathHandler implements Mathable
 
         $number = $sign . $integerWithSeparators . $decimalSeparator . $decimal;
 
-        return $this->trimTrailingZeros(number: $number, decimalSeparator: $decimalSeparator);
+        return $this->number(number: $this->trimTrailingZeros(number: $number, decimalSeparator: $decimalSeparator));
     }
 
     public function sum(mixed ...$args): string
