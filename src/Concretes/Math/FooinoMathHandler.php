@@ -140,7 +140,7 @@ class FooinoMathHandler implements Mathable
     {
         $number = trim((string) $number);
         $sign = '';
-        
+
         if (in_array($number[0] ?? '', ['-', '+'])) {
 
             $sign = $number[0];
@@ -303,13 +303,45 @@ class FooinoMathHandler implements Mathable
 
     private function calc(string $func, mixed ...$args): string
     {
+        $numbers = $this->getNumbersFromArgs($func, ...$args);
+
+        list($result, $start) = match ($func) {
+
+            'bcadd'             => [0, 0],
+
+            'bcsub'             => [$numbers[0], 1],
+
+            'bcmul'             => [1, 0],
+
+            'bcdiv'             => [$numbers[0], 1],
+
+            'bcmod'             => [$numbers[0], 1],
+
+            default             => app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionInvalidFunction')->setCode(10105)->with(['func' => $func, 'args' => $args])->throw(),
+        };
+
+        for ($i = $start; $i < count($numbers); $i++) {
+
+            $number = $numbers[$i];
+
+            $result = call_user_func($func, $result, $number);
+        }
+
+        return $this->number(number: $result);
+    }
+
+    private function getNumbersFromArgs(string $func, mixed ...$args): array
+    {
         $numbers = count($args) === 1 && is_array($args[0]) ? $args[0] : $args;
 
-        if (count($numbers) < 2) {
+        if (
+            count($numbers) === 0 ||
+            (count($numbers) < 2 && in_array($func, ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod']))
+        ) {
 
             app(MathCalculationException::class)
                 ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
-                ->setCode(10101)
+                ->setCode(10102)
                 ->with([
                     'func' => $func,
                     'args' => $args
@@ -317,13 +349,13 @@ class FooinoMathHandler implements Mathable
                 ->throw();
         }
 
-        foreach ($numbers as $number) {
+        foreach ($numbers as $key => $number) {
 
             if (!is_numeric($number)) {
 
                 app(MathCalculationException::class)
                     ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
-                    ->setCode(10102)
+                    ->setCode(10103)
                     ->with([
                         'func' => $func,
                         'args' => $args
@@ -333,11 +365,12 @@ class FooinoMathHandler implements Mathable
 
             if (
                 in_array($func, ['bcdiv', 'bcmod']) &&
-                ((float)$number) == 0
+                ((float) $number) === 0.0 &&
+                $key !== 0
             ) {
                 app(MathCalculationException::class)
                     ->setMessage('msg.mathCalculationExceptionDivisionByZero')
-                    ->setCode(10103)
+                    ->setCode(10104)
                     ->critical()
                     ->with([
                         'func' => $func,
@@ -347,27 +380,6 @@ class FooinoMathHandler implements Mathable
             }
         }
 
-        $numbers = array_map($this->convertScientificNumber(...), $numbers);
-
-        list($result, $start) = match ($func) {
-            'bcadd'             => [0, 0],
-            'bcsub'             => [$numbers[0], 1],
-            'bcmul'             => [1, 0],
-            'bcdiv'             => [$numbers[0], 1],
-            'bcmod'             => [$numbers[0], 1],
-        };
-
-        for ($i = $start; $i < count($numbers); $i++) {
-
-            $number = $numbers[$i];
-
-            // since we are in the loop and 0 will be + - * / to number for first time it can effect on scale and make not accurate result. so we increase the scale
-            // using bc function directly does not make non accurate result
-
-            $result = call_user_func($func, $result, $number, self::BC_SCALE + 3);
-        }
-
-
-        return $this->number(number: $result);
+        return array_map($this->convertScientificNumber(...), $numbers);
     }
 }

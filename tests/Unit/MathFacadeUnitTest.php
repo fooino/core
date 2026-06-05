@@ -438,14 +438,20 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::numberFormat(number: 5000000.015))->toBe("5,000,000.015");
         expect(Math::numberFormat(number: 5000000.0150))->toBe("5,000,000.015");
         expect(Math::numberFormat(number: 5000000.0150100))->toBe("5,000,000.01501");
+        expect(Math::setPrecision(precision: 3)->numberFormat(number: 5000000.0150100))->toBe("5,000,000.015");
+        expect(math(precision: 2)->numberFormat(number: 5000000.0150100))->toBe("5,000,000.01");
 
         expect(Math::numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
+
         expect(Math::numberFormat(number: '5,000,000.0150100', decimalSeparator: '/', thousandsSeparator: " "))->toBe("5 000 000/01501");
+
         expect(Math::numberFormat(number: '1234_01230', decimalSeparator: "_"))->toBe("1,234_0123");
+
         expect(Math::numberFormat(number: '-1234-01230', decimalSeparator: "-"))->toBe("-1,234-0123");
+        expect(numberFormat(number: '-1234-01230', decimalSeparator: "-"))->toBe("-1,234-0123");
     });
 
-    test('sum method', function () {
+    test('exceptions that calc throws', function () {
 
         try {
 
@@ -455,7 +461,7 @@ describe('Math facade using FooinoMathHandler', function () {
         } catch (FooinoException $e) {
 
             expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect($e->getCode())->toBe(10101);
+            expect($e->getCode())->toBe(10102);
             expect($e->getLevel())->toBe('error');
             expect($e->reportable())->toBeTrue();
             expect($e->getWith())->toBe([
@@ -466,13 +472,40 @@ describe('Math facade using FooinoMathHandler', function () {
 
         try {
 
+            Math::sum([1]);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
+            expect($e->getCode())->toBe(10102);
+            expect($e->getLevel())->toBe('error');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'  => 'bcadd',
+                'args'  => [[1]]
+            ]);
+        }
+
+        expect(fn() => Math::subtract(1))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentsCount');
+        expect(fn() => Math::multiply(1))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentsCount');
+        expect(fn() => Math::divide(1))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentsCount');
+        expect(fn() => Math::modulus(1))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentsCount');
+
+        expect(fn() => Math::subtract([1]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentsCount');
+        expect(fn() => Math::multiply([1]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentsCount');
+        expect(fn() => Math::divide([1]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentsCount');
+        expect(fn() => Math::modulus([1]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentsCount');
+
+        try {
+
             Math::sum(1, null);
 
             // 
         } catch (FooinoException $e) {
 
             expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-            expect($e->getCode())->toBe(10102);
+            expect($e->getCode())->toBe(10103);
             expect($e->getLevel())->toBe('error');
             expect($e->reportable())->toBeTrue();
             expect($e->getWith())->toBe([
@@ -481,89 +514,46 @@ describe('Math facade using FooinoMathHandler', function () {
             ]);
         }
 
-        expect(Math::setPrecision(precision: 0)->sum(5.599, 5.499))->toBe('11');
-        expect(Math::setPrecision(precision: 5)->sum(5.599, 5.499))->toBe('11.098');
-        expect(Math::setPrecision(precision: 2)->sum(5.599, -5.499))->toBe('0.1');
-        expect(Math::sum(1.1e+8, 1.1e-8))->toBe("110000000.000000011");
-        expect(Math::sum(0, 0))->toBe('0');
-        expect(Math::sum(0.0, 0.0))->toBe('0');
-        expect(Math::sum(1.1e+20, 1.1e-8))->toBe('110000000000000000000.000000011');
-        expect(Math::sum('0', '1234567891234567889999999'))->toBe('1234567891234567889999999');
-        expect(Math::sum('1234567891234567889999999', '0'))->toBe('1234567891234567889999999');
-        expect(Math::sum('1234567891234567889999999', '-1234567891234567889999999'))->toBe('0');
-        expect(Math::sum('-1234567891234567889999999', '1234567891234567889999999'))->toBe('0');
-        expect(Math::sum('1234567891234567889999999.11', '1234567891234567889999999.0011'))->toBe('2469135782469135779999998.1111');
-        expect(Math::sum('1234567891234567889999999.00000000011', '1234567891234567889999999.00000000019'))->toBe('2469135782469135779999998.0000000003');
+
+        expect(fn() => Math::sum(1, true))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::sum(2, 'test'))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::sum(2, [1, 2, 3]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::sum([1, true]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::sum([1, 'test']))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::sum([1, [1, 2]]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
 
 
-        expect(math(precision: 0)->sum(5.599, 5.499))->toBe('11');
-        expect(math(precision: 5)->sum(5.599, 5.499))->toBe('11.098');
-        expect(math(precision: 2)->sum(5.599, -5.499))->toBe('0.1');
-        expect(sum(1.1e+8, 1.1e-8))->toBe("110000000.000000011");
-        expect(sum(0, 0))->toBe('0');
-        expect(sum(0.0, 0.0))->toBe('0');
-        expect(sum(1.1e+20, 1.1e-8))->toBe('110000000000000000000.000000011');
-        expect(sum('0', '1234567891234567889999999'))->toBe('1234567891234567889999999');
-        expect(sum('1234567891234567889999999', '0'))->toBe('1234567891234567889999999');
-        expect(sum('1234567891234567889999999', '-1234567891234567889999999'))->toBe('0');
-        expect(sum('-1234567891234567889999999', '1234567891234567889999999'))->toBe('0');
-        expect(sum('1234567891234567889999999.11', '1234567891234567889999999.0011'))->toBe('2469135782469135779999998.1111');
-        expect(sum('1234567891234567889999999.00000000011', '1234567891234567889999999.00000000019'))->toBe('2469135782469135779999998.0000000003');
-    });
-
-    test('subtract method', function () {
-
-        expect(Math::subtract(5, 6))->toBe('-1');
-
-        expect(Math::setPrecision(precision: 0)->subtract(5.599, 5.499))->toBe('0');
-        expect(Math::setPrecision(precision: 4)->subtract(5.599, 5.499))->toBe('0.1');
-
-        expect(Math::subtract(1.1e+8, 1.1e-8))->toBe('109999999.999999989');
-        expect(Math::subtract(1.1e+20, 1.1e-8))->toBe('109999999999999999999.999999989');
-
-        expect(Math::subtract(0, 0))->toBe('0');
-        expect(Math::subtract(0.0, 0.0))->toBe('0');
-
-        expect(Math::subtract('0', '1234567891234567889999999'))->toBe('-1234567891234567889999999');
-        expect(Math::subtract('1234567891234567889999999', '0'))->toBe('1234567891234567889999999');
-        expect(Math::subtract('1234567891234567889999999', '1234567891234567889999999'))->toBe('0');
-        expect(Math::subtract('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-2469135782469135779999998');
-        expect(Math::subtract('1234567891234567889999999.11', '-1234567891234567889999999.0011'))->toBe('2469135782469135779999998.1111');
-        expect(Math::subtract('1234567891234567889999999.00000000011', '-1234567891234567889999999.00000000019'))->toBe('2469135782469135779999998.0000000003');
-    });
-
-    test('multiply method', function () {
-        expect(Math::setPrecision(precision: 1)->multiply(5.125, 6.11))->toBe('31.3');
-        expect(Math::setPrecision(precision: 2)->multiply(5.123456789, 6.123456789))->toBe('31.37');
-        expect(Math::multiply(5.125, 6.11))->toBe('31.31375');
-        expect(Math::multiply(1.1e+8, 1.1e-8))->toBe('1.21');
-        expect(Math::multiply('1234567891234567889999999', 0))->toBe('0');
-        expect(Math::multiply(0, '1234567891234567889999999'))->toBe('0');
-        expect(Math::multiply('1234567891234567889999999', 1))->toBe('1234567891234567889999999');
-        expect(Math::multiply(1, '1234567891234567889999999'))->toBe('1234567891234567889999999');
-        expect(Math::multiply('1234567891234567889999999', '-1234567891234567889999999'))->toBe('-1524157878067367851562259605883269630864220000001');
-        expect(Math::multiply('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-1524157878067367851562259605883269630864220000001');
-        expect(Math::multiply('1234567891234567889999999', '1234567891234567889999999'))->toBe('1524157878067367851562259605883269630864220000001');
-        expect(Math::multiply(0, 0))->toBe('0');
-        expect(Math::multiply(0.0, 0.0))->toBe('0');
+        expect(fn() => Math::subtract(1, true))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::subtract(2, 'test'))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::subtract(2, [1, 2, 3]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::subtract([1, true]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::subtract([1, 'test']))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::subtract([1, [1, 2]]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
 
 
-        expect(math(precision: 1)->multiply(5.125, 6.11))->toBe('31.3');
-        expect(math(precision: 2)->multiply(5.123456789, 6.123456789))->toBe('31.37');
-        expect(multiply(5.125, 6.11))->toBe('31.31375');
-        expect(multiply(1.1e+8, 1.1e-8))->toBe('1.21');
-        expect(multiply('1234567891234567889999999', 0))->toBe('0');
-        expect(multiply(0, '1234567891234567889999999'))->toBe('0');
-        expect(multiply('1234567891234567889999999', 1))->toBe('1234567891234567889999999');
-        expect(multiply(1, '1234567891234567889999999'))->toBe('1234567891234567889999999');
-        expect(multiply('1234567891234567889999999', '-1234567891234567889999999'))->toBe('-1524157878067367851562259605883269630864220000001');
-        expect(multiply('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-1524157878067367851562259605883269630864220000001');
-        expect(multiply('1234567891234567889999999', '1234567891234567889999999'))->toBe('1524157878067367851562259605883269630864220000001');
-        expect(multiply(0, 0))->toBe('0');
-        expect(multiply(0.0, 0.0))->toBe('0');
-    });
+        expect(fn() => Math::multiply(1, true))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::multiply(2, 'test'))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::multiply(2, [1, 2, 3]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::multiply([1, true]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::multiply([1, 'test']))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::multiply([1, [1, 2]]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
 
-    test('divide method', function () {
+
+        expect(fn() => Math::divide(1, true))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::divide(2, 'test'))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::divide(2, [1, 2, 3]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::divide([1, true]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::divide([1, 'test']))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::divide([1, [1, 2]]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+
+
+        expect(fn() => Math::modulus(1, true))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::modulus(2, 'test'))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::modulus(2, [1, 2, 3]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::modulus([1, true]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::modulus([1, 'test']))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+        expect(fn() => Math::modulus([1, [1, 2]]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+
 
         try {
 
@@ -573,7 +563,7 @@ describe('Math facade using FooinoMathHandler', function () {
         } catch (FooinoException $e) {
 
             expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
-            expect($e->getCode())->toBe(10103);
+            expect($e->getCode())->toBe(10104);
             expect($e->getLevel())->toBe('critical');
             expect($e->reportable())->toBeTrue();
             expect($e->getWith())->toBe([
@@ -582,50 +572,209 @@ describe('Math facade using FooinoMathHandler', function () {
             ]);
         }
 
-        expect(Math::divide(1, 0.5))->toBe('2');
-        expect(Math::setPrecision(precision: 0)->divide(50, 0.4354))->toBe('114');
-        expect(Math::setPrecision(precision: 0)->divide(361, 1.15))->toBe('313');
-        expect(Math::divide(5, 6))->toBe('0.833333333333');
-        expect(Math::divide(10, 3))->toBe('3.333333333333');
-        expect(Math::divide(1, 1000000000))->toBe('0.000000001');
-        expect(Math::divide(1, 111))->toBe('0.009009009009');
-        expect(Math::divide(1.1e+8, 1.1e-8))->toBe('10000000000000000');
-        expect(Math::divide('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-1');
+        expect(fn() => Math::modulus(5, 0))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionDivisionByZero');
 
-        expect(divide(1, 0.5))->toBe('2');
-        expect(math(precision: 0)->divide(50, 0.4354))->toBe('114');
-        expect(math(precision: 0)->divide(361, 1.15))->toBe('313');
-        expect(divide(5, 6))->toBe('0.833333333333');
-        expect(divide(10, 3))->toBe('3.333333333333');
-        expect(divide(1, 1000000000))->toBe('0.000000001');
-        expect(divide(1, 111))->toBe('0.009009009009');
-        expect(divide(1.1e+8, 1.1e-8))->toBe('10000000000000000');
-        expect(divide('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-1');
+        expect(fn() => Math::divide([5, 0, 1]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionDivisionByZero');
+        expect(fn() => Math::modulus([5, 0, 1]))->toThrow(FooinoException::class, 'msg.mathCalculationExceptionDivisionByZero');
     });
 
+    test('sum method', function () {
+
+        expect(Math::sum(0, 0))->toBe('0');
+        expect(Math::sum(0.0, 0.0))->toBe('0');
+
+        expect(Math::setPrecision(precision: 0)->sum(5.599, 5.499))->toBe('11');
+        expect(Math::setPrecision(precision: 5)->sum(5.599, 5.499))->toBe('11.098');
+        expect(Math::setPrecision(precision: 2)->sum(5.599, -5.499))->toBe('0.1');
+
+        expect(Math::sum(1.1e+8, 1.1e-8))->toBe("110000000.000000011");
+        expect(Math::sum(1.1e+20, 1.1e-8))->toBe('110000000000000000000.000000011');
+
+        expect(Math::sum('0', '1234567891234567889999999'))->toBe('1234567891234567889999999');
+        expect(Math::sum('1234567891234567889999999', '0'))->toBe('1234567891234567889999999');
+        expect(Math::sum('1234567891234567889999999.000000000011', '1234567891234567889999999.000000000009'))->toBe('2469135782469135779999998.00000000002');
+
+        expect(Math::sum('1234567891234567889999999', '-1234567891234567889999999'))->toBe('0');
+        expect(Math::sum('-1234567891234567889999999', '1234567891234567889999999'))->toBe('0');
+        expect(Math::sum('1234567891234567889999999.00000000011', '1234567891234567889999999.00000000019'))->toBe('2469135782469135779999998.0000000003');
+
+        expect(sum([0, 0]))->toBe('0');
+        expect(sum([0.0, 0.0]))->toBe('0');
+        expect(sum(range(1, 10)))->toBe('55');
+        expect(sum(1, 2, 3, 4))->toBe('10');
+
+        expect(math(precision: 0)->sum([5.599, 5.499]))->toBe('11');
+        expect(math(precision: 5)->sum([5.599, 5.499]))->toBe('11.098');
+        expect(math(precision: 2)->sum([5.599, -5.499]))->toBe('0.1');
+
+        expect(sum([1.1e+8, 1.1e-8]))->toBe("110000000.000000011");
+        expect(sum([1.1e+20, 1.1e-8]))->toBe('110000000000000000000.000000011');
+
+        expect(sum(['0', '1234567891234567889999999']))->toBe('1234567891234567889999999');
+        expect(sum(['1234567891234567889999999', '0']))->toBe('1234567891234567889999999');
+        expect(sum(['1234567891234567889999999.000000000011', '1234567891234567889999999.000000000009']))->toBe('2469135782469135779999998.00000000002');
+
+        expect(sum(['1234567891234567889999999', '-1234567891234567889999999']))->toBe('0');
+        expect(sum(['-1234567891234567889999999', '1234567891234567889999999']))->toBe('0');
+        expect(sum(['1234567891234567889999999.00000000011', '1234567891234567889999999.00000000019']))->toBe('2469135782469135779999998.0000000003');
+    });
+
+    test('subtract method', function () {
+
+        expect(Math::subtract(0, 0))->toBe('0');
+        expect(Math::subtract(0.0, 0.0))->toBe('0');
+
+        expect(Math::subtract(5, 6))->toBe('-1');
+
+        expect(Math::setPrecision(precision: 0)->subtract(5.599, 5.499))->toBe('0');
+        expect(Math::setPrecision(precision: 4)->subtract(5.599, 5.499))->toBe('0.1');
+
+        expect(Math::subtract(1.1e+8, 1.1e-8))->toBe('109999999.999999989');
+        expect(Math::subtract(1.1e+20, 1.1e-8))->toBe('109999999999999999999.999999989');
+
+        expect(Math::subtract('0', '1234567891234567889999999'))->toBe('-1234567891234567889999999');
+        expect(Math::subtract('1234567891234567889999999', '0'))->toBe('1234567891234567889999999');
+        expect(Math::subtract('1234567891234567889999999', '1234567891234567889999999'))->toBe('0');
+
+        expect(Math::subtract('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-2469135782469135779999998');
+        expect(Math::subtract('1234567891234567889999999.11', '-1234567891234567889999999.0011'))->toBe('2469135782469135779999998.1111');
+
+        expect(Math::subtract('1234567891234567889999999.000000000011', '-1234567891234567889999999.000000000019'))->toBe('2469135782469135779999998.00000000003');
+
+        expect(subtract([0, 0]))->toBe('0');
+        expect(subtract([0.0, 0.0]))->toBe('0');
+        expect(subtract(range(1, 10)))->toBe('-53');
+        expect(subtract(1, 2, 3, 4))->toBe('-8');
+
+        expect(math(precision: 0)->subtract([5.599, 5.499]))->toBe('0');
+        expect(math(precision: 4)->subtract([5.599, 5.499]))->toBe('0.1');
+
+        expect(subtract([1.1e+8, 1.1e-8]))->toBe('109999999.999999989');
+        expect(subtract([1.1e+20, 1.1e-8]))->toBe('109999999999999999999.999999989');
+
+        expect(subtract(['0', '1234567891234567889999999']))->toBe('-1234567891234567889999999');
+        expect(subtract(['1234567891234567889999999', '0']))->toBe('1234567891234567889999999');
+        expect(subtract(['1234567891234567889999999', '1234567891234567889999999']))->toBe('0');
+
+        expect(subtract(['-1234567891234567889999999', '1234567891234567889999999']))->toBe('-2469135782469135779999998');
+        expect(subtract(['1234567891234567889999999.11', '-1234567891234567889999999.0011']))->toBe('2469135782469135779999998.1111');
+
+        expect(subtract(['1234567891234567889999999.000000000011', '-1234567891234567889999999.000000000019']))->toBe('2469135782469135779999998.00000000003');
+    });
+
+    test('multiply method', function () {
+
+        expect(Math::multiply(0, 0))->toBe('0');
+        expect(Math::multiply(0.0, 0.0))->toBe('0');
+
+        expect(Math::multiply(5.125, 6.11))->toBe('31.31375');
+        expect(Math::setPrecision(precision: 1)->multiply(5.125, 6.11))->toBe('31.3');
+
+        expect(Math::setPrecision(precision: 2)->multiply(5.123456789, 6.123456789))->toBe('31.37');
+
+        expect(Math::multiply(1.1e+8, 1.1e-8))->toBe('1.21');
+
+        expect(Math::multiply('1234567891234567889999999', 0))->toBe('0');
+        expect(Math::multiply(0, '1234567891234567889999999'))->toBe('0');
+
+        expect(Math::multiply('1234567891234567889999999', 1))->toBe('1234567891234567889999999');
+        expect(Math::multiply(1, '1234567891234567889999999'))->toBe('1234567891234567889999999');
+
+        expect(Math::multiply('1234567891234567889999999', '-1234567891234567889999999'))->toBe('-1524157878067367851562259605883269630864220000001');
+        expect(Math::multiply('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-1524157878067367851562259605883269630864220000001');
+        expect(Math::multiply('1234567891234567889999999', '1234567891234567889999999'))->toBe('1524157878067367851562259605883269630864220000001');
+
+        expect(multiply([0, 0]))->toBe('0');
+        expect(multiply([0.0, 0.0]))->toBe('0');
+
+        expect(multiply(range(0, 10)))->toBe('0');
+        expect(multiply(range(1, 10)))->toBe('3628800');
+        expect(multiply(1, 2, 3, 4))->toBe('24');
+
+        expect(multiply([5.125, 6.11]))->toBe('31.31375');
+        expect(math(precision: 1)->multiply([5.125, 6.11]))->toBe('31.3');
+
+        expect(math(precision: 2)->multiply([5.123456789, 6.123456789]))->toBe('31.37');
+
+        expect(multiply([1.1e+8, 1.1e-8]))->toBe('1.21');
+
+        expect(multiply(['1234567891234567889999999', 0]))->toBe('0');
+        expect(multiply([0, '1234567891234567889999999']))->toBe('0');
+
+        expect(multiply(['1234567891234567889999999', 1]))->toBe('1234567891234567889999999');
+        expect(multiply([1, '1234567891234567889999999']))->toBe('1234567891234567889999999');
+
+        expect(multiply(['1234567891234567889999999', '-1234567891234567889999999']))->toBe('-1524157878067367851562259605883269630864220000001');
+        expect(multiply(['-1234567891234567889999999', '1234567891234567889999999']))->toBe('-1524157878067367851562259605883269630864220000001');
+        expect(multiply(['1234567891234567889999999', '1234567891234567889999999']))->toBe('1524157878067367851562259605883269630864220000001');
+    });
+
+    test('divide method', function () {
+
+        expect(Math::divide(0, 10))->toBe('0');
+
+        expect(Math::divide(1, -0.5))->toBe('-2');
+
+        expect(math::divide(50, 0.4354))->toBe('114.836931557188');
+        expect(math::divide(361, 1.15))->toBe('313.91304347826');
+
+        expect(Math::setPrecision(precision: 0)->divide(50, 0.4354))->toBe('114');
+        expect(Math::setPrecision(precision: 0)->divide(361, 1.15))->toBe('313');
+
+        expect(Math::divide(-5, 6))->toBe('-0.833333333333');
+        expect(Math::divide(10, 3))->toBe('3.333333333333');
+
+        expect(Math::divide(1, 1E12))->toBe('0.000000000001');
+        expect(Math::divide(1, 111))->toBe('0.009009009009');
+
+        expect(Math::divide(1.1e+8, 1.1e-8))->toBe('10000000000000000');
+
+        expect(Math::divide('-1234567891234567889999999', '1234567891234567889999999'))->toBe('-1');
+
+
+        expect(divide([0, 10]))->toBe('0');
+
+        expect(divide(range(0, 10)))->toBe('0');
+        expect(divide(range(1, 10)))->toBe('0.000000275573');
+        expect(divide(range(1, 100)))->toBe('0');
+        expect(divide(range(10, 1)))->toBe('0.000027557319');
+
+        expect(divide(10, 2, 5, 2))->toBe('0.5');
+        expect(divide(0, 2, 5, 2))->toBe('0');
+
+        expect(divide([1, -0.5]))->toBe('-2');
+
+        expect(divide(50, 0.4354))->toBe('114.836931557188');
+        expect(divide(361, 1.15))->toBe('313.91304347826');
+
+        expect(math(precision: 0)->divide([50, 0.4354]))->toBe('114');
+        expect(math(precision: 0)->divide([361, 1.15]))->toBe('313');
+
+        expect(divide([-5, 6]))->toBe('-0.833333333333');
+        expect(divide([10, 3]))->toBe('3.333333333333');
+
+        expect(divide([1, 1E12]))->toBe('0.000000000001');
+        expect(divide([1, 111]))->toBe('0.009009009009');
+
+        expect(divide([1.1e+8, 1.1e-8]))->toBe('10000000000000000');
+
+        expect(divide(['-1234567891234567889999999', '1234567891234567889999999']))->toBe('-1');
+    });
 
     test('modulus method', function () {
 
-        try {
+        expect(Math::modulus(0, 5))->toBe('0');
 
-            Math::modulus(5, 0);
+        expect(Math::modulus(13, 5))->toBe('3');
+        expect(Math::modulus(13, -5))->toBe('3');
 
-            // 
-        } catch (FooinoException $e) {
+        expect(Math::modulus(-13, 5))->toBe('-3');
+        expect(Math::modulus(-13, -5))->toBe('-3');
 
-            expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
-            expect($e->getCode())->toBe(10103);
-            expect($e->getLevel())->toBe('critical');
-            expect($e->reportable())->toBeTrue();
-            expect($e->getWith())->toBe([
-                'func'  => 'bcmod',
-                'args'  =>  [5, 0]
-            ]);
-        }
-
-        expect(Math::modulus(12, 5))->toBe('2');
         expect(Math::modulus(5, 6))->toBe('5');
         expect(Math::modulus(1.1e+8, 1.1e-8))->toBe('0');
+
+        expect(Math::modulus(5.7, 1.3))->toBe('0.5');
     });
 
     test('power method', function () {
