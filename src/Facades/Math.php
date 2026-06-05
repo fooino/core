@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string multiply(mixed ...$args)
  * @method static string divide(mixed ...$args)
  * @method static string modulus(mixed ...$args)
+ * 
  * @method static string power(string|int|float $number, int $exponent = 2)
  * @method static string sqrt(string|int|float $number)
  * 

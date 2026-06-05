@@ -192,7 +192,25 @@ class FooinoMathHandler implements Mathable
 
     public function power(string|int|float $number, int $exponent = 2): string
     {
-        return $this->number(number: bcpow($this->convertScientificNumber(number: $number), $exponent));
+        $number = $this->convertScientificNumber(number: $number);
+
+        if (
+            ((float) $number) === 0.0 &&
+            $exponent < 0
+        ) {
+            app(MathCalculationException::class)
+                ->setMessage('msg.mathCalculationExceptionDivisionByZero')
+                ->setCode(10104)
+                ->critical()
+                ->with([
+                    'func'      => 'bcpow',
+                    'number'    => $number,
+                    'exponent'  => $exponent,
+                ])
+                ->throw();
+        }
+
+        return $this->number(number: bcpow(num: $number, exponent: $exponent));
     }
 
     public function sqrt(string|int|float $number): string

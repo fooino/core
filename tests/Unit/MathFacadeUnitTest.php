@@ -779,15 +779,40 @@ describe('Math facade using FooinoMathHandler', function () {
 
     test('power method', function () {
 
-        expect(Math::power(2, -3))->toBe('0.125');
-        expect(Math::power(2, -2))->toBe('0.25');
         expect(Math::power(2, 3))->toBe('8');
+        expect(Math::power(2, -3))->toBe('0.125');
+
+        expect(Math::power(2))->toBe('4');
+        expect(Math::power(2, -2))->toBe('0.25');
+
         expect(Math::power(2, 0))->toBe('1');
         expect(Math::power(0, 2))->toBe('0');
         expect(Math::power(0, 0))->toBe('1');
+
         expect(Math::power(1, 20))->toBe('1');
+
+        expect(Math::power(1.1E+2, 2))->toBe('12100');
+
         expect(Math::power('1234567891234567889999999', 2))->toBe('1524157878067367851562259605883269630864220000001');
         expect(Math::power('1234567891234567889999999', 3))->toBe('1881676377434183981909558127466713752376807174114547646517403703669999999');
+
+        try {
+
+            Math::power(0, -3); // 1/0 * 1/0 * 1/0
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
+            expect($e->getCode())->toBe(10104);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'      => 'bcpow',
+                'number'    => '0',
+                'exponent'  => -3
+            ]);
+        }
     });
 
     test('sqrt method', function () {
