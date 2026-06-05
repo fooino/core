@@ -254,7 +254,7 @@ class FooinoMathHandler implements Mathable
 
     private function isZero(string|int|float $number): bool
     {
-        return equal($number, '0');
+        return $this->equal($number, '0');
     }
 
     /**

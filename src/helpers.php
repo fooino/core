@@ -257,7 +257,7 @@ if (!function_exists('nullIfBlankOrZero')) {
     {
         $value = nullIfBlank(value: $value);
 
-        return ((is_numeric($value) && ((float) $value) === 0.0) ? null : $value) ?? $fallback;
+        return ((is_numeric($value) && preg_match('/^-?0*\.?0*(?:[Ee][+-]?\d+)?$/', (string) $value)) ? null : $value) ?? $fallback;
     }
 }
 
