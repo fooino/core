@@ -4,6 +4,7 @@ namespace Fooino\Core\Concretes\Math;
 
 use Fooino\Core\Exceptions\MathCalculationException;
 use Fooino\Core\Interfaces\Mathable;
+use RoundingMode;
 
 class FooinoMathHandler implements Mathable
 {
@@ -32,15 +33,7 @@ class FooinoMathHandler implements Mathable
             $this->getPrecision() > bcscale() ||
             $this->getPrecision() < 0
         ) {
-            app(MathCalculationException::class)
-                ->setMessage('msg.mathCalculationExceptionInvalidPrecision')
-                ->setCode(10101)
-                ->critical()
-                ->with([
-                    'precision' => $this->getPrecision(),
-                    'bc_scale'  => bcscale()
-                ])
-                ->throw();
+            $this->throwInvalidPrecisionException();
         }
     }
 
@@ -56,6 +49,11 @@ class FooinoMathHandler implements Mathable
 
     public function convertScientificNumber(string|int|float $number): string
     {
+        if ($number === INF) {
+            // Very Big number not allowed. 1.1E999 in float format will cast to INF
+            $this->throwInvalidValueException(func: 'convertScientificNumber', operand: $number);
+        }
+
         $number = trim((string) $number);
 
         $regex = [
@@ -71,12 +69,17 @@ class FooinoMathHandler implements Mathable
 
         if (!preg_match(implode('', $regex), $number, $matches)) {
 
-            return $this->standardizeNumber(number: $number);
+            return $this->assembleNumber(number: $number);
         }
 
         $sign      = $matches[1];
         $mantissa  = $matches[2];
-        $exponent  = (int) $matches[3]; // safe – exponent is always a small integer
+        $exponent  = (int) $matches[3];
+
+        if ($exponent > 99) {
+            // Very Big number not allowed. '1.1E999' in string format must the exponent part check
+            $this->throwInvalidValueException(func: 'convertScientificNumber', operand: $number);
+        }
 
         // Split mantissa into integer and decimal parts
         list($sign, $integerPart, $decimalPart) = $this->numberParts(number: ($sign . $mantissa));
@@ -126,14 +129,18 @@ class FooinoMathHandler implements Mathable
         return strpos($number, $decimalSeparator) !== false ? rtrim(rtrim($number, '0'), $decimalSeparator) : $number;
     }
 
-    public function decimalPlaceNumber(string|int|float $number, string $decimalSeparator = '.'): int
+    public function countDecimalPlaces(string|int|float $number, string $decimalSeparator = '.'): int
     {
-        return (int) (strlen(substr(strrchr($this->trimTrailingZeros(number: $number), $decimalSeparator), 1)));
+        $number = $this->trimTrailingZeros(number: $number);
+
+        $pos = strrpos($number, $decimalSeparator);
+
+        return ($pos === false) ? 0 : strlen(substr($number, $pos + 1));
     }
 
     public function number(string|int|float $number): string
     {
-        return $this->trimTrailingZeros(number: $this->standardizeNumber(number: $this->convertScientificNumber(number: $number), precision: $this->getPrecision()));
+        return $this->trimTrailingZeros(number: $this->assembleNumber(number: $this->convertScientificNumber(number: $number), precision: $this->getPrecision()));
     }
 
     public function numberFormat(string|int|float $number, string $decimalSeparator = '.', string $thousandsSeparator = ','): string
@@ -190,77 +197,64 @@ class FooinoMathHandler implements Mathable
         return $this->calc('bcmod', ...$args);
     }
 
-    public function power(string|int|float $number, int $exponent = 2): string
+    public function power(string|int|float|array $number, int $exponent = 2): string|array
     {
-        $number = $this->convertScientificNumber(number: $number);
-
-        if (
-            ((float) $number) === 0.0 &&
-            $exponent < 0
-        ) {
-            app(MathCalculationException::class)
-                ->setMessage('msg.mathCalculationExceptionDivisionByZero')
-                ->setCode(10104)
-                ->critical()
-                ->with([
-                    'func'      => 'bcpow',
-                    'number'    => $number,
-                    'exponent'  => $exponent,
-                ])
-                ->throw();
-        }
-
-        return $this->number(number: bcpow(num: $number, exponent: $exponent));
+        return $this->calcOneOperand(func: 'bcpow', operand: $number, args: [$exponent]);
     }
 
-    public function sqrt(string|int|float $number): string
+    public function sqrt(string|int|float|array $number): string|array
     {
-        return $this->number(number: bcsqrt($this->convertScientificNumber(number: $number)));
+        return $this->calcOneOperand(func: 'bcsqrt', operand: $number);
     }
 
-    public function roundUp(string|int|float $number): string
+    public function roundUp(string|int|float|array $number): string|array
     {
-        return $this->number(number: bcceil($this->convertScientificNumber(number: $number)));
+        return $this->calcOneOperand(func: 'bcceil', operand: $number);
     }
 
-    public function roundDown(string|int|float $number): string
+    public function roundDown(string|int|float|array $number): string|array
     {
-        return $this->number(number: bcfloor($this->convertScientificNumber(number: $number)));
+        return $this->calcOneOperand(func: 'bcfloor', operand: $number);
     }
 
-    public function roundClose(string|int|float $number, int $precision = 0): string
+    public function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array
     {
-        return $this->number(number: bcround(num: $this->convertScientificNumber(number: $number), precision: $precision));
+        return $this->calcOneOperand(func: 'bcround', operand: $number, args: [$precision, $mode]);
     }
 
     public function greaterThan(string|int|float $a, string|int|float $b): bool
     {
-        return $this->bccomp($a, $b) === 1;
+        return $this->compare($a, $b) === 1;
     }
 
     public function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
     {
-        return $this->bccomp($a, $b) !== -1;
+        return $this->compare($a, $b) !== -1;
     }
 
     public function lessThan(string|int|float $a, string|int|float $b): bool
     {
-        return $this->bccomp($a, $b) === -1;
+        return $this->compare($a, $b) === -1;
     }
 
     public function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
     {
-        return $this->bccomp($a, $b) !== 1;
+        return $this->compare($a, $b) !== 1;
     }
 
     public function equal(string|int|float $a, string|int|float $b): bool
     {
-        return $this->bccomp($a, $b) === 0;
+        return $this->compare($a, $b) === 0;
     }
 
     public function notEqual(string|int|float $a, string|int|float $b): bool
     {
         return !$this->equal($a, $b);
+    }
+
+    private function isZero(string|int|float $number): bool
+    {
+        return equal($number, '0');
     }
 
     /**
@@ -307,21 +301,21 @@ class FooinoMathHandler implements Mathable
     /**
      * Make number base on parts
      */
-    private function standardizeNumber(string|int|float $number, int|null $precision = null): string
+    private function assembleNumber(string|int|float $number, int|null $precision = null): string
     {
         list($sign, $integer, $decimal) = $this->numberParts(number: $number);
 
         return trim($sign . $integer . (nullIfBlankOrZero($decimal) ? ('.' . (is_null($precision) ? $decimal : substr($decimal, 0, $precision))) : ''));
     }
 
-    private function bccomp(string|int|float $a, string|int|float $b): int
+    private function compare(string|int|float $a, string|int|float $b): int
     {
         return bccomp($this->convertScientificNumber(number: $a), $this->convertScientificNumber(number: $b));
     }
 
     private function calc(string $func, mixed ...$args): string
     {
-        $numbers = $this->getNumbersFromArgs($func, ...$args);
+        $numbers = $this->validateAndNormalizeNumbers($func, ...$args);
 
         list($result, $start) = match ($func) {
 
@@ -335,7 +329,7 @@ class FooinoMathHandler implements Mathable
 
             'bcmod'             => [$numbers[0], 1],
 
-            default             => app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionInvalidFunction')->setCode(10105)->with(['func' => $func, 'args' => $args])->throw(),
+            default             => $this->throwUnsupportedFunctionException(func: $func, operand: $args),
         };
 
         for ($i = $start; $i < count($numbers); $i++) {
@@ -348,7 +342,34 @@ class FooinoMathHandler implements Mathable
         return $this->number(number: $result);
     }
 
-    private function getNumbersFromArgs(string $func, mixed ...$args): array
+    private function calcOneOperand(string $func, string|int|float|array $operand, array $args = []): string|array
+    {
+        $numbers = $this->validateAndNormalizeNumbers($func, $operand);
+
+        foreach ($numbers as $key => $value) {
+
+            if (
+                $func === 'bcpow' &&
+                $this->isZero($value) &&
+                $args[0] < 0
+            ) {
+                $this->throwDivisionByZeroException(func: $func, operand: ['number' => $operand, 'exponent'   => $args[0]]);
+            }
+
+            if (
+                $func === 'bcsqrt' &&
+                $value < 0
+            ) {
+                $this->throwInvalidValueException(func: $func, operand: $operand);
+            }
+
+            $numbers[$key] = call_user_func($func, $value, ...$args);
+        }
+
+        return is_array($operand) ? array_map($this->number(...), $numbers) : $this->number($numbers[0]);
+    }
+
+    private function validateAndNormalizeNumbers(string $func, mixed ...$args): array
     {
         $numbers = count($args) === 1 && is_array($args[0]) ? $args[0] : $args;
 
@@ -356,48 +377,98 @@ class FooinoMathHandler implements Mathable
             count($numbers) === 0 ||
             (count($numbers) < 2 && in_array($func, ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod']))
         ) {
-
-            app(MathCalculationException::class)
-                ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
-                ->setCode(10102)
-                ->with([
-                    'func' => $func,
-                    'args' => $args
-                ])
-                ->throw();
+            $this->throwInvalidArgumentCountException(func: $func, operand: $args);
         }
 
         foreach ($numbers as $key => $number) {
 
             if (!is_numeric($number)) {
-
-                app(MathCalculationException::class)
-                    ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
-                    ->setCode(10103)
-                    ->with([
-                        'func' => $func,
-                        'args' => $args
-                    ])
-                    ->throw();
+                $this->throwInvalidArgumentTypeException(func: $func, operand: $args);
             }
 
             if (
                 in_array($func, ['bcdiv', 'bcmod']) &&
-                ((float) $number) === 0.0 &&
+                $this->isZero($number) &&
                 $key !== 0
             ) {
-                app(MathCalculationException::class)
-                    ->setMessage('msg.mathCalculationExceptionDivisionByZero')
-                    ->setCode(10104)
-                    ->critical()
-                    ->with([
-                        'func' => $func,
-                        'args' => $args
-                    ])
-                    ->throw();
+                $this->throwDivisionByZeroException(func: $func, operand: $args);
             }
         }
 
         return array_map($this->convertScientificNumber(...), $numbers);
+    }
+
+    private function throwInvalidPrecisionException(): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionInvalidPrecision')
+            ->setCode(10101)
+            ->critical()
+            ->with([
+                'precision' => $this->getPrecision(),
+                'bc_scale'  => bcscale()
+            ])
+            ->throw();
+    }
+
+    private function throwInvalidArgumentCountException(string $func, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
+            ->setCode(10102)
+            ->with([
+                'func'      => $func,
+                'operand'   => $operand
+            ])
+            ->throw();
+    }
+
+    private function throwInvalidArgumentTypeException(string $func, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
+            ->setCode(10103)
+            ->with([
+                'func'      => $func,
+                'operand'   => $operand
+            ])
+            ->throw();
+    }
+
+    private function throwDivisionByZeroException(string $func, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionDivisionByZero')
+            ->setCode(10104)
+            ->critical()
+            ->with([
+                'func'      => $func,
+                'operand'   => $operand
+            ])
+            ->throw();
+    }
+
+    private function throwInvalidValueException(string $func, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionInvalidValueError')
+            ->setCode(10105)
+            ->critical()
+            ->with([
+                'func'          => $func,
+                'operand'       => $operand,
+            ])
+            ->throw();
+    }
+
+    private function throwUnsupportedFunctionException(string $func, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionUnsupportedFunction')
+            ->setCode(10106)
+            ->with([
+                'func'      => $func,
+                'operand'   => $operand
+            ])
+            ->throw();
     }
 }

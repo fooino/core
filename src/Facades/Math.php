@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Facade;
  * 
  * @method static string convertScientificNumber(string|int|float $number)
  * @method static string trimTrailingZeros(string|int|float $number, string $decimalSeparator = '.')
- * @method static int decimalPlaceNumber(string|int|float $number, string $decimalSeparator = '.')
+ * @method static int countDecimalPlaces(string|int|float $number, string $decimalSeparator = '.')
  * 
  * @method static string number(string|int|float $number) 
  * @method static string numberFormat(string|int|float $number, string $decimalSeparator = '.', string $thousandsSeparator = ',')
@@ -21,12 +21,12 @@ use Illuminate\Support\Facades\Facade;
  * @method static string divide(mixed ...$args)
  * @method static string modulus(mixed ...$args)
  * 
- * @method static string power(string|int|float $number, int $exponent = 2)
- * @method static string sqrt(string|int|float $number)
+ * @method static string|array power(string|int|float|array $number, int $exponent = 2)
+ * @method static string|array sqrt(string|int|float|array $number)
  * 
- * @method static string roundUp(string|int|float $number)
- * @method static string roundDown(string|int|float $number)
- * @method static string roundClose(string|int|float $number , int $precision = 0)
+ * @method static string|array roundUp(string|int|float|array $number)
+ * @method static string|array roundDown(string|int|float|array $number)
+ * @method static string|array roundClose(string|int|float|array $number , int $precision = 0, \RoundingMode $mode = \RoundingMode::HalfAwayFromZero)
  * 
  * @method static bool greaterThan(string|int|float $a, string|int|float $b)
  * @method static bool greaterThanOrEqual(string|int|float $a, string|int|float $b)

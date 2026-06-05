@@ -2,6 +2,8 @@
 
 namespace Fooino\Core\Interfaces;
 
+use RoundingMode;
+
 interface Mathable
 {
     /**
@@ -27,7 +29,7 @@ interface Mathable
     /**
      * Get decimal count of number
      */
-    public function decimalPlaceNumber(string|int|float $number, string $decimalSeparator = '.'): int;
+    public function countDecimalPlaces(string|int|float $number, string $decimalSeparator = '.'): int;
 
     /**
      * Convert number to well-formatted base on precision
@@ -67,27 +69,27 @@ interface Mathable
     /**
      * Raise an arbitrary precision number to 
      */
-    public function power(string|int|float $number, int $exponent = 2): string;
+    public function power(string|int|float|array $number, int $exponent = 2): string|array;
 
     /**
      * Get the square root of an arbitrary precision number
      */
-    public function sqrt(string|int|float $number): string;
+    public function sqrt(string|int|float|array $number): string|array;
 
     /**
      * Round the number up
      */
-    public function roundUp(string|int|float $number): string;
+    public function roundUp(string|int|float|array $number): string|array;
 
     /**
      * Round the number down
      */
-    public function roundDown(string|int|float $number): string;
+    public function roundDown(string|int|float|array $number): string|array;
 
     /**
      * Round the number to the nearest integer
      */
-    public function roundClose(string|int|float $number, int $precision = 0): string;
+    public function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array;
 
     /**
      * compare two number

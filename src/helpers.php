@@ -153,7 +153,7 @@ if (!function_exists('roundUp')) {
     /**
      * Round the number up
      */
-    function roundUp(string|int|float $number): string
+    function roundUp(string|int|float|array $number): string|array
     {
         return Math::roundUp(number: $number);
     }
@@ -163,7 +163,7 @@ if (!function_exists('roundDown')) {
     /**
      * Round the number down
      */
-    function roundDown(string|int|float $number): string
+    function roundDown(string|int|float|array $number): string|array
     {
         return Math::roundDown(number: $number);
     }
@@ -173,14 +173,16 @@ if (!function_exists('roundClose')) {
     /**
      * Round the number to the nearest integer
      */
-    function roundClose(string|int|float $number, int $precision = 0): string
+    function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array
     {
-        return Math::roundClose(number: $number, precision: $precision);
+        return Math::roundClose(number: $number, precision: $precision, mode: $mode);
     }
 }
 
-
 if (!function_exists('greaterThan')) {
+    /**
+     * Compare two numbers
+     */
     function greaterThan(string|int|float $a, string|int|float $b): bool
     {
         return Math::greaterThan(a: $a, b: $b);
@@ -188,6 +190,9 @@ if (!function_exists('greaterThan')) {
 }
 
 if (!function_exists('greaterThanOrEqual')) {
+    /**
+     * Compare two numbers
+     */
     function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
     {
         return Math::greaterThanOrEqual(a: $a, b: $b);
@@ -195,6 +200,9 @@ if (!function_exists('greaterThanOrEqual')) {
 }
 
 if (!function_exists('lessThan')) {
+    /**
+     * Compare two numbers
+     */
     function lessThan(string|int|float $a, string|int|float $b): bool
     {
         return Math::lessThan(a: $a, b: $b);
@@ -202,6 +210,9 @@ if (!function_exists('lessThan')) {
 }
 
 if (!function_exists('lessThanOrEqual')) {
+    /**
+     * Compare two numbers
+     */
     function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
     {
         return Math::lessThanOrEqual(a: $a, b: $b);
@@ -209,6 +220,9 @@ if (!function_exists('lessThanOrEqual')) {
 }
 
 if (!function_exists('equal')) {
+    /**
+     * Compare two numbers
+     */
     function equal(string|int|float $a, string|int|float $b): bool
     {
         return Math::equal(a: $a, b: $b);
@@ -216,6 +230,9 @@ if (!function_exists('equal')) {
 }
 
 if (!function_exists('notEqual')) {
+    /**
+     * Compare two numbers
+     */
     function notEqual(string|int|float $a, string|int|float $b): bool
     {
         return Math::notEqual(a: $a, b: $b);

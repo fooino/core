@@ -85,7 +85,7 @@ exit
 
         Math::convertScientificNumber('1.1e+8'); //110000000.000000000000
         Math::trimTrailingZeros('110000000.000000000000'); // 110000000
-        Math::decimalPlaceNumber(1.1e-8); // 9
+        Math::countDecimalPlaces(1.1e-8); // 9
 
         Math::setPrecision(precision: 4)->number(0.44015042); //0.4401 - or use number()
         Math::number(1.1e+8); // 110000000

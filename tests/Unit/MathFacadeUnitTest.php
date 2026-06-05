@@ -4,7 +4,7 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Facades\Math;
-use ValueError;
+use RoundingMode;
 
 describe('Math facade using FooinoMathHandler', function () {
 
@@ -54,6 +54,40 @@ describe('Math facade using FooinoMathHandler', function () {
     });
 
     test('convertScientificNumber method', function () {
+
+        try {
+
+            Math::convertScientificNumber(1.1E+9999);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
+            expect($e->getCode())->toBe(10105);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'          => 'convertScientificNumber',
+                'operand'       => INF,
+            ]);
+        }
+
+        try {
+
+            Math::convertScientificNumber('1.1E+9999');
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
+            expect($e->getCode())->toBe(10105);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'          => 'convertScientificNumber',
+                'operand'       => '1.1E+9999',
+            ]);
+        }
 
         expect(Math::convertScientificNumber('null'))->toBe('0');
         expect(Math::convertScientificNumber('null.null'))->toBe('0');
@@ -369,25 +403,25 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::trimTrailingZeros("-11-2100000000", '-'))->toBe('-11-21');
     });
 
-    test('decimalPlaceNumber method', function () {
+    test('countDecimalPlaces method', function () {
 
-        expect(Math::decimalPlaceNumber(0))->toBe(0);
-        expect(Math::decimalPlaceNumber(11))->toBe(0);
-        expect(Math::decimalPlaceNumber(11.01))->toBe(2);
-        expect(Math::decimalPlaceNumber(0.000000000100))->toBe(10);
-        expect(Math::decimalPlaceNumber('0.00000000100'))->toBe(9);
+        expect(Math::countDecimalPlaces(0))->toBe(0);
+        expect(Math::countDecimalPlaces(11))->toBe(0);
+        expect(Math::countDecimalPlaces(11.01))->toBe(2);
+        expect(Math::countDecimalPlaces(0.000000000100))->toBe(10);
+        expect(Math::countDecimalPlaces('0.00000000100'))->toBe(9);
 
-        expect(Math::decimalPlaceNumber(1.1e-8))->toBe(9);
-        expect(Math::decimalPlaceNumber(0.1e-8))->toBe(9);
-        expect(Math::decimalPlaceNumber(0.e-8))->toBe(0);
+        expect(Math::countDecimalPlaces(1.1e-8))->toBe(9);
+        expect(Math::countDecimalPlaces(0.1e-8))->toBe(9);
+        expect(Math::countDecimalPlaces(0.e-8))->toBe(0);
 
-        expect(Math::decimalPlaceNumber('.1e-8'))->toBe(9);
-        expect(Math::decimalPlaceNumber('-.1e-8'))->toBe(9);
+        expect(Math::countDecimalPlaces('.1e-8'))->toBe(9);
+        expect(Math::countDecimalPlaces('-.1e-8'))->toBe(9);
 
-        expect(Math::decimalPlaceNumber('0-0123', '-'))->toBe(4);
-        expect(Math::decimalPlaceNumber('-0-0123', '-'))->toBe(4);
+        expect(Math::countDecimalPlaces('0-0123', '-'))->toBe(4);
+        expect(Math::countDecimalPlaces('-0-0123', '-'))->toBe(4);
 
-        expect(Math::decimalPlaceNumber('test'))->toBe(0);
+        expect(Math::countDecimalPlaces('test'))->toBe(0);
     });
 
     test('number method', function () {
@@ -465,8 +499,8 @@ describe('Math facade using FooinoMathHandler', function () {
             expect($e->getLevel())->toBe('error');
             expect($e->reportable())->toBeTrue();
             expect($e->getWith())->toBe([
-                'func'  => 'bcadd',
-                'args'  => [1]
+                'func'      => 'bcadd',
+                'operand'   => [1]
             ]);
         }
 
@@ -482,8 +516,8 @@ describe('Math facade using FooinoMathHandler', function () {
             expect($e->getLevel())->toBe('error');
             expect($e->reportable())->toBeTrue();
             expect($e->getWith())->toBe([
-                'func'  => 'bcadd',
-                'args'  => [[1]]
+                'func'      => 'bcadd',
+                'operand'   => [[1]]
             ]);
         }
 
@@ -509,8 +543,8 @@ describe('Math facade using FooinoMathHandler', function () {
             expect($e->getLevel())->toBe('error');
             expect($e->reportable())->toBeTrue();
             expect($e->getWith())->toBe([
-                'func'  => 'bcadd',
-                'args'  => [1, null]
+                'func'      => 'bcadd',
+                'operand'   => [1, null]
             ]);
         }
 
@@ -567,8 +601,25 @@ describe('Math facade using FooinoMathHandler', function () {
             expect($e->getLevel())->toBe('critical');
             expect($e->reportable())->toBeTrue();
             expect($e->getWith())->toBe([
-                'func'  => 'bcdiv',
-                'args'  => [5, 0]
+                'func'      => 'bcdiv',
+                'operand'   => [5, 0]
+            ]);
+        }
+
+        try {
+
+            Math::modulus(5, 0);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
+            expect($e->getCode())->toBe(10104);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'      => 'bcmod',
+                'operand'   => [5, 0]
             ]);
         }
 
@@ -796,6 +847,9 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::power('1234567891234567889999999', 2))->toBe('1524157878067367851562259605883269630864220000001');
         expect(Math::power('1234567891234567889999999', 3))->toBe('1881676377434183981909558127466713752376807174114547646517403703669999999');
 
+        expect(Math::power([2]))->toBe(['4']);
+        expect(Math::power([2, 3, 4, 1.1E+2], 3))->toBe(['8', '27', '64', '1331000']);
+
         try {
 
             Math::power(0, -3); // 1/0 * 1/0 * 1/0
@@ -808,9 +862,31 @@ describe('Math facade using FooinoMathHandler', function () {
             expect($e->getLevel())->toBe('critical');
             expect($e->reportable())->toBeTrue();
             expect($e->getWith())->toBe([
-                'func'      => 'bcpow',
-                'number'    => '0',
-                'exponent'  => -3
+                'func'          => 'bcpow',
+                'operand'       => [
+                    'number'        => 0,
+                    'exponent'      => -3
+                ],
+            ]);
+        }
+
+        try {
+
+            Math::power([2, 0, 3], -3);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
+            expect($e->getCode())->toBe(10104);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'          => 'bcpow',
+                'operand'       => [
+                    'number'        => [2, 0, 3],
+                    'exponent'      => -3
+                ],
             ]);
         }
     });
@@ -825,74 +901,259 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::sqrt(9))->toBe('3');
         expect(Math::sqrt(16))->toBe('4');
         expect(Math::sqrt('1524157878067367851562259605883269630864220000001'))->toBe('1234567891234567889999999');
-        expect(fn() => Math::sqrt(-2))->toThrow(ValueError::class);
+
+        expect(Math::sqrt([0, 1, 2, 3, 4, 9, 16]))->toBe(['0', '1', '1.414213562373', '1.732050807568', '2', '3', '4']);
+
+        try {
+
+            Math::sqrt(-1);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
+            expect($e->getCode())->toBe(10105);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'          => 'bcsqrt',
+                'operand'       => -1,
+            ]);
+        }
+
+        try {
+
+            Math::sqrt([1, -1]);
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
+            expect($e->getCode())->toBe(10105);
+            expect($e->getLevel())->toBe('critical');
+            expect($e->reportable())->toBeTrue();
+            expect($e->getWith())->toBe([
+                'func'          => 'bcsqrt',
+                'operand'       => [1, -1],
+            ]);
+        }
     });
 
     test('roundUp method', function () {
 
         expect(Math::roundUp(0))->toBe('0');
+        expect(Math::roundUp(0.01))->toBe('1');
+        expect(Math::roundUp(-0.01))->toBe('0');
+
         expect(Math::roundUp(1))->toBe('1');
         expect(Math::roundUp(1.1))->toBe('2');
         expect(Math::roundUp(-1.1))->toBe('-1');
-        expect(Math::roundUp(1.9))->toBe('2');
-        expect(Math::roundUp(-1.9))->toBe('-1');
+        expect(Math::roundUp(1.999099))->toBe('2');
+        expect(Math::roundUp(-1.999099))->toBe('-1');
+
         expect(Math::roundUp(1.1e+8))->toBe('110000000');
         expect(Math::roundUp(1.1e-8))->toBe('1');
 
-        expect(roundUp(0))->toBe('0');
-        expect(roundUp(1))->toBe('1');
-        expect(roundUp(1.1))->toBe('2');
-        expect(roundUp(-1.1))->toBe('-1');
-        expect(roundUp(1.9))->toBe('2');
-        expect(roundUp(-1.9))->toBe('-1');
-        expect(roundUp(1.1e+8))->toBe('110000000');
-        expect(roundUp(1.1e-8))->toBe('1');
+        expect(roundUp([0, 0.01, -0.01, 1, 1.1, -1.1, 1.999099, -1.999099, 1.1e+8, 1.1e-8]))->toBe(['0', '1', '0', '1', '2', '-1', '2', '-1', '110000000', '1']);
     });
 
     test('roundDown method', function () {
 
         expect(Math::roundDown(0))->toBe('0');
+        expect(Math::roundDown(0.01))->toBe('0');
+        expect(Math::roundDown(-0.01))->toBe('-1');
+
         expect(Math::roundDown(1))->toBe('1');
         expect(Math::roundDown(1.1))->toBe('1');
         expect(Math::roundDown(-1.1))->toBe('-2');
-        expect(Math::roundDown(1.9))->toBe('1');
-        expect(Math::roundDown(-1.9))->toBe('-2');
+        expect(Math::roundDown(1.9999))->toBe('1');
+        expect(Math::roundDown(-1.9999))->toBe('-2');
+
         expect(Math::roundDown(1.1e+8))->toBe('110000000');
         expect(Math::roundDown(1.1e-8))->toBe('0');
 
-        expect(roundDown(0))->toBe('0');
-        expect(roundDown(1))->toBe('1');
-        expect(roundDown(1.1))->toBe('1');
-        expect(roundDown(-1.1))->toBe('-2');
-        expect(roundDown(1.9))->toBe('1');
-        expect(roundDown(-1.9))->toBe('-2');
-        expect(roundDown(1.1e+8))->toBe('110000000');
-        expect(roundDown(1.1e-8))->toBe('0');
+        expect(roundDown([0, 0.01, -0.01, 1, 1.1, -1.1, 1.9999, -1.9999, 1.1e+8, 1.1e-8]))->toBe(['0', '0', '-1', '1', '1', '-2', '1', '-2', '110000000', '0']);
     });
 
-    test('roundClose method', function () {
+    test('roundClose method', function ($number, $precision, $mode, $expected) {
 
-        expect(Math::roundClose(0))->toBe('0');
-        expect(Math::roundClose(1))->toBe('1');
-        expect(Math::roundClose(1.1))->toBe('1');
-        expect(Math::roundClose(-1.1))->toBe('-1');
-        expect(Math::roundClose(1.9))->toBe('2');
-        expect(Math::roundClose(-1.9))->toBe('-2');
-        expect(Math::roundClose(5.045, 2))->toBe('5.05');
-        expect(Math::roundClose(1.1e+8))->toBe('110000000');
-        expect(Math::roundClose(1.1e-8))->toBe('0');
+        if (is_array($number)) {
 
-        expect(roundClose(0))->toBe('0');
-        expect(roundClose(1))->toBe('1');
-        expect(roundClose(1.1))->toBe('1');
-        expect(roundClose(-1.1))->toBe('-1');
-        expect(roundClose(1.9))->toBe('2');
-        expect(roundClose(-1.9))->toBe('-2');
-        expect(roundClose(5.045, 2))->toBe('5.05');
-        expect(roundClose(1.1e+8))->toBe('110000000');
-        expect(roundClose(1.1e-8))->toBe('0');
-    });
+            expect(roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
 
+            // 
+        } else {
+
+            expect(Math::roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
+            // 
+        }
+    })->with([
+        [1.1,    0, RoundingMode::HalfAwayFromZero, '1'],
+        [1.5,    0, RoundingMode::HalfAwayFromZero, '2'],      // halfway → away from zero
+        [-1.1,   0, RoundingMode::HalfAwayFromZero, '-1'],
+        [-1.5,   0, RoundingMode::HalfAwayFromZero, '-2'],     // halfway → away from zero (more negative)
+        [2.5,    0, RoundingMode::HalfAwayFromZero, '3'],
+        [-2.5,   0, RoundingMode::HalfAwayFromZero, '-3'],
+        [0.5,    0, RoundingMode::HalfAwayFromZero, '1'],
+        [-0.5,   0, RoundingMode::HalfAwayFromZero, '-1'],
+        [0.499,  0, RoundingMode::HalfAwayFromZero, '0'],     // just below halfway → rounds towards zero
+        [-0.499, 0, RoundingMode::HalfAwayFromZero, '0'],     // just below halfway → rounds towards zero
+
+        [[1.1, 1.5, 0.499], 0, RoundingMode::HalfAwayFromZero, ['1', '2', '0']],
+
+        [1.2,     2, RoundingMode::HalfAwayFromZero, '1.2'],
+        [1.92,    2, RoundingMode::HalfAwayFromZero, '1.92'],
+        [1.996,   2, RoundingMode::HalfAwayFromZero, '2'],      // third decimal 6 ≥ 5 → carries into integer part
+        [1.005,   2, RoundingMode::HalfAwayFromZero, '1.01'],   // exactly halfway → away from zero
+        [1.004,   2, RoundingMode::HalfAwayFromZero, '1'],      // just below halfway
+        [-1.005,  2, RoundingMode::HalfAwayFromZero, '-1.01'],
+        [-1.004,  2, RoundingMode::HalfAwayFromZero, '-1'],
+        [1.995,   2, RoundingMode::HalfAwayFromZero, '2'],      // halfway + carry
+        [-1.995,  2, RoundingMode::HalfAwayFromZero, '-2'],
+
+        [1.1,    0, RoundingMode::HalfTowardsZero, '1'],      // below halfway → normal rounding
+        [1.5,    0, RoundingMode::HalfTowardsZero, '1'],      // halfway → toward zero (not 2)
+        [-1.5,   0, RoundingMode::HalfTowardsZero, '-1'],     // halfway → toward zero (not -2)
+        [2.5,    0, RoundingMode::HalfTowardsZero, '2'],      // halfway → toward zero
+        [-2.5,   0, RoundingMode::HalfTowardsZero, '-2'],     // halfway → toward zero
+        [0.5,    0, RoundingMode::HalfTowardsZero, '0'],      // halfway → toward zero
+        [-0.5,   0, RoundingMode::HalfTowardsZero, '0'],      // halfway → toward zero
+        [0.499,  0, RoundingMode::HalfTowardsZero, '0'],      // just below halfway → no rounding up
+        [-0.499, 0, RoundingMode::HalfTowardsZero, '0'],      // just below halfway → stays 0
+
+        [1.2,     2, RoundingMode::HalfTowardsZero, '1.2'],   // no rounding needed
+        [1.005,   2, RoundingMode::HalfTowardsZero, '1'],     // exactly halfway → toward zero (1.00, not 1.01)
+        [-1.005,  2, RoundingMode::HalfTowardsZero, '-1'],    // exactly halfway → toward zero (-1.00, not -1.01)
+        [1.004,   2, RoundingMode::HalfTowardsZero, '1'],     // just below halfway
+        [-1.004,  2, RoundingMode::HalfTowardsZero, '-1'],    // just below halfway
+        [1.995,   2, RoundingMode::HalfTowardsZero, '1.99'],  // exactly halfway between 1.99 and 2.00 → toward zero
+        [-1.995,  2, RoundingMode::HalfTowardsZero, '-1.99'], // exactly halfway → toward zero (-1.99, not -2.00)
+        [1.996,   2, RoundingMode::HalfTowardsZero, '2'],     // above halfway → normal rounding up
+        [0.005,   2, RoundingMode::HalfTowardsZero, '0'],     // halfway → toward zero
+        [-0.005,  2, RoundingMode::HalfTowardsZero, '0'],     // halfway → toward zero
+
+        [1.1,    0, RoundingMode::HalfEven, '1'],            // normal rounding
+        [1.5,    0, RoundingMode::HalfEven, '2'],            // half → even neighbour (2 is even)
+        [2.5,    0, RoundingMode::HalfEven, '2'],            // half → even (2)
+        [0.5,    0, RoundingMode::HalfEven, '0'],            // half → even (0)
+        [-1.5,   0, RoundingMode::HalfEven, '-2'],           // half → even neighbour, -2 is even
+        [-2.5,   0, RoundingMode::HalfEven, '-2'],           // half → even (-2)
+        [-0.5,   0, RoundingMode::HalfEven, '0'],            // half → even (0)
+        [0.499,  0, RoundingMode::HalfEven, '0'],            // just below half → towards zero
+
+        [1.2,     2, RoundingMode::HalfEven, '1.2'],       // no rounding needed
+        [1.005,   2, RoundingMode::HalfEven, '1'],          // half → last digit even (0)
+        [1.025,   2, RoundingMode::HalfEven, '1.02'],       // half → last digit even (2)
+        [-1.005,  2, RoundingMode::HalfEven, '-1'],         // half → even (-1.00)
+        [-1.025,  2, RoundingMode::HalfEven, '-1.02'],      // half → even (-1.02)
+        [1.995,   2, RoundingMode::HalfEven, '2'],          // half → 2.00 (last digit 0, even)
+        [2.005,   2, RoundingMode::HalfEven, '2'],          // half → even (2.00)
+        [0.005,   2, RoundingMode::HalfEven, '0'],          // half → even (0.00)
+        [-0.005,  2, RoundingMode::HalfEven, '0'],          // half → even (0.00)
+        [1.004,   2, RoundingMode::HalfEven, '1'],          // just below half → normal rounding down
+
+        [1.1,    0, RoundingMode::HalfOdd, '1'],            // normal rounding
+        [1.5,    0, RoundingMode::HalfOdd, '1'],            // half → odd neighbour (1 is odd, not 2)
+        [2.5,    0, RoundingMode::HalfOdd, '3'],            // half → odd (3 is odd, 2 is even)
+        [-1.5,   0, RoundingMode::HalfOdd, '-1'],           // half → odd (-1 is odd, -2 even)
+        [-2.5,   0, RoundingMode::HalfOdd, '-3'],           // half → odd (-3 odd, -2 even)
+        [0.5,    0, RoundingMode::HalfOdd, '1'],            // half → odd (1)
+        [-0.5,   0, RoundingMode::HalfOdd, '-1'],           // half → odd (-1)
+        [0.499,  0, RoundingMode::HalfOdd, '0'],            // just below half → no rounding up
+
+        [1.2,     2, RoundingMode::HalfOdd, '1.2'],         // no rounding
+        [1.005,   2, RoundingMode::HalfOdd, '1.01'],        // half → last digit odd (1.01, not 1.00)
+        [1.025,   2, RoundingMode::HalfOdd, '1.03'],        // half → odd (1.03, last digit 3 odd)
+        [-1.005,  2, RoundingMode::HalfOdd, '-1.01'],       // half → odd (-1.01)
+        [-1.025,  2, RoundingMode::HalfOdd, '-1.03'],       // half → odd (-1.03)
+        [1.995,   2, RoundingMode::HalfOdd, '1.99'],        // half → 1.99 (last digit 9 odd, 2.00 would be even)
+        [2.005,   2, RoundingMode::HalfOdd, '2.01'],        // half → odd (2.01, not 2.00)
+        [0.005,   2, RoundingMode::HalfOdd, '0.01'],        // half → odd (0.01, not 0.00)
+        [-0.005,  2, RoundingMode::HalfOdd, '-0.01'],       // half → odd (-0.01)
+        [1.004,   2, RoundingMode::HalfOdd, '1'],           // just below half → normal rounding down
+
+        [1.1,    0, RoundingMode::TowardsZero, '1'],      // truncate → 1
+        [1.5,    0, RoundingMode::TowardsZero, '1'],      // half does not round up → 1
+        [1.9,    0, RoundingMode::TowardsZero, '1'],      // just below 2 → 1
+        [-1.1,   0, RoundingMode::TowardsZero, '-1'],     // truncate → -1
+        [-1.5,   0, RoundingMode::TowardsZero, '-1'],     // truncate toward zero → -1
+        [-1.9,   0, RoundingMode::TowardsZero, '-1'],     // truncate → -1
+        [2.5,    0, RoundingMode::TowardsZero, '2'],      // truncate → 2
+        [-2.5,   0, RoundingMode::TowardsZero, '-2'],     // truncate → -2
+        [0.5,    0, RoundingMode::TowardsZero, '0'],      // truncate → 0
+        [-0.5,   0, RoundingMode::TowardsZero, '0'],      // truncate → 0
+
+        [1.2,     2, RoundingMode::TowardsZero, '1.2'],   // exact → no change
+        [1.996,   2, RoundingMode::TowardsZero, '1.99'],  // third decimal cut, no rounding → 1.99
+        [1.004,   2, RoundingMode::TowardsZero, '1'],     // 1.004 → 1.00
+        [1.005,   2, RoundingMode::TowardsZero, '1'],     // halfway → truncate, stays 1.00
+        [-1.005,  2, RoundingMode::TowardsZero, '-1'],    // halfway → truncate toward zero → -1.00
+        [1.995,   2, RoundingMode::TowardsZero, '1.99'],  // 1.995 → truncate to 1.99
+        [-1.995,  2, RoundingMode::TowardsZero, '-1.99'], // truncate toward zero → -1.99
+        [0.005,   2, RoundingMode::TowardsZero, '0'],     // truncate → 0.00
+
+        [1.0,    0, RoundingMode::AwayFromZero, '1'],      // exact integer → no change
+        [1.1,    0, RoundingMode::AwayFromZero, '2'],      // any fraction → away from zero (up)
+        [1.5,    0, RoundingMode::AwayFromZero, '2'],      // halfway included
+        [-1.1,   0, RoundingMode::AwayFromZero, '-2'],     // negative fraction → away (down)
+        [-1.5,   0, RoundingMode::AwayFromZero, '-2'],
+        [0.1,    0, RoundingMode::AwayFromZero, '1'],      // positive small fraction → 1
+        [-0.1,   0, RoundingMode::AwayFromZero, '-1'],     // negative small fraction → -1
+        [2.0,    0, RoundingMode::AwayFromZero, '2'],      // exact integer stays
+        [-2.0,   0, RoundingMode::AwayFromZero, '-2'],
+
+        [1.2,     2, RoundingMode::AwayFromZero, '1.2'],    // exact → unchanged
+        [1.201,   2, RoundingMode::AwayFromZero, '1.21'],   // third decimal > 0 → round up
+        [1.200,   2, RoundingMode::AwayFromZero, '1.2'],    // exactly 1.20 → stays
+        [1.005,   2, RoundingMode::AwayFromZero, '1.01'],   // half still rounds away
+        [-1.005,  2, RoundingMode::AwayFromZero, '-1.01'],  // negative half → away (more negative)
+        [1.999,   2, RoundingMode::AwayFromZero, '2'],      // carry-over, rounds up
+        [-1.999,  2, RoundingMode::AwayFromZero, '-2'],     // negative, rounds down with carry
+        [0.001,   2, RoundingMode::AwayFromZero, '0.01'],   // tiny fraction → away from zero
+        [-0.001,  2, RoundingMode::AwayFromZero, '-0.01'],  // tiny negative fraction → away
+
+        [1.0,     0, RoundingMode::NegativeInfinity, '1'],       // exact integer → unchanged
+        [1.0001,  0, RoundingMode::NegativeInfinity, '1'],       // tiny fraction → round down (floor)
+        [1.5,     0, RoundingMode::NegativeInfinity, '1'],       // half → down
+        [1.999,   0, RoundingMode::NegativeInfinity, '1'],       // just below 2 → down
+        [-1.0,    0, RoundingMode::NegativeInfinity, '-1'],      // exact → unchanged
+        [-1.0001, 0, RoundingMode::NegativeInfinity, '-2'],      // floor: -2 < -1.0001
+        [-1.5,    0, RoundingMode::NegativeInfinity, '-2'],      // half → down (more negative)
+        [-1.999,  0, RoundingMode::NegativeInfinity, '-2'],      // almost -2 → floor
+        [0.1,     0, RoundingMode::NegativeInfinity, '0'],       // positive fraction → 0
+        [-0.1,    0, RoundingMode::NegativeInfinity, '-1'],      // negative fraction → -1
+
+        [1.2,     2, RoundingMode::NegativeInfinity, '1.2'],    // exact → unchanged
+        [1.001,   2, RoundingMode::NegativeInfinity, '1'],      // any fraction → round down
+        [1.005,   2, RoundingMode::NegativeInfinity, '1'],      // halfway ignored, still down
+        [1.999,   2, RoundingMode::NegativeInfinity, '1.99'],   // 1.999 → floor(199.9) = 199 → 1.99
+        [-1.001,  2, RoundingMode::NegativeInfinity, '-1.01'],  // floor: -1.01 < -1.001
+        [-1.005,  2, RoundingMode::NegativeInfinity, '-1.01'],  // half floor → -1.01
+        [-1.999,  2, RoundingMode::NegativeInfinity, '-2'],     // carry‑over: floor(-199.9) = -200 → -2.00
+        [0.001,   2, RoundingMode::NegativeInfinity, '0'],      // tiny positive → 0.00
+        [-0.001,  2, RoundingMode::NegativeInfinity, '-0.01'],  // tiny negative → -0.01
+
+        [1.0,    0, RoundingMode::PositiveInfinity,  '1'],      // exact integer → unchanged
+        [1.1,    0, RoundingMode::PositiveInfinity,  '2'],      // any fraction → round up (ceil)
+        [1.5,    0, RoundingMode::PositiveInfinity,  '2'],      // half → up
+        [1.999,  0, RoundingMode::PositiveInfinity,  '2'],      // just below 2 → up
+        [0.1,    0, RoundingMode::PositiveInfinity,  '1'],      // small positive fraction → 1
+        [-1.0,   0, RoundingMode::PositiveInfinity,  '-1'],     // exact negative → unchanged
+        [-1.1,   0, RoundingMode::PositiveInfinity,  '-1'],     // ceil: -1 > -1.1 → -1
+        [-1.5,   0, RoundingMode::PositiveInfinity,  '-1'],     // half → up (toward +∞)
+        [-1.999, 0, RoundingMode::PositiveInfinity,  '-1'],     // almost -2 → ceil gives -1
+        [-0.1,   0, RoundingMode::PositiveInfinity,  '0'],      // negative tiny fraction → 0
+
+        [1.2,     2, RoundingMode::PositiveInfinity,  '1.2'],   // exact → unchanged
+        [1.001,   2, RoundingMode::PositiveInfinity,  '1.01'],  // any fraction → round up
+        [1.005,   2, RoundingMode::PositiveInfinity,  '1.01'],   // half → up
+        [1.999,   2, RoundingMode::PositiveInfinity,  '2'],     // carry‑over: 1.999 → 2.00
+        [0.001,   2, RoundingMode::PositiveInfinity,  '0.01'],  // tiny positive → up
+        [-1.001,  2, RoundingMode::PositiveInfinity,  '-1'],    // ceil: -1.00 > -1.001
+        [-1.005,  2, RoundingMode::PositiveInfinity,  '-1'],    // half → -1.00
+        [-1.999,  2, RoundingMode::PositiveInfinity,  '-1.99'],  // ceil of -199.9 → -199 → -1.99
+        [-0.001,  2, RoundingMode::PositiveInfinity,  '0'],     // negative tiny → ceil to zero
+    ]);
 
     test('greaterThan method', function () {
 
@@ -900,58 +1161,48 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::greaterThan(-1, 0))->toBeFalse();
         expect(Math::greaterThan(0, 5))->toBeFalse();
         expect(Math::greaterThan(0, -1))->toBeTrue();
+
         expect(Math::setPrecision(precision: 1)->greaterThan(1.11, 1.112))->toBeFalse();
+
         expect(Math::greaterThan(1.1e+8, 1.1e-8))->toBeTrue();
         expect(Math::greaterThan(1.1e+8, 1.1e+8))->toBeFalse();
         expect(Math::greaterThan(1.1e-8, 1.1e+8))->toBeFalse();
 
-        expect(greaterThan(0, 0))->toBeFalse();
-        expect(greaterThan(-1, 0))->toBeFalse();
-        expect(greaterThan(0, 5))->toBeFalse();
-        expect(greaterThan(0, -1))->toBeTrue();
         expect(math(precision: 1)->greaterThan(1.11, 1.112))->toBeFalse();
-        expect(greaterThan(1.1e+8, 1.1e-8))->toBeTrue();
-        expect(greaterThan(1.1e+8, 1.1e+8))->toBeFalse();
         expect(greaterThan(1.1e-8, 1.1e+8))->toBeFalse();
     });
 
     test('greaterThanOrEqual method', function () {
+
         expect(Math::greaterThanOrEqual(0, 0))->toBeTrue();
         expect(Math::greaterThanOrEqual(-1, 0))->toBeFalse();
         expect(Math::greaterThanOrEqual(0, 5))->toBeFalse();
         expect(Math::greaterThanOrEqual(0, -1))->toBeTrue();
+
         expect(math(precision: 1)->greaterThanOrEqual(1.112, 1.112))->toBeTrue();
+
         expect(Math::greaterThanOrEqual(1.1e+8, 1.1e-8))->toBeTrue();
         expect(Math::greaterThanOrEqual(1.1e+8, 1.1e+8))->toBeTrue();
         expect(Math::greaterThanOrEqual(1.1e-8, 1.1e+8))->toBeFalse();
 
-        expect(greaterThanOrEqual(0, 0))->toBeTrue();
-        expect(greaterThanOrEqual(-1, 0))->toBeFalse();
-        expect(greaterThanOrEqual(0, 5))->toBeFalse();
-        expect(greaterThanOrEqual(0, -1))->toBeTrue();
         expect(math(precision: 1)->greaterThanOrEqual(1.113, 1.112))->toBeTrue();
-        expect(greaterThanOrEqual(1.1e+8, 1.1e-8))->toBeTrue();
-        expect(greaterThanOrEqual(1.1e+8, 1.1e+8))->toBeTrue();
         expect(greaterThanOrEqual(1.1e-8, 1.1e+8))->toBeFalse();
     });
 
     test('lessThan method', function () {
+
         expect(Math::lessThan(0, 0))->toBeFalse();
         expect(Math::lessThan(-1, 0))->toBeTrue();
         expect(Math::lessThan(0, 5))->toBeTrue();
         expect(Math::lessThan(0, -1))->toBeFalse();
+
         expect(Math::setPrecision(precision: 1)->lessThan(1.112, 1.11))->toBeFalse();
+
         expect(Math::lessThan(1.1e-8, 1.1e+8))->toBeTrue();
         expect(Math::lessThan(1.1e+8, 1.1e+8))->toBeFalse();
         expect(Math::lessThan(1.1e+8, 1.1e-8))->toBeFalse();
 
-        expect(lessThan(0, 0))->toBeFalse();
-        expect(lessThan(-1, 0))->toBeTrue();
-        expect(lessThan(0, 5))->toBeTrue();
-        expect(lessThan(0, -1))->toBeFalse();
         expect(math(precision: 1)->lessThan(1.112, 1.11))->toBeFalse();
-        expect(lessThan(1.1e-8, 1.1e+8))->toBeTrue();
-        expect(lessThan(1.1e+8, 1.1e+8))->toBeFalse();
         expect(lessThan(1.1e+8, 1.1e-8))->toBeFalse();
     });
 
@@ -961,52 +1212,42 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::lessThanOrEqual(-1, 0))->toBeTrue();
         expect(Math::lessThanOrEqual(0, 5))->toBeTrue();
         expect(Math::lessThanOrEqual(0, -1))->toBeFalse();
+
         expect(Math::setPrecision(precision: 1)->lessThanOrEqual(1.11, 1.11))->toBeTrue();
+
         expect(Math::lessThanOrEqual(1.1e-8, 1.1e+8))->toBeTrue();
         expect(Math::lessThanOrEqual(1.1e+8, 1.1e+8))->toBeTrue();
         expect(Math::lessThanOrEqual(1.1e+8, 1.1e-8))->toBeFalse();
 
-        expect(lessThanOrEqual(0, 0))->toBeTrue();
-        expect(lessThanOrEqual(-1, 0))->toBeTrue();
-        expect(lessThanOrEqual(0, 5))->toBeTrue();
-        expect(lessThanOrEqual(0, -1))->toBeFalse();
         expect(math(precision: 1)->lessThanOrEqual(1.11, 1.11))->toBeTrue();
-        expect(lessThanOrEqual(1.1e-8, 1.1e+8))->toBeTrue();
-        expect(lessThanOrEqual(1.1e+8, 1.1e+8))->toBeTrue();
         expect(lessThanOrEqual(1.1e+8, 1.1e-8))->toBeFalse();
     });
 
     test('equal method', function () {
+
         expect(Math::equal(0, 0))->toBeTrue();
         expect(Math::equal(-1, 0))->toBeFalse();
         expect(Math::equal(0, 5))->toBeFalse();
         expect(Math::equal(0, -1))->toBeFalse();
+
         expect(Math::setPrecision(precision: 1)->equal(1.112, 1.113))->toBeFalse();
+
         expect(Math::equal(1.1e-8, 1.1e+8))->toBeFalse();
         expect(Math::equal(1.1e+8, 1.1e+8))->toBeTrue();
         expect(Math::equal(1.1e+8, 1.1e-8))->toBeFalse();
 
-        expect(equal(0, 0))->toBeTrue();
-        expect(equal(-1, 0))->toBeFalse();
-        expect(equal(0, 5))->toBeFalse();
-        expect(equal(0, -1))->toBeFalse();
         expect(math(precision: 1)->equal(1.112, 1.113))->toBeFalse();
-        expect(equal(1.1e-8, 1.1e+8))->toBeFalse();
-        expect(equal(1.1e+8, 1.1e+8))->toBeTrue();
         expect(equal(1.1e+8, 1.1e-8))->toBeFalse();
 
         expect(Math::notEqual(0, 0))->toBeFalse();
         expect(Math::notEqual(-1, 0))->toBeTrue();
         expect(Math::notEqual(0, 5))->toBeTrue();
         expect(Math::notEqual(0, -1))->toBeTrue();
+
         expect(Math::setPrecision(precision: 1)->notEqual(1.112, 1.113))->toBeTrue();
         expect(Math::notEqual(1, 2))->toBeTrue();
         expect(Math::notEqual(2, 2))->toBeFalse();
 
-        expect(notEqual(0, 0))->toBeFalse();
-        expect(notEqual(-1, 0))->toBeTrue();
-        expect(notEqual(0, 5))->toBeTrue();
-        expect(notEqual(0, -1))->toBeTrue();
         expect(math(precision: 1)->notEqual(1.112, 1.113))->toBeTrue();
         expect(notEqual(1, 2))->toBeTrue();
         expect(notEqual(2, 2))->toBeFalse();
