@@ -192,7 +192,7 @@ if (!function_exists('isZero')) {
             is_bool($value) ||
             is_array($value) ||
             is_object($value) ||
-            is_callable($value)
+            $value instanceof Closure
         ) {
             return false;
         }

@@ -2,6 +2,7 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use Fooino\Core\Tests\Data\Datasets;
 use stdClass;
 use Stringable;
 
@@ -27,145 +28,44 @@ class CustomClass
 
 describe('Helpers unit tests', function () {
 
-    test('isZero check the value is zero or not', function () {
+    test('isZero returns true', function ($zero) {
 
-        expect(isZero(0))->toBeTrue();
-        expect(isZero(+0))->toBeTrue();
-        expect(isZero(-0))->toBeTrue();
+        expect(isZero($zero))->toBeTrue();
 
-        expect(isZero('0'))->toBeTrue();
-        expect(isZero('+0'))->toBeTrue();
-        expect(isZero('-0'))->toBeTrue();
+        // 
+    })
+        ->with(Datasets::merge(
+            'zeros',
+            new class implements Stringable {
+                public function __toString()
+                {
+                    return '0';
+                }
+            },
+        ));
 
-        expect(isZero(0.0))->toBeTrue();
-        expect(isZero(+0.0))->toBeTrue();
-        expect(isZero(-0.0))->toBeTrue();
 
-        expect(isZero('0.0'))->toBeTrue();
-        expect(isZero('+0.0'))->toBeTrue();
-        expect(isZero('-0.0'))->toBeTrue();
+    test('isZero returns false', function ($nonZero) {
 
-        expect(isZero(' 0.0'))->toBeTrue();
-        expect(isZero('+0.0 '))->toBeTrue();
-        expect(isZero(' -0.0 '))->toBeTrue();
+        expect(isZero($nonZero))->toBeFalse();
 
-        expect(isZero(.0))->toBeTrue();
-        expect(isZero(+.0))->toBeTrue();
-        expect(isZero(-.0))->toBeTrue();
-
-        expect(isZero('.0'))->toBeTrue();
-        expect(isZero('+.0'))->toBeTrue();
-        expect(isZero('-.0'))->toBeTrue();
-
-        expect(isZero(0.))->toBeTrue();
-        expect(isZero(+0.))->toBeTrue();
-        expect(isZero(-0.))->toBeTrue();
-
-        expect(isZero('0.'))->toBeTrue();
-        expect(isZero('+0.'))->toBeTrue();
-        expect(isZero('-0.'))->toBeTrue();
-
-        expect(isZero(0.0E+10))->toBeTrue();
-        expect(isZero(+0.0E+10))->toBeTrue();
-        expect(isZero(-0.0E+10))->toBeTrue();
-
-        expect(isZero('0.0E+10'))->toBeTrue();
-        expect(isZero('+0.0E+10'))->toBeTrue();
-        expect(isZero('-0.0E+10'))->toBeTrue();
-
-        expect(isZero(.0E+10))->toBeTrue();
-        expect(isZero(+.0E+10))->toBeTrue();
-        expect(isZero(-.0E+10))->toBeTrue();
-
-        expect(isZero('.0E+10'))->toBeTrue();
-        expect(isZero('+.0E+10'))->toBeTrue();
-        expect(isZero('-.0E+10'))->toBeTrue();
-
-        expect(isZero(0E+10))->toBeTrue();
-        expect(isZero(+0E+10))->toBeTrue();
-        expect(isZero(-0E+10))->toBeTrue();
-
-        expect(isZero('0E+10'))->toBeTrue();
-        expect(isZero('+0E+10'))->toBeTrue();
-        expect(isZero('-0E+10'))->toBeTrue();
-
-        expect(isZero(0e10))->toBeTrue();
-        expect(isZero(+0e10))->toBeTrue();
-        expect(isZero(-0e10))->toBeTrue();
-
-        expect(isZero('0e10'))->toBeTrue();
-        expect(isZero('+0e10'))->toBeTrue();
-        expect(isZero('-0e10'))->toBeTrue();
-
-        expect(isZero(0.e10))->toBeTrue();
-        expect(isZero(+0.e10))->toBeTrue();
-        expect(isZero(-0.e10))->toBeTrue();
-
-        expect(isZero('0.e10'))->toBeTrue();
-        expect(isZero('+0.e10'))->toBeTrue();
-        expect(isZero('-0.e10'))->toBeTrue();
-
-        expect(isZero('.e10'))->toBeTrue();
-        expect(isZero('+.e10'))->toBeTrue();
-        expect(isZero('-.e10'))->toBeTrue();
-
-        expect(isZero('e10'))->toBeTrue();
-        expect(isZero('+e10'))->toBeTrue();
-        expect(isZero('-e10'))->toBeTrue();
-
-        $objectReturnZero = new class implements Stringable {
-            public function __toString()
-            {
-                return '0';
+        // 
+    })
+        ->with(Datasets::merge(
+            'nonZero',
+            true,
+            false,
+            fn() => [],
+            fn() => [0],
+            fn() => fn() => 0,
+            new stdClass,
+            new class implements Stringable {
+                public function __toString()
+                {
+                    return 'foobar';
+                }
             }
-        };
-
-        $objectReturnString = new class implements Stringable {
-            public function __toString()
-            {
-                return 'foobar';
-            }
-        };
-
-        expect(isZero($objectReturnZero))->toBeTrue();
-        expect(isZero($objectReturnString))->toBeFalse();
-
-        expect(isZero('.'))->toBeFalse();
-        expect(isZero('+.'))->toBeFalse();
-        expect(isZero('-.'))->toBeFalse();
-
-        expect(isZero(''))->toBeFalse();
-        expect(isZero('+'))->toBeFalse();
-        expect(isZero('-'))->toBeFalse();
-
-        expect(isZero(10))->toBeFalse();
-        expect(isZero(-10))->toBeFalse();
-
-        expect(isZero('10'))->toBeFalse();
-        expect(isZero('-10'))->toBeFalse();
-
-        expect(isZero(10.000010))->toBeFalse();
-        expect(isZero(-10.000010))->toBeFalse();
-
-        expect(isZero('10.000010'))->toBeFalse();
-        expect(isZero('-10.000010'))->toBeFalse();
-
-        expect(isZero(0.1E-20))->toBeFalse();
-        expect(isZero('0.1E-20'))->toBeFalse();
-
-        expect(isZero(1.1E-20))->toBeFalse();
-        expect(isZero('1.1E-20'))->toBeFalse();
-
-        expect(isZero('A10'))->toBeFalse();
-
-        expect(isZero('foobar'))->toBeFalse();
-        expect(isZero(true))->toBeFalse();
-        expect(isZero(false))->toBeFalse();
-        expect(isZero([]))->toBeFalse();
-        expect(isZero([0]))->toBeFalse();
-        expect(isZero(new stdClass))->toBeFalse();
-        expect(isZero(fn() => 0))->toBeFalse();
-    });
+        ));
 
     test('nullIfBlank returns value when it is filled', function () {
 
