@@ -139,6 +139,13 @@ class FooinoMathHandler implements Mathable
         return $sign . $result;
     }
 
+    public function trimTrailingZeros(string|int|float $number): string
+    {
+        $number = $this->convertScientificNumber(number: $number);
+
+        return (is_numeric($number) && strpos($number, '.') !== false) ? rtrim(rtrim($number, '0'), '.') : $number;
+    }
+
     /**
      * return sign, integer, decimal part of number
      */

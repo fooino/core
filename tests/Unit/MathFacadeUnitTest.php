@@ -226,6 +226,112 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(Math::convertScientificNumber('20.1e+20'))->toBe('2010000000000000000000');
     });
 
+    test('trimTrailingZeros method', function () {
+
+        expect(Math::trimTrailingZeros('test'))->toBe('test');
+        expect(Math::trimTrailingZeros('foo.bar'))->toBe('foo.bar');
+        expect(Math::trimTrailingZeros('foo.bar0'))->toBe('foo.bar0');
+        expect(Math::trimTrailingZeros('foo.0'))->toBe('foo.0');
+
+        expect(Math::trimTrailingZeros(0))->toBe('0');
+        expect(Math::trimTrailingZeros(+0))->toBe('0');
+        expect(Math::trimTrailingZeros(-0))->toBe('0');
+
+        expect(Math::trimTrailingZeros('0'))->toBe('0');
+        expect(Math::trimTrailingZeros('+0'))->toBe('0');
+        expect(Math::trimTrailingZeros('-0'))->toBe('0');
+
+        expect(Math::trimTrailingZeros(0.0))->toBe('0');
+        expect(Math::trimTrailingZeros(+0.0))->toBe('0');
+        expect(Math::trimTrailingZeros(-0.0))->toBe('0');
+
+        expect(Math::trimTrailingZeros('0.0'))->toBe('0');
+        expect(Math::trimTrailingZeros('+0.0'))->toBe('0');
+        expect(Math::trimTrailingZeros('-0.0'))->toBe('0');
+
+        expect(Math::trimTrailingZeros(0.))->toBe('0');
+        expect(Math::trimTrailingZeros(+0.))->toBe('0');
+        expect(Math::trimTrailingZeros(-0.))->toBe('0');
+
+        expect(Math::trimTrailingZeros('0.'))->toBe('0');
+        expect(Math::trimTrailingZeros('+0.'))->toBe('0');
+        expect(Math::trimTrailingZeros('-0.'))->toBe('0');
+
+        expect(Math::trimTrailingZeros(.0))->toBe('0');
+        expect(Math::trimTrailingZeros(+.0))->toBe('0');
+        expect(Math::trimTrailingZeros(-.0))->toBe('0');
+
+        expect(Math::trimTrailingZeros('.0'))->toBe('0');
+        expect(Math::trimTrailingZeros('+.0'))->toBe('0');
+        expect(Math::trimTrailingZeros('-.0'))->toBe('0');
+
+        expect(Math::trimTrailingZeros(11))->toBe('11');
+        expect(Math::trimTrailingZeros(+11))->toBe('11');
+        expect(Math::trimTrailingZeros(-11))->toBe('-11');
+
+        expect(Math::trimTrailingZeros('11'))->toBe('11');
+        expect(Math::trimTrailingZeros('+11'))->toBe('11');
+        expect(Math::trimTrailingZeros('-11'))->toBe('-11');
+
+        expect(Math::trimTrailingZeros(11.11))->toBe('11.11');
+        expect(Math::trimTrailingZeros(+11.11))->toBe('11.11');
+        expect(Math::trimTrailingZeros(-11.11))->toBe('-11.11');
+
+        expect(Math::trimTrailingZeros('11.11'))->toBe('11.11');
+        expect(Math::trimTrailingZeros('+11.11'))->toBe('11.11');
+        expect(Math::trimTrailingZeros('-11.11'))->toBe('-11.11');
+
+        expect(Math::trimTrailingZeros(11.))->toBe('11');
+        expect(Math::trimTrailingZeros(+11.))->toBe('11');
+        expect(Math::trimTrailingZeros(-11.))->toBe('-11');
+
+        expect(Math::trimTrailingZeros('11.'))->toBe('11');
+        expect(Math::trimTrailingZeros('+11.'))->toBe('11');
+        expect(Math::trimTrailingZeros('-11.'))->toBe('-11');
+
+        expect(Math::trimTrailingZeros(.11))->toBe('0.11');
+        expect(Math::trimTrailingZeros(+.11))->toBe('0.11');
+        expect(Math::trimTrailingZeros(-.11))->toBe('-0.11');
+
+        expect(Math::trimTrailingZeros('.11'))->toBe('0.11');
+        expect(Math::trimTrailingZeros('+.11'))->toBe('0.11');
+        expect(Math::trimTrailingZeros('-.11'))->toBe('-0.11');
+
+        expect(Math::trimTrailingZeros(1100))->toBe('1100');
+        expect(Math::trimTrailingZeros(+1100))->toBe('1100');
+        expect(Math::trimTrailingZeros(-1100))->toBe('-1100');
+
+        expect(Math::trimTrailingZeros('1100'))->toBe('1100');
+        expect(Math::trimTrailingZeros('+1100'))->toBe('1100');
+        expect(Math::trimTrailingZeros('-1100'))->toBe('-1100');
+
+        expect(Math::trimTrailingZeros(1100.001100))->toBe('1100.0011');
+        expect(Math::trimTrailingZeros(+1100.001100))->toBe('1100.0011');
+        expect(Math::trimTrailingZeros(-1100.001100))->toBe('-1100.0011');
+
+        expect(Math::trimTrailingZeros('1100.001100'))->toBe('1100.0011');
+        expect(Math::trimTrailingZeros('+1100.001100'))->toBe('1100.0011');
+        expect(Math::trimTrailingZeros('-1100.001100'))->toBe('-1100.0011');
+
+        expect(Math::trimTrailingZeros(1100.))->toBe('1100');
+        expect(Math::trimTrailingZeros(+1100.))->toBe('1100');
+        expect(Math::trimTrailingZeros(-1100.))->toBe('-1100');
+
+        expect(Math::trimTrailingZeros('1100.'))->toBe('1100');
+        expect(Math::trimTrailingZeros('+1100.'))->toBe('1100');
+        expect(Math::trimTrailingZeros('-1100.'))->toBe('-1100');
+
+        expect(Math::trimTrailingZeros(.001100))->toBe('0.0011');
+        expect(Math::trimTrailingZeros(+.001100))->toBe('0.0011');
+        expect(Math::trimTrailingZeros(-.001100))->toBe('-0.0011');
+
+        expect(Math::trimTrailingZeros('.001100'))->toBe('0.0011');
+        expect(Math::trimTrailingZeros('+.001100'))->toBe('0.0011');
+        expect(Math::trimTrailingZeros('-.001100'))->toBe('-0.0011');
+
+        expect(Math::trimTrailingZeros('-0.1E-2'))->toBe('-0.001');
+    });
+
     describe('handle exceptions', function () {
 
         test('invalid precision', function () {

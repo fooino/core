@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Fooino\Core\Interfaces\Mathable setPrecision(int $precision)
  * 
  * @method static string convertScientificNumber(string|int|float $number)
+ * @method static string trimTrailingZeros(string|int|float $number)
  * 
  * @see \Fooino\Core\Interfaces\Mathable
  * @see \Fooino\Core\Concretes\Math\MathManager
