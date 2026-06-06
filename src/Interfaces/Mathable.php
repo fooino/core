@@ -23,4 +23,9 @@ interface Mathable
      * Trim trailing Zeros from end of number
      */
     public function trimTrailingZeros(string|int|float $number): string;
+
+    /**
+     * Get decimal count of number
+     */
+    public function countDecimalPlaces(string|int|float $number): int;
 }

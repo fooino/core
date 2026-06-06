@@ -146,6 +146,15 @@ class FooinoMathHandler implements Mathable
         return (is_numeric($number) && strpos($number, '.') !== false) ? rtrim(rtrim($number, '0'), '.') : $number;
     }
 
+    public function countDecimalPlaces(string|int|float $number): int
+    {
+        $number = $this->trimTrailingZeros(number: $number);
+
+        $pos = strrpos($number, '.');
+
+        return (!is_numeric($number) || $pos === false) ? 0 : strlen(substr($number, $pos + 1));
+    }
+
     /**
      * return sign, integer, decimal part of number
      */

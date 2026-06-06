@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Facade;
  * 
  * @method static string convertScientificNumber(string|int|float $number)
  * @method static string trimTrailingZeros(string|int|float $number)
+ * @method static int countDecimalPlaces(string|int|float $number)
  * 
  * @see \Fooino\Core\Interfaces\Mathable
  * @see \Fooino\Core\Concretes\Math\MathManager
