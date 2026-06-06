@@ -109,6 +109,76 @@ if (!function_exists('numberFormat')) {
     }
 }
 
+if (!function_exists('sum')) {
+    /**
+     * Sum series of number or array of numbers
+     */
+    function sum(mixed ...$operand): string
+    {
+        return Math::sum(...$operand);
+    }
+}
+
+if (!function_exists('subtract')) {
+    /**
+     * Subtract series of number or array of numbers
+     */
+    function subtract(mixed ...$operand): string
+    {
+        return Math::subtract(...$operand);
+    }
+}
+
+if (!function_exists('multiply')) {
+    /**
+     * Multiply series of number or array of numbers
+     */
+    function multiply(mixed ...$operand): string
+    {
+        return Math::multiply(...$operand);
+    }
+}
+
+if (!function_exists('divide')) {
+    /**
+     * Divide series of number or array of numbers
+     */
+    function divide(mixed ...$operand): string
+    {
+        return Math::divide(...$operand);
+    }
+}
+
+if (!function_exists('roundUp')) {
+    /**
+     * Round the number up
+     */
+    function roundUp(string|int|float|array $number): string|array
+    {
+        return Math::roundUp(number: $number);
+    }
+}
+
+if (!function_exists('roundDown')) {
+    /**
+     * Round the number down
+     */
+    function roundDown(string|int|float|array $number): string|array
+    {
+        return Math::roundDown(number: $number);
+    }
+}
+
+if (!function_exists('roundClose')) {
+    /**
+     * Round the number to the nearest integer
+     */
+    function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array
+    {
+        return Math::roundClose(number: $number, precision: $precision, mode: $mode);
+    }
+}
+
 if (!function_exists('isZero')) {
     /**
      * Check the value is zero or not

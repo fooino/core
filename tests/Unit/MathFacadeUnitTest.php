@@ -532,7 +532,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
         test('number check the input is numeric', function () {
 
-            expect(fn() => number())->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
+            expect(fn() => number())->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
             expect(fn() => number(1, 'test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
             expect(fn() => number([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
 
@@ -543,8 +543,8 @@ describe('Math facade using FooinoMathHandler', function () {
                 //
             } catch (FooinoException $e) {
 
-                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
+                expect($e->getCode())->toBe(10102);
                 expect($e->getLevel())->toBe('error');
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([

@@ -2,6 +2,8 @@
 
 namespace Fooino\Core\Interfaces;
 
+use RoundingMode;
+
 interface Mathable
 {
     /**
@@ -38,4 +40,54 @@ interface Mathable
      * Convert number to currency format base on precision
      */
     public function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string;
+
+    /**
+     * Sum series of number or array of numbers
+     */
+    public function sum(mixed ...$operand): string;
+
+    /**
+     * Subtract series of number or array of numbers
+     */
+    public function subtract(mixed ...$operand): string;
+
+    /**
+     * Multiply series of number or array of numbers
+     */
+    public function multiply(mixed ...$operand): string;
+
+    /**
+     * Divide series of number or array of numbers
+     */
+    public function divide(mixed ...$operand): string;
+
+    /**
+     * Modulus series of number or array of numbers
+     */
+    public function modulus(mixed ...$operand): string;
+
+    /**
+     * Raise an arbitrary precision number to 
+     */
+    public function power(string|int|float|array $number, int $exponent = 2): string|array;
+
+    /**
+     * Get the square root of an arbitrary precision number
+     */
+    public function sqrt(string|int|float|array $number): string|array;
+
+    /**
+     * Round the number up
+     */
+    public function roundUp(string|int|float|array $number): string|array;
+
+    /**
+     * Round the number down
+     */
+    public function roundDown(string|int|float|array $number): string|array;
+
+    /**
+     * Round the number to the nearest integer
+     */
+    public function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array;
 }

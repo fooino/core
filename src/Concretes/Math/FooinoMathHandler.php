@@ -4,6 +4,7 @@ namespace Fooino\Core\Concretes\Math;
 
 use Fooino\Core\Interfaces\Mathable;
 use Fooino\Core\Exceptions\MathCalculationException;
+use RoundingMode;
 
 class FooinoMathHandler implements Mathable
 {
@@ -160,7 +161,7 @@ class FooinoMathHandler implements Mathable
         $numbers = count($number) === 1 && is_array($number[0]) ? $number[0] : $number;
 
         if (count($numbers) === 0) {
-            $this->throwInvalidArgumentTypeException(method: 'number', operand: $numbers);
+            $this->throwInvalidArgumentCountException(method: 'number', operand: $numbers);
         }
 
         foreach ($numbers as $key => $value) {
@@ -209,6 +210,57 @@ class FooinoMathHandler implements Mathable
 
         return $sign . $integerWithSeparators . (isZero($decimal) ? '' : '.' . $decimal);
     }
+
+    public function sum(mixed ...$operand): string
+    {
+        return $this->calc(method: 'bcadd', operand: $operand);
+    }
+
+    public function subtract(mixed ...$operand): string
+    {
+        return $this->calc(method: 'bcsub', operand: $operand);
+    }
+
+    public function multiply(mixed ...$operand): string
+    {
+        return $this->calc(method: 'bcmul', operand: $operand);
+    }
+
+    public function divide(mixed ...$operand): string
+    {
+        return $this->calc(method: 'bcdiv', operand: $operand);
+    }
+
+    public function modulus(mixed ...$operand): string
+    {
+        return $this->calc(method: 'bcmod', operand: $operand);
+    }
+
+    public function power(string|int|float|array $number, int $exponent = 2): string|array
+    {
+        return $this->calc(method: 'bcpow', operand: (array) $number, args: [$exponent]);
+    }
+
+    public function sqrt(string|int|float|array $number): string|array
+    {
+        return $this->calc(method: 'bcsqrt', operand: (array) $number);
+    }
+
+    public function roundUp(string|int|float|array $number): string|array
+    {
+        return $this->calc(method: 'bcceil', operand: (array) $number);
+    }
+
+    public function roundDown(string|int|float|array $number): string|array
+    {
+        return $this->calc(method: 'bcfloor', operand: (array) $number);
+    }
+
+    public function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array
+    {
+        return $this->calc(method: 'bcround', operand: (array) $number, args: [$precision, $mode]);
+    }
+
 
     /**
      * return sign, integer, decimal part of number
@@ -266,6 +318,99 @@ class FooinoMathHandler implements Mathable
         return trim($sign . $integer . $decimal);
     }
 
+    private function calc(string $method, array $operand, array $args = []): string|array
+    {
+        $numbers = $this->validateAndNormalizeNumbers(method: $method, operand: $operand, args: $args);
+
+        $twoOperand = ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod'];
+        $oneOperand = ['bcpow', 'bcsqrt', 'bcceil', 'bcfloor', 'bcround'];
+
+        if (in_array($method, $twoOperand)) {
+
+            list($result, $start) = match ($method) {
+
+                'bcadd'             => [0, 0],
+
+                'bcsub'             => [$numbers[0], 1],
+
+                'bcmul'             => [1, 0],
+
+                'bcdiv'             => [$numbers[0], 1],
+
+                'bcmod'             => [$numbers[0], 1],
+
+                default             => $this->throwUnsupportedFunctionException(func: $method, operand: $operand),
+            };
+
+            for ($i = $start; $i < count($numbers); $i++) {
+
+                $number = $numbers[$i];
+
+                $result = call_user_func($method, $result, $number);
+            }
+
+            return $result;
+        }
+
+        if (in_array($method, $oneOperand)) {
+
+            foreach ($numbers as $key => $value) {
+
+                $numbers[$key] = call_user_func($method, $value, ...$args);
+            }
+
+            return count($numbers) === 1 ? $numbers[0] : $numbers;
+        }
+
+        $this->throwUnsupportedFunctionException(func: $method, operand: $operand);
+    }
+
+    private function validateAndNormalizeNumbers(string $method, array $operand, array $args = []): array
+    {
+        $numbers = count($operand) === 1 && is_array($operand[0]) ? $operand[0] : $operand;
+
+        if (
+            count($numbers) === 0 ||
+            (count($numbers) < 2 && in_array($method, ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod']))
+        ) {
+            $this->throwInvalidArgumentCountException(method: $method, operand: $operand);
+        }
+
+        foreach ($numbers as $key => $number) {
+
+            $numbers[$key] = $number = $this->convertScientificNumber(number: $number);
+
+            if (!is_numeric($number)) {
+                $this->throwInvalidArgumentTypeException(method: $method, operand: $operand);
+            }
+
+            if (
+                in_array($method, ['bcdiv', 'bcmod']) &&
+                isZero($number) &&
+                $key !== 0
+            ) {
+                $this->throwDivisionByZeroException(method: $method, operand: $operand);
+            }
+
+            if (
+                $method === 'bcpow' &&
+                isZero($number) &&
+                $args[0] < 0
+            ) {
+                $this->throwDivisionByZeroException(method: $method, operand: $operand, args: $args);
+            }
+
+            if (
+                $method === 'bcsqrt' &&
+                $number < 0
+            ) {
+                $this->throwInvalidValueException(method: $method, operand: $operand);
+            }
+        }
+
+        return $numbers;
+    }
+
     private function throwInvalidPrecisionException(): never
     {
         app(MathCalculationException::class)
@@ -275,6 +420,44 @@ class FooinoMathHandler implements Mathable
             ->with([
                 'precision' => $this->getPrecision(),
                 'bc_scale'  => bcscale()
+            ])
+            ->throw();
+    }
+
+    private function throwInvalidArgumentCountException(string $method, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
+            ->setCode(10102)
+            ->with([
+                'method'    => $method,
+                'operand'   => $operand
+            ])
+            ->throw();
+    }
+
+
+    private function throwDivisionByZeroException(string $method, string|int|float|array $operand, array $args = []): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionDivisionByZero')
+            ->setCode(10104)
+            ->critical()
+            ->with([
+                'method'      => $method,
+                'operand'     => $operand,
+                'args'        => $args,
+            ])
+            ->throw();
+    }
+
+    private function throwUnsupportedFunctionException(string $func, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionUnsupportedFunction')
+            ->setCode(10106)
+            ->with([
+                'func'      => $func,
+                'operand'   => $operand
             ])
             ->throw();
     }
