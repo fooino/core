@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static int getPrecision()
  * @method static \Fooino\Core\Interfaces\Mathable setPrecision(int $precision)
  * 
+ * @method static string convertScientificNumber(string|int|float $number)
+ * 
  * @see \Fooino\Core\Interfaces\Mathable
  * @see \Fooino\Core\Concretes\Math\MathManager
  * @see \Fooino\Core\Concretes\Math\FooinoMathHandler

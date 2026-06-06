@@ -105,6 +105,14 @@ describe('Helpers unit tests', function () {
         expect(isZero('+0.e10'))->toBeTrue();
         expect(isZero('-0.e10'))->toBeTrue();
 
+        expect(isZero('.e10'))->toBeTrue();
+        expect(isZero('+.e10'))->toBeTrue();
+        expect(isZero('-.e10'))->toBeTrue();
+
+        expect(isZero('e10'))->toBeTrue();
+        expect(isZero('+e10'))->toBeTrue();
+        expect(isZero('-e10'))->toBeTrue();
+
         $objectReturnZero = new class implements Stringable {
             public function __toString()
             {
@@ -144,6 +152,11 @@ describe('Helpers unit tests', function () {
 
         expect(isZero(0.1E-20))->toBeFalse();
         expect(isZero('0.1E-20'))->toBeFalse();
+
+        expect(isZero(1.1E-20))->toBeFalse();
+        expect(isZero('1.1E-20'))->toBeFalse();
+
+        expect(isZero('A10'))->toBeFalse();
 
         expect(isZero('foobar'))->toBeFalse();
         expect(isZero(true))->toBeFalse();

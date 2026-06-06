@@ -55,6 +55,146 @@ class FooinoMathHandler implements Mathable
         return $this->instances[$precision] ??= new static(precision: $precision);
     }
 
+    public function convertScientificNumber(string|int|float $number): string
+    {
+        if ($number === INF || $number === -INF) {
+            // Very Big or small number is not allowed. 1.1E999 in float format will cast to INF. the INF is numeric so check it before is_numeric()
+            $this->throwInvalidValueException(method: 'convertScientificNumber', operand: $number);
+        }
+
+        if (
+            !is_numeric($number) &&
+            !isZero($number) // the scientific numbers like .e+8 is not numeric but it is zero
+        ) {
+            return $number;
+        }
+
+        $number = trim((string) $number);
+
+        $regex = [
+            '/',
+            '^',                    // start with
+            '([+-]?)',              // the sign can be '+' or '-' or '' ---> first group: sign
+            '(\d*\.?\d*)',          // zero or more digits before dot  optional decimal dot  zero or more digits after decimal dot ---> second group: mantissa. it can be 123 or .5 or 5. or 1.23
+            '[Ee]',                 // the letter E or e: the exponent separator
+            '([+-]?\d+)',           // optional '+' or '-' sign   one or more digits ---> third group: exponent. it can be 3 or +3 or -3
+            '$',                    // end with
+            '/'
+        ];
+
+        if (preg_match(implode('', $regex), $number, $matches) === 0) {
+
+            return $this->assembleNumber(number: $number);
+        }
+
+        $sign      = $matches[1];
+        $mantissa  = $matches[2];
+        $exponent  = (int) $matches[3];
+
+        if (abs($exponent) > 99) {
+            // Very Big or Small number is not allowed. '1.1E999' in string format has high exponent value
+            $this->throwInvalidValueException(method: 'convertScientificNumber', operand: $number);
+        }
+
+        list($sign, $integerPart, $decimalPart) = $this->numberParts(number: ($sign . $mantissa));
+
+        // All significant digits, without decimal point
+        $digits = ltrim($integerPart . $decimalPart, '0');
+
+        // If mantissa is zero, the whole number is zero like 0.1E+8
+        if ($digits === '') {
+            return '0';
+        }
+
+        $shift = $exponent - strlen($decimalPart); // right shift (+), left shift (-)
+
+        if ($shift >= 0) {
+
+            // example: 1.1E+5
+            // No decimal point needed (or decimal shifted right beyond end)
+            $result = $digits . str_repeat('0', $shift);
+
+            // 
+        } else {
+
+            $absShift = abs($shift);
+            $len      = strlen($digits);
+
+            if ($absShift >= $len) {
+
+                // example: 1.1E-5
+                // Decimal point goes after '0.', padding with leading zeros
+                $result = '0.' . str_repeat('0', $absShift - $len) . rtrim($digits, '0');
+
+                // 
+            } else {
+
+                // example: 1002.1E-2
+                // Insert decimal point inside the digit string
+                $splitPos = $len - $absShift;
+                $result   = substr($digits, 0, $splitPos) . '.' . rtrim(substr($digits, $splitPos), '0');
+            }
+        }
+
+        return $sign . $result;
+    }
+
+    /**
+     * return sign, integer, decimal part of number
+     */
+    private function numberParts(string|int|float $number): array
+    {
+        $number = trim((string) $number);
+        $sign = '';
+
+        if (in_array($number[0] ?? '', ['-', '+'])) {
+
+            $sign = $number[0];
+
+            $number = substr($number, 1);
+        }
+
+        $dotPos = strpos($number, '.');
+
+        list($integer, $decimal) = match ($dotPos) {
+
+            false           => [
+                $number,
+                '0'
+            ],
+
+            default         => [
+                substr($number, 0, $dotPos),
+                substr($number, $dotPos + 1)
+            ]
+        };
+
+        $integer = (string) ((isZero($integer) || blank($integer)) ? '0' : $integer);
+        $decimal = (string) ((isZero($decimal) || blank($decimal)) ? '0' : $decimal);
+
+        $assembled = $integer . $decimal;
+
+        $sign = ((is_numeric($assembled) && $sign === '+') || isZero($assembled)) ? '' : $sign; // when the number is zero or positive: make it empty string
+
+        return [
+            $sign,
+            $integer,
+            $decimal
+        ];
+    }
+
+    /**
+     * Make number base on parts and precision
+     */
+    private function assembleNumber(string|int|float $number, int|null $precision = null): string
+    {
+        list($sign, $integer, $decimal) = $this->numberParts(number: $number);
+
+        $decimal = isZero($decimal) ? '' : ('.' . (is_null($precision) ? $decimal : substr($decimal, 0, $precision)));
+
+        return trim($sign . $integer . $decimal);
+    }
+
     private function throwInvalidPrecisionException(): never
     {
         app(MathCalculationException::class)
@@ -64,6 +204,19 @@ class FooinoMathHandler implements Mathable
             ->with([
                 'precision' => $this->getPrecision(),
                 'bc_scale'  => bcscale()
+            ])
+            ->throw();
+    }
+
+    private function throwInvalidValueException(string $method, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionInvalidValueError')
+            ->setCode(10105)
+            ->critical()
+            ->with([
+                'method'          => $method,
+                'operand'         => $operand,
             ])
             ->throw();
     }

@@ -97,24 +97,17 @@ if (!function_exists('isZero')) {
     {
         $value = (is_object($value) && $value instanceof Stringable) ? $value->__toString() : $value;
 
-        if (is_numeric($value)) {
-
-            $regex = [
-                '/',
-                '^',                    // start with
-                '[-+]?',                // optional minus and plus sign
-                '0*',                   // zero or more zeros
-                '\.?',                  // optional decimal point
-                '0*',                   // – zero or more zeros (fractional part)
-                '(?:[Ee][+-]?\d+)?',    // optional exponent part
-                '$',                    // end with
-                '/'
-            ];
-
-            return preg_match(pattern: implode('', $regex), subject: trim((string) $value));
+        if (
+            is_null($value) ||
+            is_bool($value) ||
+            is_array($value) ||
+            is_object($value) ||
+            is_callable($value)
+        ) {
+            return false;
         }
 
-        return false;
+        return preg_match(pattern: '/^[-+]?(?:0+\.?0*|\.0+|(?:0*\.?0*)?[Ee][+-]?\d+)$/', subject: trim((string) $value)) === 1;
     }
 }
 
