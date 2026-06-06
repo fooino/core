@@ -10,15 +10,14 @@ use DateTime;
 use DateTimeZone;
 use IntlDateFormatter;
 use IntlCalendar;
-use Exception;
 
 class DateHandler
 {
     protected array $instances = [];
 
-    private const OFFICIAL   = 'OFFICIAL';
+    private const string OFFICIAL   = 'OFFICIAL';
 
-    private const UNOFFICIAL = 'UNOFFICIAL';
+    private const string UNOFFICIAL = 'UNOFFICIAL';
 
     protected array $validTimezones = [];
 

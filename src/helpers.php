@@ -76,6 +76,35 @@ if (!function_exists('dateConvert')) {
     }
 }
 
+if (!function_exists('isZero')) {
+    /**
+     * Check the value is zero or not
+     */
+    function isZero(int|float|string|null|bool|array|object|callable $value): bool
+    {
+        $value = (is_object($value) && $value instanceof Stringable) ? $value->__toString() : $value;
+
+        if (is_numeric($value)) {
+
+            $regex = [
+                '/',
+                '^',                    // start with
+                '[-+]?',                // optional minus and plus sign
+                '0*',                   // zero or more zeros
+                '\.?',                  // optional decimal point
+                '0*',                   // – zero or more zeros (fractional part)
+                '(?:[Ee][+-]?\d+)?',    // optional exponent part
+                '$',                    // end with
+                '/'
+            ];
+
+            return preg_match(pattern: implode('', $regex), subject: trim((string) $value));
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('nullIfBlank')) {
     /**
      * Returns a fallback value when the input is considered "blank" or a null-like string which usually produce by js.
@@ -94,7 +123,7 @@ if (!function_exists('nullIfBlankOrZero')) {
     {
         $value = nullIfBlank(value: $value);
 
-        return ((is_numeric($value) && ((float) $value) === 0.0) ? null : $value) ?? $fallback;
+        return (isZero(value: $value) ? null : $value) ?? $fallback;
     }
 }
 

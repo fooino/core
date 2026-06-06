@@ -2,6 +2,7 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use stdClass;
 use Stringable;
 
 class CustomClass
@@ -25,6 +26,125 @@ class CustomClass
 };
 
 describe('Helpers unit tests', function () {
+
+    test('isZero check the value is zero or not', function () {
+
+        expect(isZero(0))->toBeTrue();
+        expect(isZero(+0))->toBeTrue();
+        expect(isZero(-0))->toBeTrue();
+
+        expect(isZero('0'))->toBeTrue();
+        expect(isZero('+0'))->toBeTrue();
+        expect(isZero('-0'))->toBeTrue();
+
+        expect(isZero(0.0))->toBeTrue();
+        expect(isZero(+0.0))->toBeTrue();
+        expect(isZero(-0.0))->toBeTrue();
+
+        expect(isZero('0.0'))->toBeTrue();
+        expect(isZero('+0.0'))->toBeTrue();
+        expect(isZero('-0.0'))->toBeTrue();
+
+        expect(isZero(' 0.0'))->toBeTrue();
+        expect(isZero('+0.0 '))->toBeTrue();
+        expect(isZero(' -0.0 '))->toBeTrue();
+
+        expect(isZero(.0))->toBeTrue();
+        expect(isZero(+.0))->toBeTrue();
+        expect(isZero(-.0))->toBeTrue();
+
+        expect(isZero('.0'))->toBeTrue();
+        expect(isZero('+.0'))->toBeTrue();
+        expect(isZero('-.0'))->toBeTrue();
+
+        expect(isZero(0.))->toBeTrue();
+        expect(isZero(+0.))->toBeTrue();
+        expect(isZero(-0.))->toBeTrue();
+
+        expect(isZero('0.'))->toBeTrue();
+        expect(isZero('+0.'))->toBeTrue();
+        expect(isZero('-0.'))->toBeTrue();
+
+        expect(isZero(0.0E+10))->toBeTrue();
+        expect(isZero(+0.0E+10))->toBeTrue();
+        expect(isZero(-0.0E+10))->toBeTrue();
+
+        expect(isZero('0.0E+10'))->toBeTrue();
+        expect(isZero('+0.0E+10'))->toBeTrue();
+        expect(isZero('-0.0E+10'))->toBeTrue();
+
+        expect(isZero(.0E+10))->toBeTrue();
+        expect(isZero(+.0E+10))->toBeTrue();
+        expect(isZero(-.0E+10))->toBeTrue();
+
+        expect(isZero('.0E+10'))->toBeTrue();
+        expect(isZero('+.0E+10'))->toBeTrue();
+        expect(isZero('-.0E+10'))->toBeTrue();
+
+        expect(isZero(0E+10))->toBeTrue();
+        expect(isZero(+0E+10))->toBeTrue();
+        expect(isZero(-0E+10))->toBeTrue();
+
+        expect(isZero('0E+10'))->toBeTrue();
+        expect(isZero('+0E+10'))->toBeTrue();
+        expect(isZero('-0E+10'))->toBeTrue();
+
+        expect(isZero(0e10))->toBeTrue();
+        expect(isZero(+0e10))->toBeTrue();
+        expect(isZero(-0e10))->toBeTrue();
+
+        expect(isZero('0e10'))->toBeTrue();
+        expect(isZero('+0e10'))->toBeTrue();
+        expect(isZero('-0e10'))->toBeTrue();
+
+        $objectReturnZero = new class implements Stringable {
+            public function __toString()
+            {
+                return '0';
+            }
+        };
+
+        $objectReturnString = new class implements Stringable {
+            public function __toString()
+            {
+                return 'foobar';
+            }
+        };
+
+        expect(isZero($objectReturnZero))->toBeTrue();
+        expect(isZero($objectReturnString))->toBeFalse();
+
+        expect(isZero('.'))->toBeFalse();
+        expect(isZero('+.'))->toBeFalse();
+        expect(isZero('-.'))->toBeFalse();
+
+        expect(isZero(''))->toBeFalse();
+        expect(isZero('+'))->toBeFalse();
+        expect(isZero('-'))->toBeFalse();
+
+        expect(isZero(10))->toBeFalse();
+        expect(isZero(-10))->toBeFalse();
+
+        expect(isZero('10'))->toBeFalse();
+        expect(isZero('-10'))->toBeFalse();
+
+        expect(isZero(10.000010))->toBeFalse();
+        expect(isZero(-10.000010))->toBeFalse();
+
+        expect(isZero('10.000010'))->toBeFalse();
+        expect(isZero('-10.000010'))->toBeFalse();
+
+        expect(isZero(0.1E-20))->toBeFalse();
+        expect(isZero('0.1E-20'))->toBeFalse();
+
+        expect(isZero('foobar'))->toBeFalse();
+        expect(isZero(true))->toBeFalse();
+        expect(isZero(false))->toBeFalse();
+        expect(isZero([]))->toBeFalse();
+        expect(isZero([0]))->toBeFalse();
+        expect(isZero(new stdClass))->toBeFalse();
+        expect(isZero(fn() => 0))->toBeFalse();
+    });
 
     test('nullIfBlank returns value when it is filled', function () {
 
@@ -135,6 +255,15 @@ describe('Helpers unit tests', function () {
         };
 
         expect((string) nullIfBlankOrZero(value: $object, fallback: 'fooino'))->toEqual('foobar');
+
+        $object = new class implements Stringable {
+            public function __toString(): string
+            {
+                return '0';
+            }
+        };
+
+        expect((string) nullIfBlankOrZero(value: $object, fallback: 'fooino'))->toEqual('fooino');
     });
 
     test('nullIfBlankOrZero returns null when the value is blank or zero', function () {

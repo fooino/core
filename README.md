@@ -76,6 +76,23 @@ exit
 
     ```
 
+
+3. Math
+    + Interface `Fooino\Core\Interfaces\Mathable`
+    + Concrete  `Fooino\Core\Concretes\MathManager`
+    + Unit test `Fooino\Core\Tests\MathFacadeUnitTest`
+    + Basic Usage
+    ```php
+        use Fooino\Core\Facades\Math;
+
+        Math::convertScientificNumber('1.1e+8'); //110000000.000000000000
+        Math::trimTrailingZeros('110000000.000000000000'); // 110000000
+        Math::countDecimalPlaces(1.1e-8); // 9
+
+        Math::setPrecision(precision: 4)->number(0.44015042); //0.4401 - or use number()
+        Math::number(1.1e+8); // 110000000
+    ```
+
 **Helpers**
 1. `nullIfBlank()` Returns a fallback value when the input is considered `blank` or a `null-like string` which usually produce by js.
 2. `nullIfBlankOrZero()` Convert value to null when the value is ZERO or blank base on `nullIfBlank()`
