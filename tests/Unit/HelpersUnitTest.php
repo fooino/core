@@ -97,6 +97,14 @@ describe('Helpers unit tests', function () {
         expect(isZero('+0e10'))->toBeTrue();
         expect(isZero('-0e10'))->toBeTrue();
 
+        expect(isZero(0.e10))->toBeTrue();
+        expect(isZero(+0.e10))->toBeTrue();
+        expect(isZero(-0.e10))->toBeTrue();
+
+        expect(isZero('0.e10'))->toBeTrue();
+        expect(isZero('+0.e10'))->toBeTrue();
+        expect(isZero('-0.e10'))->toBeTrue();
+
         $objectReturnZero = new class implements Stringable {
             public function __toString()
             {
@@ -255,15 +263,6 @@ describe('Helpers unit tests', function () {
         };
 
         expect((string) nullIfBlankOrZero(value: $object, fallback: 'fooino'))->toEqual('foobar');
-
-        $object = new class implements Stringable {
-            public function __toString(): string
-            {
-                return '0';
-            }
-        };
-
-        expect((string) nullIfBlankOrZero(value: $object, fallback: 'fooino'))->toEqual('fooino');
     });
 
     test('nullIfBlankOrZero returns null when the value is blank or zero', function () {
@@ -303,6 +302,15 @@ describe('Helpers unit tests', function () {
             public function __toString(): string
             {
                 return '';
+            }
+        };
+
+        expect(nullIfBlankOrZero(value: $object))->toBeNull();
+
+        $object = new class implements Stringable {
+            public function __toString(): string
+            {
+                return '0';
             }
         };
 
