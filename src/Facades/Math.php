@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Facade;
  * @method static string trimTrailingZeros(string|int|float $number)
  * @method static int countDecimalPlaces(string|int|float $number)
  * 
+ * @method static string|array number(mixed ...$number) 
+ * @method static string numberFormat(string|int|float $number, string $thousandsSeparator = ',')
+ * 
  * @see \Fooino\Core\Interfaces\Mathable
  * @see \Fooino\Core\Concretes\Math\MathManager
  * @see \Fooino\Core\Concretes\Math\FooinoMathHandler

@@ -89,6 +89,26 @@ if (!function_exists('math')) {
     }
 }
 
+if (!function_exists('number')) {
+    /**
+     * Convert number to well-formatted in truncated base on precision
+     */
+    function number(mixed ...$number): string|array
+    {
+        return Math::number(...$number);
+    }
+}
+
+if (!function_exists('numberFormat')) {
+    /**
+     * Convert number to currency format base on precision
+     */
+    function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string
+    {
+        return Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator,);
+    }
+}
+
 if (!function_exists('isZero')) {
     /**
      * Check the value is zero or not

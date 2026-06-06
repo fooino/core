@@ -155,6 +155,61 @@ class FooinoMathHandler implements Mathable
         return (!is_numeric($number) || $pos === false) ? 0 : strlen(substr($number, $pos + 1));
     }
 
+    public function number(mixed ...$number): string|array
+    {
+        $numbers = count($number) === 1 && is_array($number[0]) ? $number[0] : $number;
+
+        if (count($numbers) === 0) {
+            $this->throwInvalidArgumentTypeException(method: 'number', operand: $numbers);
+        }
+
+        foreach ($numbers as $key => $value) {
+
+            $value = $this->convertScientificNumber(number: $value);
+
+            if (!is_numeric($value)) {
+                $this->throwInvalidArgumentTypeException(method: 'number', operand: $numbers);
+            }
+
+            $numbers[$key] = $this->trimTrailingZeros(number: $this->assembleNumber(number: $value, precision: $this->getPrecision()));
+        }
+
+        return count($numbers) === 1 ? $numbers[0] : $numbers;
+    }
+
+    public function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string
+    {
+        $sanitized = trim((string) $number);
+        $sign = '';
+
+        if (in_array($sanitized[0] ?? '', ['-', '+'])) {
+
+            $sign = $sanitized[0]; // the number can be -2-000-000.001 which is negtive number with - thousandsSeparator
+
+            $sanitized = substr($sanitized, 1);
+        }
+
+        $sanitized = str_replace([$thousandsSeparator, ','], '',  (string) $sanitized);
+
+        $sanitized = $this->convertScientificNumber(number: $sanitized);
+
+        if (!is_numeric($sanitized)) {
+            $this->throwInvalidArgumentTypeException(method: 'numberFormat', operand: $number);
+        }
+
+        $sanitized = $this->number($sanitized); // apply precision
+
+        list($sign, $integer, $decimal) = $this->numberParts(number: ($sign . $sanitized));
+
+        $integerWithSeparators = (string) preg_replace(
+            '/\B(?=(\d{3})+(?!\d))/',
+            $thousandsSeparator,
+            $integer
+        );
+
+        return $sign . $integerWithSeparators . (isZero($decimal) ? '' : '.' . $decimal);
+    }
+
     /**
      * return sign, integer, decimal part of number
      */
@@ -220,6 +275,18 @@ class FooinoMathHandler implements Mathable
             ->with([
                 'precision' => $this->getPrecision(),
                 'bc_scale'  => bcscale()
+            ])
+            ->throw();
+    }
+
+    private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
+            ->setCode(10103)
+            ->with([
+                'method'    => $method,
+                'operand'   => $operand
             ])
             ->throw();
     }

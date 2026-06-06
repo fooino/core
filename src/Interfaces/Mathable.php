@@ -28,4 +28,14 @@ interface Mathable
      * Get decimal count of number
      */
     public function countDecimalPlaces(string|int|float $number): int;
+
+    /**
+     * Convert numbers to well-formatted in truncated base on precision
+     */
+    public function number(mixed ...$number): string|array;
+
+    /**
+     * Convert number to currency format base on precision
+     */
+    public function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string;
 }
