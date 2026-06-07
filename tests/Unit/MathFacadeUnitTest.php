@@ -245,6 +245,7 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getWith())->toBe([
                     'method'        => 'number',
                     'operand'       => [],
+                    'args'          => []
                 ]);
             }
 
@@ -262,6 +263,7 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getWith())->toBe([
                     'method'        => 'number',
                     'operand'       => ['test'],
+                    'args'          => []
                 ]);
             }
 
@@ -279,6 +281,7 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getWith())->toBe([
                     'method'        => 'number',
                     'operand'       => ['1', 'test'],
+                    'args'          => []
                 ]);
             }
 
@@ -296,6 +299,7 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getWith())->toBe([
                     'method'        => 'number',
                     'operand'       => ['1', 'test'],
+                    'args'          => []
                 ]);
             }
         });

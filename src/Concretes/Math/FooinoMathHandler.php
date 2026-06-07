@@ -180,7 +180,7 @@ class FooinoMathHandler implements Mathable
                 $this->throwInvalidArgumentTypeException(method: 'number', operand: $numbers);
             }
 
-            $numbers[$key] = $this->trimTrailingZeros(number: $this->assembleNumber(number: $value, precision: $this->getPrecision()));
+            $numbers[$key] = $this->_trimTrailingZeros(number: $this->assembleNumber(number: $value, precision: $this->getPrecision()));
         }
 
         return count($numbers) === 1 ? $numbers[0] : $numbers;
@@ -432,26 +432,28 @@ class FooinoMathHandler implements Mathable
             ->throw();
     }
 
-    private function throwInvalidArgumentCountException(string $method, string|int|float|array $operand): never
+    private function throwInvalidArgumentCountException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
             ->setCode(10102)
             ->with([
                 'method'    => $method,
-                'operand'   => $operand
+                'operand'   => $operand,
+                'args'      => $args
             ])
             ->throw();
     }
 
-    private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand): never
+    private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
             ->setCode(10103)
             ->with([
                 'method'    => $method,
-                'operand'   => $operand
+                'operand'   => $operand,
+                'args'      => $args
             ])
             ->throw();
     }
