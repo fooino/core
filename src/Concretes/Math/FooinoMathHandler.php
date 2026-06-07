@@ -60,7 +60,7 @@ class FooinoMathHandler implements Mathable
     {
         if ($number === INF || $number === -INF) {
             // Very Big or small number is not allowed. 1.1E999 in float format will cast to INF. the INF is numeric so check it before is_numeric()
-            $this->throwInvalidValueException(method: 'convertScientificNumber', operand: $number);
+            $this->throwInvalidValueErrorException(method: 'convertScientificNumber', operand: $number);
         }
 
         if (
@@ -94,7 +94,7 @@ class FooinoMathHandler implements Mathable
 
         if (abs($exponent) > 99) {
             // Very Big or Small number is not allowed. '1.1E999' in string format has high exponent value
-            $this->throwInvalidValueException(method: 'convertScientificNumber', operand: $number);
+            $this->throwInvalidValueErrorException(method: 'convertScientificNumber', operand: $number);
         }
 
         list($sign, $integerPart, $decimalPart) = $this->numberParts(number: ($sign . $mantissa));
@@ -295,7 +295,7 @@ class FooinoMathHandler implements Mathable
         $integer = (string) ((isZero($integer) || blank($integer)) ? '0' : $integer);
         $decimal = (string) ((isZero($decimal) || blank($decimal)) ? '0' : $decimal);
 
-        $assembled = $integer . $decimal;
+        $assembled = $integer . '.' . $decimal;
 
         $sign = ((is_numeric($assembled) && $sign === '+') || isZero($assembled)) ? '' : $sign; // when the number is zero or positive: make it empty string
 
@@ -404,7 +404,7 @@ class FooinoMathHandler implements Mathable
                 $method === 'bcsqrt' &&
                 $number < 0
             ) {
-                $this->throwInvalidValueException(method: $method, operand: $operand);
+                $this->throwInvalidValueErrorException(method: $method, operand: $operand);
             }
         }
 
@@ -436,6 +436,17 @@ class FooinoMathHandler implements Mathable
             ->throw();
     }
 
+    private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)
+            ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
+            ->setCode(10103)
+            ->with([
+                'method'    => $method,
+                'operand'   => $operand
+            ])
+            ->throw();
+    }
 
     private function throwDivisionByZeroException(string $method, string|int|float|array $operand, array $args = []): never
     {
@@ -451,30 +462,7 @@ class FooinoMathHandler implements Mathable
             ->throw();
     }
 
-    private function throwUnsupportedFunctionException(string $func, string|int|float|array $operand): never
-    {
-        app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionUnsupportedFunction')
-            ->setCode(10106)
-            ->with([
-                'func'      => $func,
-                'operand'   => $operand
-            ])
-            ->throw();
-    }
-
-    private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand): never
-    {
-        app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
-            ->setCode(10103)
-            ->with([
-                'method'    => $method,
-                'operand'   => $operand
-            ])
-            ->throw();
-    }
-
-    private function throwInvalidValueException(string $method, string|int|float|array $operand): never
+    private function throwInvalidValueErrorException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->setMessage('msg.mathCalculationExceptionInvalidValueError')
@@ -483,6 +471,18 @@ class FooinoMathHandler implements Mathable
             ->with([
                 'method'          => $method,
                 'operand'         => $operand,
+                'args'            => $args,
+            ])
+            ->throw();
+    }
+
+    private function throwUnsupportedFunctionException(string $func, string|int|float|array $operand): never
+    {
+        app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionUnsupportedFunction')
+            ->setCode(10106)
+            ->with([
+                'func'      => $func,
+                'operand'   => $operand
             ])
             ->throw();
     }
