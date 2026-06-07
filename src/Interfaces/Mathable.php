@@ -7,67 +7,67 @@ use RoundingMode;
 interface Mathable
 {
     /**
-     * Get the precision
+     * Retrieve the current precision value used for truncating output numbers
      */
     public function getPrecision(): int;
 
     /**
-     * Set the precision
+     * Set a new precision value and return a fresh instance configured
      */
     public function setPrecision(int $precision): Mathable;
 
     /**
-     * Convert scientific number to numeric string
+     * Expand a number expressed in scientific notation (e.g. 1.5E+4) into its full numeric string representation
      */
     public function convertScientificNumber(string|int|float $number): string;
 
     /**
-     * Trim trailing Zeros from end of number
+     * Remove all trailing zeros after the decimal point from a number, returning a clean numeric string
      */
     public function trimTrailingZeros(string|int|float $number): string;
 
     /**
-     * Get decimal count of number
+     * Count how many decimal places a number has after trimming any trailing zeros
      */
     public function countDecimalPlaces(string|int|float $number): int;
 
     /**
-     * Convert numbers to well-formatted in truncated base on precision
+     * Format one or more numbers by truncating them to the configured precision, removing trailing zeros, and returning clean numeric strings
      */
     public function number(mixed ...$number): string|array;
 
     /**
-     * Convert number to currency format base on precision
+     * Format a number with thousands separators and apply precision truncation, returning a locale-friendly currency-style string
      */
     public function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string;
 
     /**
-     * Sum series of number or array of numbers
+     * Add a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
     public function sum(mixed ...$operand): string;
 
     /**
-     * Subtract series of number or array of numbers
+     * Subtract a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
     public function subtract(mixed ...$operand): string;
 
     /**
-     * Multiply series of number or array of numbers
+     * Multiply a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
     public function multiply(mixed ...$operand): string;
 
     /**
-     * Divide series of number or array of numbers
+     * Divide a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
     public function divide(mixed ...$operand): string;
 
     /**
-     * Modulus series of number or array of numbers
+     * Compute the modulus (remainder) of a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
     public function modulus(mixed ...$operand): string;
 
     /**
-     * Raise an arbitrary precision number to 
+     * Raise an arbitrary precision number to a given exponent
      */
     public function power(string|int|float|array $number, int $exponent = 2): string|array;
 
@@ -77,17 +77,17 @@ interface Mathable
     public function sqrt(string|int|float|array $number): string|array;
 
     /**
-     * Round the number up
+     * Round a number up to the next integer (ceiling), away from zero
      */
     public function roundUp(string|int|float|array $number): string|array;
 
     /**
-     * Round the number down
+     * Round a number down to the previous integer (floor), toward zero
      */
     public function roundDown(string|int|float|array $number): string|array;
 
     /**
-     * Round the number to the nearest integer
+     * Round a number to a specified precision using a configurable rounding mode
      */
     public function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array;
 }

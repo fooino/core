@@ -142,7 +142,15 @@ class FooinoMathHandler implements Mathable
 
     public function trimTrailingZeros(string|int|float $number): string
     {
-        $number = $this->convertScientificNumber(number: $number);
+        return $this->_trimTrailingZeros(number: $number, expandScientific: true);
+    }
+
+    public function _trimTrailingZeros(string|int|float $number, bool $expandScientific = false): string
+    {
+        if ($expandScientific) {
+
+            $number = $this->convertScientificNumber(number: $number);
+        }
 
         return (is_numeric($number) && strpos($number, '.') !== false) ? rtrim(rtrim($number, '0'), '.') : $number;
     }
@@ -151,9 +159,9 @@ class FooinoMathHandler implements Mathable
     {
         $number = $this->trimTrailingZeros(number: $number);
 
-        $pos = strrpos($number, '.');
+        $dotPos = strrpos($number, '.');
 
-        return (!is_numeric($number) || $pos === false) ? 0 : strlen(substr($number, $pos + 1));
+        return (!is_numeric($number) || $dotPos === false) ? 0 : strlen(substr($number, $dotPos + 1));
     }
 
     public function number(mixed ...$number): string|array

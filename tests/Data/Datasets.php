@@ -112,6 +112,15 @@ class Datasets
         ];
     }
 
+    public static function shuffleZeros(int $count = 10): array
+    {
+        $zeros = self::zeros();
+
+        shuffle($zeros);
+
+        return array_map(fn($zero) => [$zero, '0'], array_slice($zeros, 0, $count));
+    }
+
     public static function nonZero(): array
     {
         return [
@@ -167,12 +176,8 @@ class Datasets
         ];
     }
 
-    public static function mathConvertScientificNumber()
+    public static function mathConvertScientificNumber(): array
     {
-        $zeros = self::zeros();
-        shuffle($zeros);
-        $zeros = array_map(fn($zero) => [$zero, '0'], array_slice($zeros, 0, 10));
-
         $set = [
             ['null', 'null'],
             ['null.null', 'null.null'],
@@ -336,6 +341,111 @@ class Datasets
             ['20.1e+20', '2010000000000000000000']
         ];
 
-        return array_merge($zeros, $set);
+        return array_merge(self::shuffleZeros(), $set);
+    }
+
+    public static function mathTrimTrailingZeros(): array
+    {
+        $set = [
+            ['test', 'test'],
+            ['foo.bar', 'foo.bar'],
+            ['foo.bar0', 'foo.bar0'],
+            ['foo.0', 'foo.0'],
+
+            ['-0.1E-2', '-0.001'],
+
+            [11, '11'],
+            [+11, '11'],
+            [-11, '-11'],
+
+            ['11', '11'],
+            ['+11', '11'],
+            ['-11', '-11'],
+
+            [11.11, '11.11'],
+            [+11.11, '11.11'],
+            [-11.11, '-11.11'],
+
+            ['11.11', '11.11'],
+            ['+11.11', '11.11'],
+            ['-11.11', '-11.11'],
+
+            [11., '11'],
+            [+11., '11'],
+            [-11., '-11'],
+            ['11.', '11'],
+            ['+11.', '11'],
+            ['-11.', '-11'],
+
+            [.11, '0.11'],
+            [+.11, '0.11'],
+            [-.11, '-0.11'],
+            ['.11', '0.11'],
+            ['+.11', '0.11'],
+            ['-.11', '-0.11'],
+
+            [1100, '1100'],
+            [+1100, '1100'],
+            [-1100, '-1100'],
+
+            ['1100', '1100'],
+            ['+1100', '1100'],
+            ['-1100', '-1100'],
+
+            [1100., '1100'],
+            [+1100., '1100'],
+            [-1100., '-1100'],
+
+            ['1100. ', '1100'],
+            ['+1100. ', '1100'],
+            ['-1100. ', '-1100'],
+
+            [1100.001100, '1100.0011'],
+            [+1100.001100, '1100.0011'],
+            [-1100.001100, '-1100.0011'],
+
+            ['1100.001100', '1100.0011'],
+            ['+1100.001100', '1100.0011'],
+            ['-1100.001100', '-1100.0011'],
+
+            [.001100, '0.0011'],
+            [+.001100, '0.0011'],
+            [-.001100, '-0.0011'],
+
+            ['.001100', '0.0011'],
+            ['+.001100', '0.0011'],
+            ['-.001100', '-0.0011'],
+
+            ['-0.1E-2', '-0.001']
+        ];
+
+        return array_merge(self::shuffleZeros(5), $set);
+    }
+
+    public static function mathCountDecimalPlaces(): array
+    {
+        $set = [
+            [11, 0],
+            [11.01, 2],
+
+            [0.000000000100, 10],
+            ['0.00000000100', 9],
+
+            [1.1e-8, 9],
+            [0.1e-8, 9],
+            [0.e-8, 0],
+
+            ['.1e-8', 9],
+            ['-.1e-8', 9],
+
+            ['test', 0],
+            ['test.', 0],
+            ['test.0', 0]
+        ];
+
+        return array_merge(
+            array_map(fn($arr) => [$arr[0], (int)$arr[1]], self::shuffleZeros(5)),
+            $set
+        );
     }
 }

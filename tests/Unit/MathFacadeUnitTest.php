@@ -27,131 +27,21 @@ describe('Math facade using FooinoMathHandler', function () {
     })
         ->with(Datasets::mathConvertScientificNumber());
 
-    test('trimTrailingZeros method', function () {
+    test('trimTrailingZeros method', function ($number, $expected) {
 
-        expect(Math::trimTrailingZeros('test'))->toBe('test');
-        expect(Math::trimTrailingZeros('foo.bar'))->toBe('foo.bar');
-        expect(Math::trimTrailingZeros('foo.bar0'))->toBe('foo.bar0');
-        expect(Math::trimTrailingZeros('foo.0'))->toBe('foo.0');
+        expect(Math::trimTrailingZeros($number))->toBe($expected);
 
-        expect(Math::trimTrailingZeros(0))->toBe('0');
-        expect(Math::trimTrailingZeros(+0))->toBe('0');
-        expect(Math::trimTrailingZeros(-0))->toBe('0');
+        // 
+    })
+        ->with(Datasets::mathTrimTrailingZeros());
 
-        expect(Math::trimTrailingZeros('0'))->toBe('0');
-        expect(Math::trimTrailingZeros('+0'))->toBe('0');
-        expect(Math::trimTrailingZeros('-0'))->toBe('0');
+    test('countDecimalPlaces method', function ($number, $expected) {
 
-        expect(Math::trimTrailingZeros(0.0))->toBe('0');
-        expect(Math::trimTrailingZeros(+0.0))->toBe('0');
-        expect(Math::trimTrailingZeros(-0.0))->toBe('0');
+        expect(Math::countDecimalPlaces($number))->toBe($expected);
 
-        expect(Math::trimTrailingZeros('0.0'))->toBe('0');
-        expect(Math::trimTrailingZeros('+0.0'))->toBe('0');
-        expect(Math::trimTrailingZeros('-0.0'))->toBe('0');
-
-        expect(Math::trimTrailingZeros(0.))->toBe('0');
-        expect(Math::trimTrailingZeros(+0.))->toBe('0');
-        expect(Math::trimTrailingZeros(-0.))->toBe('0');
-
-        expect(Math::trimTrailingZeros('0.'))->toBe('0');
-        expect(Math::trimTrailingZeros('+0.'))->toBe('0');
-        expect(Math::trimTrailingZeros('-0.'))->toBe('0');
-
-        expect(Math::trimTrailingZeros(.0))->toBe('0');
-        expect(Math::trimTrailingZeros(+.0))->toBe('0');
-        expect(Math::trimTrailingZeros(-.0))->toBe('0');
-
-        expect(Math::trimTrailingZeros('.0'))->toBe('0');
-        expect(Math::trimTrailingZeros('+.0'))->toBe('0');
-        expect(Math::trimTrailingZeros('-.0'))->toBe('0');
-
-        expect(Math::trimTrailingZeros(11))->toBe('11');
-        expect(Math::trimTrailingZeros(+11))->toBe('11');
-        expect(Math::trimTrailingZeros(-11))->toBe('-11');
-
-        expect(Math::trimTrailingZeros('11'))->toBe('11');
-        expect(Math::trimTrailingZeros('+11'))->toBe('11');
-        expect(Math::trimTrailingZeros('-11'))->toBe('-11');
-
-        expect(Math::trimTrailingZeros(11.11))->toBe('11.11');
-        expect(Math::trimTrailingZeros(+11.11))->toBe('11.11');
-        expect(Math::trimTrailingZeros(-11.11))->toBe('-11.11');
-
-        expect(Math::trimTrailingZeros('11.11'))->toBe('11.11');
-        expect(Math::trimTrailingZeros('+11.11'))->toBe('11.11');
-        expect(Math::trimTrailingZeros('-11.11'))->toBe('-11.11');
-
-        expect(Math::trimTrailingZeros(11.))->toBe('11');
-        expect(Math::trimTrailingZeros(+11.))->toBe('11');
-        expect(Math::trimTrailingZeros(-11.))->toBe('-11');
-
-        expect(Math::trimTrailingZeros('11.'))->toBe('11');
-        expect(Math::trimTrailingZeros('+11.'))->toBe('11');
-        expect(Math::trimTrailingZeros('-11.'))->toBe('-11');
-
-        expect(Math::trimTrailingZeros(.11))->toBe('0.11');
-        expect(Math::trimTrailingZeros(+.11))->toBe('0.11');
-        expect(Math::trimTrailingZeros(-.11))->toBe('-0.11');
-
-        expect(Math::trimTrailingZeros('.11'))->toBe('0.11');
-        expect(Math::trimTrailingZeros('+.11'))->toBe('0.11');
-        expect(Math::trimTrailingZeros('-.11'))->toBe('-0.11');
-
-        expect(Math::trimTrailingZeros(1100))->toBe('1100');
-        expect(Math::trimTrailingZeros(+1100))->toBe('1100');
-        expect(Math::trimTrailingZeros(-1100))->toBe('-1100');
-
-        expect(Math::trimTrailingZeros('1100'))->toBe('1100');
-        expect(Math::trimTrailingZeros('+1100'))->toBe('1100');
-        expect(Math::trimTrailingZeros('-1100'))->toBe('-1100');
-
-        expect(Math::trimTrailingZeros(1100.001100))->toBe('1100.0011');
-        expect(Math::trimTrailingZeros(+1100.001100))->toBe('1100.0011');
-        expect(Math::trimTrailingZeros(-1100.001100))->toBe('-1100.0011');
-
-        expect(Math::trimTrailingZeros('1100.001100'))->toBe('1100.0011');
-        expect(Math::trimTrailingZeros('+1100.001100'))->toBe('1100.0011');
-        expect(Math::trimTrailingZeros('-1100.001100'))->toBe('-1100.0011');
-
-        expect(Math::trimTrailingZeros(1100.))->toBe('1100');
-        expect(Math::trimTrailingZeros(+1100.))->toBe('1100');
-        expect(Math::trimTrailingZeros(-1100.))->toBe('-1100');
-
-        expect(Math::trimTrailingZeros('1100.'))->toBe('1100');
-        expect(Math::trimTrailingZeros('+1100.'))->toBe('1100');
-        expect(Math::trimTrailingZeros('-1100.'))->toBe('-1100');
-
-        expect(Math::trimTrailingZeros(.001100))->toBe('0.0011');
-        expect(Math::trimTrailingZeros(+.001100))->toBe('0.0011');
-        expect(Math::trimTrailingZeros(-.001100))->toBe('-0.0011');
-
-        expect(Math::trimTrailingZeros('.001100'))->toBe('0.0011');
-        expect(Math::trimTrailingZeros('+.001100'))->toBe('0.0011');
-        expect(Math::trimTrailingZeros('-.001100'))->toBe('-0.0011');
-
-        expect(Math::trimTrailingZeros('-0.1E-2'))->toBe('-0.001');
-    });
-
-    test('countDecimalPlaces method', function () {
-
-        expect(Math::countDecimalPlaces(0))->toBe(0);
-        expect(Math::countDecimalPlaces(11))->toBe(0);
-        expect(Math::countDecimalPlaces(11.01))->toBe(2);
-        expect(Math::countDecimalPlaces(0.000000000100))->toBe(10);
-        expect(Math::countDecimalPlaces('0.00000000100'))->toBe(9);
-
-        expect(Math::countDecimalPlaces(1.1e-8))->toBe(9);
-        expect(Math::countDecimalPlaces(0.1e-8))->toBe(9);
-        expect(Math::countDecimalPlaces(0.e-8))->toBe(0);
-
-        expect(Math::countDecimalPlaces('.1e-8'))->toBe(9);
-        expect(Math::countDecimalPlaces('-.1e-8'))->toBe(9);
-
-        expect(Math::countDecimalPlaces('test'))->toBe(0);
-        expect(Math::countDecimalPlaces('test.'))->toBe(0);
-        expect(Math::countDecimalPlaces('test.0'))->toBe(0);
-    });
+        //
+    })
+        ->with(Datasets::mathCountDecimalPlaces());
 
     test('number method', function () {
 

@@ -81,7 +81,7 @@ if (!function_exists('dateConvert')) {
 
 if (!function_exists('math')) {
     /**
-     * Get math instance base on precision
+     * Get a fresh Mathable instance configured with the given precision
      */
     function math(int $precision = 12): Mathable
     {
@@ -91,7 +91,7 @@ if (!function_exists('math')) {
 
 if (!function_exists('number')) {
     /**
-     * Convert number to well-formatted in truncated base on precision
+     * Format one or more numbers by truncating them to the configured precision, removing trailing zeros, and returning clean numeric strings
      */
     function number(mixed ...$number): string|array
     {
@@ -101,7 +101,7 @@ if (!function_exists('number')) {
 
 if (!function_exists('numberFormat')) {
     /**
-     * Convert number to currency format base on precision
+     * Format a number with thousands separators and apply precision truncation, returning a locale-friendly currency-style string
      */
     function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string
     {
@@ -111,7 +111,7 @@ if (!function_exists('numberFormat')) {
 
 if (!function_exists('sum')) {
     /**
-     * Sum series of number or array of numbers
+     * Add a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
     function sum(mixed ...$operand): string
     {
@@ -121,7 +121,7 @@ if (!function_exists('sum')) {
 
 if (!function_exists('subtract')) {
     /**
-     * Subtract series of number or array of numbers
+     * Subtract a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
     function subtract(mixed ...$operand): string
     {
@@ -131,7 +131,7 @@ if (!function_exists('subtract')) {
 
 if (!function_exists('multiply')) {
     /**
-     * Multiply series of number or array of numbers
+     * Multiply a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
     function multiply(mixed ...$operand): string
     {
@@ -141,7 +141,7 @@ if (!function_exists('multiply')) {
 
 if (!function_exists('divide')) {
     /**
-     * Divide series of number or array of numbers
+     * Divide a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
     function divide(mixed ...$operand): string
     {
@@ -151,7 +151,7 @@ if (!function_exists('divide')) {
 
 if (!function_exists('roundUp')) {
     /**
-     * Round the number up
+     * Round a number up to the next integer (ceiling), away from zero
      */
     function roundUp(string|int|float|array $number): string|array
     {
@@ -161,7 +161,7 @@ if (!function_exists('roundUp')) {
 
 if (!function_exists('roundDown')) {
     /**
-     * Round the number down
+     * Round a number down to the previous integer (floor), toward zero
      */
     function roundDown(string|int|float|array $number): string|array
     {
@@ -171,7 +171,7 @@ if (!function_exists('roundDown')) {
 
 if (!function_exists('roundClose')) {
     /**
-     * Round the number to the nearest integer
+     * Round a number to a specified precision using a configurable rounding mode
      */
     function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array
     {
