@@ -448,4 +448,27 @@ class Datasets
             $set
         );
     }
+
+    public static function mathNumber(): array
+    {
+        $set = [
+            [0.001, '0.001', null],
+            [0.001, '0', 2],
+            ['.44015042', '0.44015042', null],
+            [0.44015042, '0.4401', 4],
+            [11.000001000, '11.000001', null],
+            [-11.000001000, '-11.000001', null],
+            [1e8, '100000000', null],
+            [-1e8, '-100000000', null],
+            [1.1e+8, '110000000', null],
+            [.1e+8, '10000000', null],
+            [1.101e-5, '0.00001101', null],
+            [-0.101e-5, '-0.00000101', null],
+            [1.1E+20, '110000000000000000000', null],
+            [1.1E-20, '0', null], // the decimal numbers is very more than precision
+            [[1, 11.000001000, '.e+8'], ['1', '11.000001', '0'], null],
+        ];
+
+        return array_merge(self::shuffleZeros(5), $set);
+    }
 }

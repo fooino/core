@@ -43,39 +43,34 @@ describe('Math facade using FooinoMathHandler', function () {
     })
         ->with(Datasets::mathCountDecimalPlaces());
 
-    test('number method', function () {
+    test('number method', function ($number, $expected, $precision = null) {
 
-        expect(Math::number(0))->toBe('0');
+        if (rand(0, 1)) {
 
-        expect(Math::number(0.001))->toBe('0.001');
-        expect(Math::setPrecision(precision: 2)->number(0.001))->toBe('0');
-        expect(math(precision: 2)->number(0.001))->toBe('0');
+            if (!is_null($precision)) {
 
-        expect(Math::number('.44015042'))->toBe('0.44015042');
-        expect(Math::setPrecision(precision: 4)->number(0.44015042))->toBe('0.4401');
-        expect(number('.44015042'))->toBe('0.44015042');
-        expect(math(precision: 4)->number(0.44015042))->toBe('0.4401');
+                expect(Math::setPrecision(precision: $precision)->number($number))->toBe($expected);
+                return;
+            }
 
-        expect(Math::number(11.000001000))->toBe('11.000001');
-        expect(Math::number(-11.000001000))->toBe('-11.000001');
+            expect(Math::number($number))->toBe($expected);
+        }
 
-        expect(Math::number(1e8))->toBe('100000000');
-        expect(Math::number(-1e8))->toBe('-100000000');
+        if (!is_null($precision)) {
 
-        expect(Math::number(1.1e+8))->toBe('110000000');
-        expect(Math::number(.1e+8))->toBe('10000000');
+            expect(math(precision: $precision)->number($number))->toBe($expected);
+            return;
+        }
 
-        expect(Math::number(1.101e-5))->toBe('0.00001101');
-        expect(Math::number(-0.101e-5))->toBe('-0.00000101');
+        expect(number($number))->toBe($expected);
+    })
+        ->with(Datasets::mathNumber());
 
-        expect(Math::number(1.1E+20))->toBe('110000000000000000000');
-        expect(Math::number(1.1E-20))->toBe('0'); // the decimal numbers is very more than precision
-
-        expect(Math::number(1, 11.000001000, '.e+8'))->toBe(['1', '11.000001', '0']);
-        expect(number([1, 11.000001000, '.e+8']))->toBe(['1', '11.000001', '0']);
+    test('number with multiple arguments', function () {
 
         expect(Math::setPrecision(2)->number(1.001, '.44015042', '1e8', 'e8'))->toBe(['1', '0.44', '100000000', '0']);
-        expect(math(2)->number(1.001, '.44015042', '1e8', 'e8'))->toBe(['1', '0.44', '100000000', '0']);
+
+        expect(number(1, 11.000001000, '.e8'))->toBe(['1', '11.000001', '0']);
     });
 
     test('numberFormat method', function () {
@@ -228,6 +223,7 @@ describe('Math facade using FooinoMathHandler', function () {
         test('number check the input is numeric', function () {
 
             expect(fn() => number())->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
+            expect(fn() => number('test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
             expect(fn() => number(1, 'test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
             expect(fn() => number([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
 

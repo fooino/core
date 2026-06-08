@@ -169,7 +169,7 @@ class FooinoMathHandler implements Mathable
         $numbers = count($number) === 1 && is_array($number[0]) ? $number[0] : $number;
 
         if (count($numbers) === 0) {
-            $this->throwInvalidArgumentCountException(method: 'number', operand: $numbers);
+            $this->throwInvalidArgumentsCountException(method: 'number', operand: $numbers);
         }
 
         foreach ($numbers as $key => $value) {
@@ -381,7 +381,7 @@ class FooinoMathHandler implements Mathable
             count($numbers) === 0 ||
             (count($numbers) < 2 && in_array($method, ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod']))
         ) {
-            $this->throwInvalidArgumentCountException(method: $method, operand: $operand);
+            $this->throwInvalidArgumentsCountException(method: $method, operand: $operand);
         }
 
         foreach ($numbers as $key => $number) {
@@ -432,7 +432,7 @@ class FooinoMathHandler implements Mathable
             ->throw();
     }
 
-    private function throwInvalidArgumentCountException(string $method, string|int|float|array $operand, array $args = []): never
+    private function throwInvalidArgumentsCountException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
