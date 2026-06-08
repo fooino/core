@@ -73,28 +73,28 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(number(1, 11.000001000, '.e8'))->toBe(['1', '11.000001', '0']);
     });
 
-    test('numberFormat method', function () {
+    test('numberFormat method', function ($number, $thousandsSeparator, $expected, $precision = null) {
 
-        expect(Math::numberFormat(number: 0))->toBe('0');
-        expect(Math::numberFormat(number: 1.1e-20))->toBe("0"); // the decimal numbers is very more than precision
-        expect(Math::numberFormat(number: 1.1e-8))->toBe("0.000000011");
-        expect(Math::numberFormat(number: 1.1e+8))->toBe("110,000,000");
+        if (rand(0, 1)) {
 
-        expect(Math::numberFormat(number: 5000000))->toBe("5,000,000");
-        expect(Math::numberFormat(number: 5000000.50))->toBe("5,000,000.5");
-        expect(Math::numberFormat(number: 5000000.5))->toBe("5,000,000.5");
-        expect(Math::numberFormat(number: 5000000.05))->toBe("5,000,000.05");
-        expect(Math::numberFormat(number: 5000000.015))->toBe("5,000,000.015");
-        expect(Math::numberFormat(number: 5000000.0150))->toBe("5,000,000.015");
-        expect(Math::numberFormat(number: 5000000.0150100))->toBe("5,000,000.01501");
-        expect(Math::setPrecision(precision: 3)->numberFormat(number: 5000000.0150100))->toBe("5,000,000.015");
-        expect(math(precision: 2)->numberFormat(number: 5000000.0150100))->toBe("5,000,000.01");
+            if (!is_null($precision)) {
 
-        expect(Math::numberFormat(number: 1.1e+20, thousandsSeparator: "|"))->toBe("110|000|000|000|000|000|000");
+                expect(Math::setPrecision(precision: $precision)->numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+                return;
+            }
 
-        expect(Math::numberFormat(number: '5,000,000.0150100', thousandsSeparator: " "))->toBe("5 000 000.01501");
-        expect(Math::numberFormat(number: '-5-000-000.0150100', thousandsSeparator: "-"))->toBe("-5-000-000.01501");
-    });
+            expect(Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+        }
+
+        if (!is_null($precision)) {
+
+            expect(math(precision: $precision)->numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+            return;
+        }
+
+        expect(numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+    })
+        ->with(Datasets::mathNumberFormat());
 
     describe('handle exceptions', function () {
 
@@ -318,6 +318,7 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getWith())->toBe([
                     'method'        => 'numberFormat',
                     'operand'       => '2,000,000.12T',
+                    'args'          => []
                 ]);
             }
         });

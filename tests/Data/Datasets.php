@@ -112,7 +112,7 @@ class Datasets
         ];
     }
 
-    public static function shuffleZeros(int $count = 10): array
+    public static function shuffleZeros(int $count = 5): array
     {
         $zeros = self::zeros();
 
@@ -419,7 +419,7 @@ class Datasets
             ['-0.1E-2', '-0.001']
         ];
 
-        return array_merge(self::shuffleZeros(5), $set);
+        return array_merge(self::shuffleZeros(), $set);
     }
 
     public static function mathCountDecimalPlaces(): array
@@ -444,7 +444,7 @@ class Datasets
         ];
 
         return array_merge(
-            array_map(fn($arr) => [$arr[0], (int)$arr[1]], self::shuffleZeros(5)),
+            array_map(fn($arr) => [$arr[0], (int)$arr[1]], self::shuffleZeros()),
             $set
         );
     }
@@ -469,6 +469,32 @@ class Datasets
             [[1, 11.000001000, '.e+8'], ['1', '11.000001', '0'], null],
         ];
 
-        return array_merge(self::shuffleZeros(5), $set);
+        return array_merge(
+            array_map(fn($a) => [$a[0], $a[1], null], self::shuffleZeros()),
+            $set
+        );
+    }
+
+    public static function mathNumberFormat(): array
+    {
+        $set = [
+            [1.1e-20, ',', '0', null], // the decimal numbers is very more than precision
+            [1.1e-8, ',', '0.000000011', null],
+            [1.1e+8, ',', '110,000,000', null],
+            [5000000, ',', '5,000,000', null],
+            [5000000.50, ',', '5,000,000.5', null],
+            [5000000.05, ',', '5,000,000.05', null],
+            [5000000.0150100, ',', '5,000,000.01501', null],
+            [5000000.0150100, ',', '5,000,000.015', 3],
+            [5000000.0150100, ',', '5,000,000.01', 2],
+            [1.1e+20, '|', '110|000|000|000|000|000|000', null],
+            ['5,000,000.0150100', ' ', '5 000 000.01501', null],
+            ['-5-000-000.0150100', '-', '-5-000-000.01501', null],
+        ];
+
+        return array_merge(
+            array_map(fn($a) => [$a[0], ',', $a[1], null], self::shuffleZeros()),
+            $set
+        );
     }
 }

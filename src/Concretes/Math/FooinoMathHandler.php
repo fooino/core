@@ -145,7 +145,7 @@ class FooinoMathHandler implements Mathable
         return $this->_trimTrailingZeros(number: $number, expandScientific: true);
     }
 
-    public function _trimTrailingZeros(string|int|float $number, bool $expandScientific = false): string
+    private function _trimTrailingZeros(string|int|float $number, bool $expandScientific = false): string
     {
         if ($expandScientific) {
 
@@ -166,6 +166,11 @@ class FooinoMathHandler implements Mathable
 
     public function number(mixed ...$number): string|array
     {
+        return $this->_number(true, ...$number);
+    }
+
+    private function _number(bool $expandScientific = false, mixed ...$number): string|array
+    {
         $numbers = count($number) === 1 && is_array($number[0]) ? $number[0] : $number;
 
         if (count($numbers) === 0) {
@@ -174,7 +179,9 @@ class FooinoMathHandler implements Mathable
 
         foreach ($numbers as $key => $value) {
 
-            $value = $this->convertScientificNumber(number: $value);
+            if ($expandScientific) {
+                $value = $this->convertScientificNumber(number: $value);
+            }
 
             if (!is_numeric($value)) {
                 $this->throwInvalidArgumentTypeException(method: 'number', operand: $numbers);
@@ -206,7 +213,7 @@ class FooinoMathHandler implements Mathable
             $this->throwInvalidArgumentTypeException(method: 'numberFormat', operand: $number);
         }
 
-        $sanitized = $this->number($sanitized); // apply precision
+        $sanitized = $this->_number(false, $sanitized); // apply precision
 
         list($sign, $integer, $decimal) = $this->numberParts(number: ($sign . $sanitized));
 
@@ -216,7 +223,7 @@ class FooinoMathHandler implements Mathable
             $integer
         );
 
-        return $sign . $integerWithSeparators . (isZero($decimal) ? '' : '.' . $decimal);
+        return trim($sign . $integerWithSeparators . ((isZero($decimal) || blank($decimal)) ? '' : '.' . $decimal));
     }
 
     public function sum(mixed ...$operand): string
