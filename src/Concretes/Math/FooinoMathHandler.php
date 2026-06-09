@@ -344,6 +344,8 @@ class FooinoMathHandler implements Mathable
         $integer = (string) ((isZero($integer) || blank($integer)) ? '0' : $integer);
         $decimal = (string) ((isZero($decimal) || blank($decimal)) ? '0' : $decimal);
 
+        $integer = ltrim($integer, '0') ?: '0'; // to handle '000123.1'
+
         $assembled = $integer . '.' . $decimal;
 
         $sign = ((is_numeric($assembled) && $sign === '+') || isZero($assembled)) ? '' : $sign; // when the number is zero or positive: make it empty string
@@ -378,7 +380,7 @@ class FooinoMathHandler implements Mathable
 
             $defaultTwoOperandTemplate = ['num1' => 'result', 'num2' => 'number', 'scale' => null];
 
-            list($result, $start, $templete) = match ($method) {
+            list($result, $start, $template) = match ($method) {
 
                 'bcadd'             => ['0', 0, $defaultTwoOperandTemplate],
 
@@ -398,7 +400,7 @@ class FooinoMathHandler implements Mathable
                 $number = $numbers[$i]; // DO NOT remove this since it will called in the map dynamically
 
                 $mapped = [];
-                foreach ($templete as $argKey => $argValue) {
+                foreach ($template as $argKey => $argValue) {
 
                     $mapped[$argKey] = !is_null($argValue) ? ${$argValue} : null;
 
@@ -413,7 +415,7 @@ class FooinoMathHandler implements Mathable
 
         if (in_array($method, $oneOperand)) {
 
-            $templete = match ($method) {
+            $template = match ($method) {
 
                 'bcpow'             => ['num' => 'value', 'exponent' => 'args.exponent', 'scale' => null],
 
@@ -433,7 +435,7 @@ class FooinoMathHandler implements Mathable
             foreach ($numbers as $key => $value) { // DO NOT remove or change $value, it wall call dynamically
 
                 $mapped = [];
-                foreach ($templete as $argKey => $argValue) {
+                foreach ($template as $argKey => $argValue) {
 
                     $mapped[$argKey] = !is_null($argValue) ? ((strpos($argValue, '.') !== false) ? data_get($operandAndArgs, $argValue) : ${$argValue}) : null;
 

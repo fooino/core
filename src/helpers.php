@@ -267,7 +267,7 @@ if (!function_exists('isZero')) {
             return false;
         }
 
-        return preg_match(pattern: '/^[-+]?(?:0+\.?0*|\.0+|(?:0*\.?0*)?[Ee][+-]?\d+)$/', subject: trim((string) $value)) === 1;
+        return preg_match(pattern: '/^[+-]?(?:0+\.?0*|\.0+|(?:0+\.?0*|\.0*)[Ee][+-]?\d+)$/', subject: trim((string) $value)) === 1;
     }
 }
 

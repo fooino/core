@@ -73,10 +73,6 @@ class Datasets
             '+.E+10',
             '-.E-10',
 
-            'E+10',
-            '+E+10',
-            '-E-10',
-
             0E+10,
             +0e+10,
             -0E-10,
@@ -97,10 +93,6 @@ class Datasets
             '0E10',
             '+0E10',
             '-0E10',
-
-            'e10',
-            '+E10',
-            '-e10',
 
             '   0.0',
             '  +.0E+10  ',
@@ -175,6 +167,14 @@ class Datasets
             '0a',
             '001',
             '0.001',
+
+            'e10',
+            '+E10',
+            '-e10',
+
+            'E+10',
+            '+E+10',
+            '-E-10',
         ];
     }
 
@@ -470,7 +470,7 @@ class Datasets
             [1.1E-20, '0', null], // the decimal numbers is very more than precision
             [[1, 11.000001000, '.e+8'], ['1', '11.000001', '0'], null],
 
-            [fn() => expect(Math::setPrecision(2)->number(1.001, '.44015042', '1e8', 'e8'))->toBe(['1', '0.44', '100000000', '0']), null, null],
+            [fn() => expect(Math::setPrecision(2)->number(1.001, '.44015042', '1e8', '.e+8'))->toBe(['1', '0.44', '100000000', '0']), null, null],
             [fn() => expect(number(1, 11.000001000, '.e8'))->toBe(['1', '11.000001', '0']), null, null]
         ];
 
