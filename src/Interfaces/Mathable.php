@@ -64,7 +64,7 @@ interface Mathable
     /**
      * Compute the modulus (remainder) of a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    public function modulus(mixed ...$operand): string;
+    public function remainder(mixed ...$operand): string;
 
     /**
      * Raise an arbitrary precision number to a given exponent

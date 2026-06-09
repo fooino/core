@@ -246,14 +246,14 @@ class FooinoMathHandler implements Mathable
         return $this->calc(method: 'bcdiv', operand: $operand);
     }
 
-    public function modulus(mixed ...$operand): string
+    public function remainder(mixed ...$operand): string
     {
         return $this->calc(method: 'bcmod', operand: $operand);
     }
 
     public function power(string|int|float|array $number, int $exponent = 2): string|array
     {
-        return $this->calc(method: 'bcpow', operand: (array) $number, args: [$exponent]);
+        return $this->calc(method: 'bcpow', operand: (array) $number, args: ['exponent' => $exponent]);
     }
 
     public function sqrt(string|int|float|array $number): string|array
@@ -273,7 +273,7 @@ class FooinoMathHandler implements Mathable
 
     public function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array
     {
-        return $this->calc(method: 'bcround', operand: (array) $number, args: [$precision, $mode]);
+        return $this->calc(method: 'bcround', operand: (array) $number, args: ['precision' => $precision, 'mode' => $mode]);
     }
 
 
@@ -342,29 +342,39 @@ class FooinoMathHandler implements Mathable
 
         if (in_array($method, $twoOperand)) {
 
-            list($result, $start) = match ($method) {
+            $defaultTwoOperandTemplate = ['num1' => 'result', 'num2' => 'number', 'scale' => null];
 
-                'bcadd'             => [0, 0],
+            list($result, $start, $templete) = match ($method) {
 
-                'bcsub'             => [$numbers[0], 1],
+                'bcadd'             => ['0', 0, $defaultTwoOperandTemplate],
 
-                'bcmul'             => [1, 0],
+                'bcsub'             => [$numbers[0], 1, $defaultTwoOperandTemplate],
 
-                'bcdiv'             => [$numbers[0], 1],
+                'bcmul'             => ['1', 0, $defaultTwoOperandTemplate],
 
-                'bcmod'             => [$numbers[0], 1],
+                'bcdiv'             => [$numbers[0], 1, $defaultTwoOperandTemplate],
 
-                default             => $this->throwUnsupportedFunctionException(func: $method, operand: $operand),
+                'bcmod'             => [$numbers[0], 1, $defaultTwoOperandTemplate],
+
+                default             => $this->throwUnsupportedFunctionException(method: $method, operand: $operand, args: $args),
             };
 
             for ($i = $start; $i < count($numbers); $i++) {
 
-                $number = $numbers[$i];
+                $number = $numbers[$i]; // DO NOT remove this since it will called in the map dynamically
 
-                $result = call_user_func($method, $result, $number);
+                $mapped = [];
+                foreach ($templete as $argKey => $argValue) {
+
+                    $mapped[$argKey] = !is_null($argValue) ? ${$argValue} : null;
+
+                    // 
+                }
+
+                $result = call_user_func($method, ...$mapped);
             }
 
-            return $result;
+            return $this->_trimTrailingZeros(number: $result);
         }
 
         if (in_array($method, $oneOperand)) {
@@ -377,7 +387,7 @@ class FooinoMathHandler implements Mathable
             return count($numbers) === 1 ? $numbers[0] : $numbers;
         }
 
-        $this->throwUnsupportedFunctionException(func: $method, operand: $operand);
+        $this->throwUnsupportedFunctionException(method: $method, operand: $operand, args: $args);
     }
 
     private function validateAndNormalizeNumbers(string $method, array $operand, array $args = []): array
@@ -388,7 +398,7 @@ class FooinoMathHandler implements Mathable
             count($numbers) === 0 ||
             (count($numbers) < 2 && in_array($method, ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod']))
         ) {
-            $this->throwInvalidArgumentsCountException(method: $method, operand: $operand);
+            $this->throwInvalidArgumentsCountException(method: $method, operand: $operand, args: $args);
         }
 
         foreach ($numbers as $key => $number) {
@@ -396,7 +406,7 @@ class FooinoMathHandler implements Mathable
             $numbers[$key] = $number = $this->convertScientificNumber(number: $number);
 
             if (!is_numeric($number)) {
-                $this->throwInvalidArgumentTypeException(method: $method, operand: $operand);
+                $this->throwInvalidArgumentTypeException(method: $method, operand: $operand, args: $args);
             }
 
             if (
@@ -410,7 +420,7 @@ class FooinoMathHandler implements Mathable
             if (
                 $method === 'bcpow' &&
                 isZero($number) &&
-                $args[0] < 0
+                (count($args) !== 1 || !is_int($args['exponent'] ?? null) || $args['exponent'] < 0)
             ) {
                 $this->throwDivisionByZeroException(method: $method, operand: $operand, args: $args);
             }
@@ -493,13 +503,14 @@ class FooinoMathHandler implements Mathable
             ->throw();
     }
 
-    private function throwUnsupportedFunctionException(string $func, string|int|float|array $operand): never
+    private function throwUnsupportedFunctionException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionUnsupportedFunction')
             ->setCode(10106)
             ->with([
-                'func'      => $func,
-                'operand'   => $operand
+                'method'        => $method,
+                'operand'       => $operand,
+                'args'          => $args
             ])
             ->throw();
     }

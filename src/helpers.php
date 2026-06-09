@@ -149,6 +149,16 @@ if (!function_exists('divide')) {
     }
 }
 
+if (!function_exists('remainder')) {
+    /**
+     * Compute the modulus (remainder) of a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
+     */
+    function remainder(mixed ...$operand): string
+    {
+        return Math::remainder(...$operand);
+    }
+}
+
 if (!function_exists('roundUp')) {
     /**
      * Round a number up to the next integer (ceiling), away from zero

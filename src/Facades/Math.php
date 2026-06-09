@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string subtract(mixed ...$operand)
  * @method static string multiply(mixed ...$operand)
  * @method static string divide(mixed ...$operand)
- * @method static string modulus(mixed ...$operand)
+ * @method static string remainder(mixed ...$operand)
  * 
  * @method static string|array power(string|int|float|array $number, int $exponent = 2)
  * @method static string|array sqrt(string|int|float|array $number)
