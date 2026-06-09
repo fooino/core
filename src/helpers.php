@@ -189,6 +189,66 @@ if (!function_exists('roundClose')) {
     }
 }
 
+if (!function_exists('greaterThan')) {
+    /**
+     * Compare two numbers
+     */
+    function greaterThan(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::greaterThan(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('greaterThanOrEqual')) {
+    /**
+     * Compare two numbers
+     */
+    function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::greaterThanOrEqual(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('lessThan')) {
+    /**
+     * Compare two numbers
+     */
+    function lessThan(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::lessThan(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('lessThanOrEqual')) {
+    /**
+     * Compare two numbers
+     */
+    function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::lessThanOrEqual(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('equal')) {
+    /**
+     * Compare two numbers
+     */
+    function equal(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::equal(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('notEqual')) {
+    /**
+     * Compare two numbers
+     */
+    function notEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::notEqual(a: $a, b: $b);
+    }
+}
+
 if (!function_exists('isZero')) {
     /**
      * Check the value is zero or not

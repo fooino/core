@@ -276,6 +276,40 @@ class FooinoMathHandler implements Mathable
         return $this->calc(method: 'bcround', operand: (array) $number, args: ['precision' => $precision, 'mode' => $mode]);
     }
 
+    public function greaterThan(string|int|float $a, string|int|float $b): bool
+    {
+        return $this->compare($a, $b) === 1;
+    }
+
+    public function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return $this->compare($a, $b) !== -1;
+    }
+
+    public function lessThan(string|int|float $a, string|int|float $b): bool
+    {
+        return $this->compare($a, $b) === -1;
+    }
+
+    public function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return $this->compare($a, $b) !== 1;
+    }
+
+    public function equal(string|int|float $a, string|int|float $b): bool
+    {
+        return $this->compare($a, $b) === 0;
+    }
+
+    public function notEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return !$this->equal($a, $b);
+    }
+
+    private function compare(string|int|float $a, string|int|float $b): int
+    {
+        return bccomp($this->convertScientificNumber(number: $a), $this->convertScientificNumber(number: $b));
+    }
 
     /**
      * return sign, integer, decimal part of number

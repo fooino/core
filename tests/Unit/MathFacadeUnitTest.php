@@ -257,6 +257,110 @@ describe('Math facade using FooinoMathHandler', function () {
     })
         ->with(Datasets::mathRoundClose());
 
+    test('greaterThan method', function ($a, $b, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::greaterThan($a, $b))->toBe($expected);
+
+            return;
+        }
+
+        expect(greaterThan($a, $b))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathGreaterThan());
+
+    test('greaterThanOrEqual method', function ($a, $b, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::greaterThanOrEqual($a, $b))->toBe($expected);
+
+            return;
+        }
+
+        expect(greaterThanOrEqual($a, $b))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathGreaterThanOrEqual());
+
+    test('lessThan method', function ($a, $b, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::lessThan($a, $b))->toBe($expected);
+
+            return;
+        }
+
+        expect(lessThan($a, $b))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathLessThan());
+
+    test('lessThanOrEqual method', function ($a, $b, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::lessThanOrEqual($a, $b))->toBe($expected);
+
+            return;
+        }
+
+        expect(lessThanOrEqual($a, $b))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathLessThanOrEqual());
+
+    test('equal method', function ($a, $b, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::equal($a, $b))->toBe($expected);
+
+            return;
+        }
+
+        expect(equal($a, $b))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathEqual());
+
+    test('notEqual method', function ($a, $b, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::notEqual($a, $b))->toBe($expected);
+
+            return;
+        }
+
+        expect(notEqual($a, $b))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathNotEqual());
+
+
+
     describe('handle exceptions', function () {
 
         test('invalid precision', function () {

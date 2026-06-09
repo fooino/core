@@ -910,4 +910,114 @@ class Datasets
             [-0.001,  2, RoundingMode::PositiveInfinity,  '0'],     // negative tiny → ceil to zero
         ];
     }
+
+    public static function mathGreaterThan(): array
+    {
+        return [
+            [0, 0, false],
+            [-1, 0, false],
+
+            [0, 5, false],
+            [0, -1, true],
+
+            [1.11, 1.112, false],
+
+            [1.1e+8, 1.1e-8, true],
+            [1.1e+8, 1.1e+8, false],
+            [1.1e-8, 1.1e+8, false],
+            [1.1e-8, 1.1e+8, false],
+        ];
+    }
+
+    public static function mathGreaterThanOrEqual(): array
+    {
+        return [
+            [0, 0, true],
+
+            [-1, 0, false],
+            [0, 5, false],
+            [0, -1, true],
+
+            [1.112, 1.112, true],
+            [1.113, 1.112, true],
+
+            [1.1e+8, 1.1e-8, true],
+            [1.1e+8, 1.1e+8, true],
+            [1.1e-8, 1.1e+8, false],
+        ];
+    }
+
+    public static function mathLessThan(): array
+    {
+        return [
+            [0, 0, false],
+
+            [-1, 0, true],
+            [0, 5, true],
+            [0, -1, false],
+
+            [1.112, 1.11, false],
+            [1.112, 1.11, false],
+
+            [1.1e-8, 1.1e+8, true],
+            [1.1e+8, 1.1e+8, false],
+            [1.1e+8, 1.1e-8, false],
+        ];
+    }
+
+    public static function mathLessThanOrEqual(): array
+    {
+        return [
+            [0, 0, true],
+
+            [-1, 0, true],
+            [0, 5, true],
+            [0, -1, false],
+
+            [1.11, 1.11, true],
+            [1.1, 1.11, true],
+
+            [1.1e-8, 1.1e+8, true],
+            [1.1e+8, 1.1e+8, true],
+            [1.1e+8, 1.1e-8, false],
+        ];
+    }
+
+    public static function mathEqual(): array
+    {
+        return [
+            [0, 0, true],
+
+            [-1, 0, false],
+            [0, 5, false],
+            [0, -1, false],
+
+            [1.112, 1.113, false],
+            [1.112, 1.113, false],
+            [1.112, 1.112, true],
+
+            [1.1e-8, 1.1e+8, false],
+            [1.1e+8, 1.1e+8, true],
+            [1.1e+8, 1.1e-8, false],
+        ];
+    }
+
+    public static function mathNotEqual(): array
+    {
+        return [
+            [0, 0, false],
+
+            [-1, 0, true],
+            [0, 5, true],
+            [0, -1, true],
+
+            [1.112, 1.113, true],
+            [1.112, 1.113, true],
+            [1.112, 1.112, false],
+
+            [1.1e-8, 1.1e+8, true],
+            [1.1e+8, 1.1e+8, false],
+            [1.1e+8, 1.1e-8, true],
+        ];
+    }
 }

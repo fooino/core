@@ -90,4 +90,34 @@ interface Mathable
      * Round a number to a specified precision using a configurable rounding mode
      */
     public function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array;
+
+    /**
+     * compare two numbers
+     */
+    public function greaterThan(string|int|float $a, string|int|float $b): bool;
+
+    /**
+     * compare two numbers
+     */
+    public function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool;
+
+    /**
+     * compare two numbers
+     */
+    public function lessThan(string|int|float $a, string|int|float $b): bool;
+
+    /**
+     * compare two numbers
+     */
+    public function lessThanOrEqual(string|int|float $a, string|int|float $b): bool;
+
+    /**
+     * compare two numbers
+     */
+    public function equal(string|int|float $a, string|int|float $b): bool;
+
+    /**
+     * compare two numbers
+     */
+    public function notEqual(string|int|float $a, string|int|float $b): bool;
 }

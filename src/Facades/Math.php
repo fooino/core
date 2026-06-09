@@ -28,6 +28,15 @@ use Illuminate\Support\Facades\Facade;
  * @method static string|array roundDown(string|int|float|array $number)
  * @method static string|array roundClose(string|int|float|array $number , int $precision = 0, \RoundingMode $mode = \RoundingMode::HalfAwayFromZero)
  * 
+ * @method static bool greaterThan(string|int|float $a, string|int|float $b)
+ * @method static bool greaterThanOrEqual(string|int|float $a, string|int|float $b)
+ * 
+ * @method static bool lessThan(string|int|float $a, string|int|float $b)
+ * @method static bool lessThanOrEqual(string|int|float $a, string|int|float $b)
+ * 
+ * @method static bool equal(string|int|float $a, string|int|float $b)
+ * @method static bool notEqual(string|int|float $a, string|int|float $b)
+ * 
  * @see \Fooino\Core\Interfaces\Mathable
  * @see \Fooino\Core\Concretes\Math\MathManager
  * @see \Fooino\Core\Concretes\Math\FooinoMathHandler
