@@ -379,9 +379,34 @@ class FooinoMathHandler implements Mathable
 
         if (in_array($method, $oneOperand)) {
 
-            foreach ($numbers as $key => $value) {
+            $templete = match ($method) {
 
-                $numbers[$key] = call_user_func($method, $value, ...$args);
+                'bcpow'             => ['num' => 'value', 'exponent' => 'args.exponent', 'scale' => null],
+
+                'bcsqrt'            => ['num' => 'value', 'scale' => null],
+
+                'bcceil'            => ['num' => 'value'],
+
+                'bcfloor'           => ['num' => 'value'],
+
+                'bcround'           => ['num' => 'value', 'precision' => 'args.precision', 'mode' => 'args.mode'],
+
+                default             => $this->throwUnsupportedFunctionException(method: $method, operand: $operand, args: $args),
+            };
+
+            $operandAndArgs = ['operand' => $operand, 'args' => $args];
+
+            foreach ($numbers as $key => $value) { // DO NOT remove or change $value, it wall call dynamically
+
+                $mapped = [];
+                foreach ($templete as $argKey => $argValue) {
+
+                    $mapped[$argKey] = !is_null($argValue) ? ((strpos($argValue, '.') !== false) ? data_get($operandAndArgs, $argValue) : ${$argValue}) : null;
+
+                    // 
+                }
+
+                $numbers[$key] = $this->_trimTrailingZeros(number: call_user_func($method, ...$mapped));
             }
 
             return count($numbers) === 1 ? $numbers[0] : $numbers;

@@ -4,6 +4,7 @@ namespace Fooino\Core\Tests\Data;
 
 use Fooino\Core\Facades\Math;
 use Fooino\Core\Tests\Data\Traits\Datasetable;
+use RoundingMode;
 
 class Datasets
 {
@@ -650,5 +651,263 @@ class Datasets
             array_map(fn($z) => [[$z[0], 1], '0'], self::shuffleZeros()),
             $set
         );
+    }
+
+    public static function mathPower(): array
+    {
+        return [
+            [2, 2, '4'],
+            [2, -2, '0.25'],
+
+            [2, 3, '8'],
+            [2, -3, '0.125'],
+
+            [2, 0, '1'],
+            [0, 2, '0'],
+            [0, 0, '1'],
+
+            [1, 20, '1'],
+
+            [1.1e+2, 2, '12100'],
+
+            ['1234567891234567889999999', 2, '1524157878067367851562259605883269630864220000001'],
+            ['1234567891234567889999999', 3, '1881676377434183981909558127466713752376807174114547646517403703669999999'],
+
+            [[2, 3, 1.1e+2], 3, ['8', '27', '1331000']]
+        ];
+    }
+
+    public static function mathSqrt(): array
+    {
+        $set = [
+            [1, '1'],
+            [2, '1.414213562373'],
+            [3, '1.732050807568'],
+            [4, '2'],
+            [9, '3'],
+            [16, '4'],
+
+            ['1524157878067367851562259605883269630864220000001', '1234567891234567889999999'],
+            [1.1e+2, '10.488088481701'],
+
+            [[0, 1, 2, 3, 4, 9, 16], ['0', '1', '1.414213562373', '1.732050807568', '2', '3', '4']]
+        ];
+
+        return array_merge(self::shuffleZeros(3), $set);
+    }
+
+    public static function mathRoundUp(): array
+    {
+        return [
+            [0, '0'],
+
+            [0.01, '1'],
+            [-0.01, '0'],
+
+            [1, '1'],
+            [1.1, '2'],
+            [-1.1, '-1'],
+
+            [1.999099, '2'],
+            [-1.999099, '-1'],
+
+            [1.1e+8, '110000000'],
+            [1.1e-8, '1'],
+
+            [[0, 0.01, -0.01, 1, 1.1, -1.1, 1.999099, -1.999099, 1.1e+8, 1.1e-8], ['0', '1', '0', '1', '2', '-1', '2', '-1', '110000000', '1']]
+        ];
+    }
+
+    public static function mathRoundDown(): array
+    {
+        return [
+            [0, '0'],
+
+            [0.01, '0'],
+            [-0.01, '-1'],
+
+            [1, '1'],
+            [1.1, '1'],
+            [-1.1, '-2'],
+
+            [1.999099, '1'],
+            [-1.999099, '-2'],
+
+            [1.1e+8, '110000000'],
+            [1.1e-8, '0'],
+
+            [[0, 0.01, -0.01, 1, 1.1, -1.1, 1.9999, -1.9999, 1.1e+8, 1.1e-8], ['0', '0', '-1', '1', '1', '-2', '1', '-2', '110000000', '0']]
+        ];
+    }
+
+    public static function mathRoundClose(): array
+    {
+        return [
+            [1.1,    0, RoundingMode::HalfAwayFromZero, '1'],
+            [1.5,    0, RoundingMode::HalfAwayFromZero, '2'],      // halfway → away from zero
+            [-1.1,   0, RoundingMode::HalfAwayFromZero, '-1'],
+            [-1.5,   0, RoundingMode::HalfAwayFromZero, '-2'],     // halfway → away from zero (more negative)
+            [2.5,    0, RoundingMode::HalfAwayFromZero, '3'],
+            [-2.5,   0, RoundingMode::HalfAwayFromZero, '-3'],
+            [0.5,    0, RoundingMode::HalfAwayFromZero, '1'],
+            [-0.5,   0, RoundingMode::HalfAwayFromZero, '-1'],
+            [0.499,  0, RoundingMode::HalfAwayFromZero, '0'],     // just below halfway → rounds towards zero
+            [-0.499, 0, RoundingMode::HalfAwayFromZero, '0'],     // just below halfway → rounds towards zero
+
+            [[1.1, 1.5, 0.499], 0, RoundingMode::HalfAwayFromZero, ['1', '2', '0']],
+
+            [1.2,     2, RoundingMode::HalfAwayFromZero, '1.2'],
+            [1.92,    2, RoundingMode::HalfAwayFromZero, '1.92'],
+            [1.996,   2, RoundingMode::HalfAwayFromZero, '2'],      // third decimal 6 ≥ 5 → carries into integer part
+            [1.005,   2, RoundingMode::HalfAwayFromZero, '1.01'],   // exactly halfway → away from zero
+            [1.004,   2, RoundingMode::HalfAwayFromZero, '1'],      // just below halfway
+            [-1.005,  2, RoundingMode::HalfAwayFromZero, '-1.01'],
+            [-1.004,  2, RoundingMode::HalfAwayFromZero, '-1'],
+            [1.995,   2, RoundingMode::HalfAwayFromZero, '2'],      // halfway + carry
+            [-1.995,  2, RoundingMode::HalfAwayFromZero, '-2'],
+
+            [1.1,    0, RoundingMode::HalfTowardsZero, '1'],      // below halfway → normal rounding
+            [1.5,    0, RoundingMode::HalfTowardsZero, '1'],      // halfway → toward zero (not 2)
+            [-1.5,   0, RoundingMode::HalfTowardsZero, '-1'],     // halfway → toward zero (not -2)
+            [2.5,    0, RoundingMode::HalfTowardsZero, '2'],      // halfway → toward zero
+            [-2.5,   0, RoundingMode::HalfTowardsZero, '-2'],     // halfway → toward zero
+            [0.5,    0, RoundingMode::HalfTowardsZero, '0'],      // halfway → toward zero
+            [-0.5,   0, RoundingMode::HalfTowardsZero, '0'],      // halfway → toward zero
+            [0.499,  0, RoundingMode::HalfTowardsZero, '0'],      // just below halfway → no rounding up
+            [-0.499, 0, RoundingMode::HalfTowardsZero, '0'],      // just below halfway → stays 0
+
+            [1.2,     2, RoundingMode::HalfTowardsZero, '1.2'],   // no rounding needed
+            [1.005,   2, RoundingMode::HalfTowardsZero, '1'],     // exactly halfway → toward zero (1.00, not 1.01)
+            [-1.005,  2, RoundingMode::HalfTowardsZero, '-1'],    // exactly halfway → toward zero (-1.00, not -1.01)
+            [1.004,   2, RoundingMode::HalfTowardsZero, '1'],     // just below halfway
+            [-1.004,  2, RoundingMode::HalfTowardsZero, '-1'],    // just below halfway
+            [1.995,   2, RoundingMode::HalfTowardsZero, '1.99'],  // exactly halfway between 1.99 and 2.00 → toward zero
+            [-1.995,  2, RoundingMode::HalfTowardsZero, '-1.99'], // exactly halfway → toward zero (-1.99, not -2.00)
+            [1.996,   2, RoundingMode::HalfTowardsZero, '2'],     // above halfway → normal rounding up
+            [0.005,   2, RoundingMode::HalfTowardsZero, '0'],     // halfway → toward zero
+            [-0.005,  2, RoundingMode::HalfTowardsZero, '0'],     // halfway → toward zero
+
+            [1.1,    0, RoundingMode::HalfEven, '1'],            // normal rounding
+            [1.5,    0, RoundingMode::HalfEven, '2'],            // half → even neighbour (2 is even)
+            [2.5,    0, RoundingMode::HalfEven, '2'],            // half → even (2)
+            [0.5,    0, RoundingMode::HalfEven, '0'],            // half → even (0)
+            [-1.5,   0, RoundingMode::HalfEven, '-2'],           // half → even neighbour, -2 is even
+            [-2.5,   0, RoundingMode::HalfEven, '-2'],           // half → even (-2)
+            [-0.5,   0, RoundingMode::HalfEven, '0'],            // half → even (0)
+            [0.499,  0, RoundingMode::HalfEven, '0'],            // just below half → towards zero
+
+            [1.2,     2, RoundingMode::HalfEven, '1.2'],       // no rounding needed
+            [1.005,   2, RoundingMode::HalfEven, '1'],          // half → last digit even (0)
+            [1.025,   2, RoundingMode::HalfEven, '1.02'],       // half → last digit even (2)
+            [-1.005,  2, RoundingMode::HalfEven, '-1'],         // half → even (-1.00)
+            [-1.025,  2, RoundingMode::HalfEven, '-1.02'],      // half → even (-1.02)
+            [1.995,   2, RoundingMode::HalfEven, '2'],          // half → 2.00 (last digit 0, even)
+            [2.005,   2, RoundingMode::HalfEven, '2'],          // half → even (2.00)
+            [0.005,   2, RoundingMode::HalfEven, '0'],          // half → even (0.00)
+            [-0.005,  2, RoundingMode::HalfEven, '0'],          // half → even (0.00)
+            [1.004,   2, RoundingMode::HalfEven, '1'],          // just below half → normal rounding down
+
+            [1.1,    0, RoundingMode::HalfOdd, '1'],            // normal rounding
+            [1.5,    0, RoundingMode::HalfOdd, '1'],            // half → odd neighbour (1 is odd, not 2)
+            [2.5,    0, RoundingMode::HalfOdd, '3'],            // half → odd (3 is odd, 2 is even)
+            [-1.5,   0, RoundingMode::HalfOdd, '-1'],           // half → odd (-1 is odd, -2 even)
+            [-2.5,   0, RoundingMode::HalfOdd, '-3'],           // half → odd (-3 odd, -2 even)
+            [0.5,    0, RoundingMode::HalfOdd, '1'],            // half → odd (1)
+            [-0.5,   0, RoundingMode::HalfOdd, '-1'],           // half → odd (-1)
+            [0.499,  0, RoundingMode::HalfOdd, '0'],            // just below half → no rounding up
+
+            [1.2,     2, RoundingMode::HalfOdd, '1.2'],         // no rounding
+            [1.005,   2, RoundingMode::HalfOdd, '1.01'],        // half → last digit odd (1.01, not 1.00)
+            [1.025,   2, RoundingMode::HalfOdd, '1.03'],        // half → odd (1.03, last digit 3 odd)
+            [-1.005,  2, RoundingMode::HalfOdd, '-1.01'],       // half → odd (-1.01)
+            [-1.025,  2, RoundingMode::HalfOdd, '-1.03'],       // half → odd (-1.03)
+            [1.995,   2, RoundingMode::HalfOdd, '1.99'],        // half → 1.99 (last digit 9 odd, 2.00 would be even)
+            [2.005,   2, RoundingMode::HalfOdd, '2.01'],        // half → odd (2.01, not 2.00)
+            [0.005,   2, RoundingMode::HalfOdd, '0.01'],        // half → odd (0.01, not 0.00)
+            [-0.005,  2, RoundingMode::HalfOdd, '-0.01'],       // half → odd (-0.01)
+            [1.004,   2, RoundingMode::HalfOdd, '1'],           // just below half → normal rounding down
+
+            [1.1,    0, RoundingMode::TowardsZero, '1'],      // truncate → 1
+            [1.5,    0, RoundingMode::TowardsZero, '1'],      // half does not round up → 1
+            [1.9,    0, RoundingMode::TowardsZero, '1'],      // just below 2 → 1
+            [-1.1,   0, RoundingMode::TowardsZero, '-1'],     // truncate → -1
+            [-1.5,   0, RoundingMode::TowardsZero, '-1'],     // truncate toward zero → -1
+            [-1.9,   0, RoundingMode::TowardsZero, '-1'],     // truncate → -1
+            [2.5,    0, RoundingMode::TowardsZero, '2'],      // truncate → 2
+            [-2.5,   0, RoundingMode::TowardsZero, '-2'],     // truncate → -2
+            [0.5,    0, RoundingMode::TowardsZero, '0'],      // truncate → 0
+            [-0.5,   0, RoundingMode::TowardsZero, '0'],      // truncate → 0
+
+            [1.2,     2, RoundingMode::TowardsZero, '1.2'],   // exact → no change
+            [1.996,   2, RoundingMode::TowardsZero, '1.99'],  // third decimal cut, no rounding → 1.99
+            [1.004,   2, RoundingMode::TowardsZero, '1'],     // 1.004 → 1.00
+            [1.005,   2, RoundingMode::TowardsZero, '1'],     // halfway → truncate, stays 1.00
+            [-1.005,  2, RoundingMode::TowardsZero, '-1'],    // halfway → truncate toward zero → -1.00
+            [1.995,   2, RoundingMode::TowardsZero, '1.99'],  // 1.995 → truncate to 1.99
+            [-1.995,  2, RoundingMode::TowardsZero, '-1.99'], // truncate toward zero → -1.99
+            [0.005,   2, RoundingMode::TowardsZero, '0'],     // truncate → 0.00
+
+            [1.0,    0, RoundingMode::AwayFromZero, '1'],      // exact integer → no change
+            [1.1,    0, RoundingMode::AwayFromZero, '2'],      // any fraction → away from zero (up)
+            [1.5,    0, RoundingMode::AwayFromZero, '2'],      // halfway included
+            [-1.1,   0, RoundingMode::AwayFromZero, '-2'],     // negative fraction → away (down)
+            [-1.5,   0, RoundingMode::AwayFromZero, '-2'],
+            [0.1,    0, RoundingMode::AwayFromZero, '1'],      // positive small fraction → 1
+            [-0.1,   0, RoundingMode::AwayFromZero, '-1'],     // negative small fraction → -1
+            [2.0,    0, RoundingMode::AwayFromZero, '2'],      // exact integer stays
+            [-2.0,   0, RoundingMode::AwayFromZero, '-2'],
+
+            [1.2,     2, RoundingMode::AwayFromZero, '1.2'],    // exact → unchanged
+            [1.201,   2, RoundingMode::AwayFromZero, '1.21'],   // third decimal > 0 → round up
+            [1.200,   2, RoundingMode::AwayFromZero, '1.2'],    // exactly 1.20 → stays
+            [1.005,   2, RoundingMode::AwayFromZero, '1.01'],   // half still rounds away
+            [-1.005,  2, RoundingMode::AwayFromZero, '-1.01'],  // negative half → away (more negative)
+            [1.999,   2, RoundingMode::AwayFromZero, '2'],      // carry-over, rounds up
+            [-1.999,  2, RoundingMode::AwayFromZero, '-2'],     // negative, rounds down with carry
+            [0.001,   2, RoundingMode::AwayFromZero, '0.01'],   // tiny fraction → away from zero
+            [-0.001,  2, RoundingMode::AwayFromZero, '-0.01'],  // tiny negative fraction → away
+
+            [1.0,     0, RoundingMode::NegativeInfinity, '1'],       // exact integer → unchanged
+            [1.0001,  0, RoundingMode::NegativeInfinity, '1'],       // tiny fraction → round down (floor)
+            [1.5,     0, RoundingMode::NegativeInfinity, '1'],       // half → down
+            [1.999,   0, RoundingMode::NegativeInfinity, '1'],       // just below 2 → down
+            [-1.0,    0, RoundingMode::NegativeInfinity, '-1'],      // exact → unchanged
+            [-1.0001, 0, RoundingMode::NegativeInfinity, '-2'],      // floor: -2 < -1.0001
+            [-1.5,    0, RoundingMode::NegativeInfinity, '-2'],      // half → down (more negative)
+            [-1.999,  0, RoundingMode::NegativeInfinity, '-2'],      // almost -2 → floor
+            [0.1,     0, RoundingMode::NegativeInfinity, '0'],       // positive fraction → 0
+            [-0.1,    0, RoundingMode::NegativeInfinity, '-1'],      // negative fraction → -1
+
+            [1.2,     2, RoundingMode::NegativeInfinity, '1.2'],    // exact → unchanged
+            [1.001,   2, RoundingMode::NegativeInfinity, '1'],      // any fraction → round down
+            [1.005,   2, RoundingMode::NegativeInfinity, '1'],      // halfway ignored, still down
+            [1.999,   2, RoundingMode::NegativeInfinity, '1.99'],   // 1.999 → floor(199.9) = 199 → 1.99
+            [-1.001,  2, RoundingMode::NegativeInfinity, '-1.01'],  // floor: -1.01 < -1.001
+            [-1.005,  2, RoundingMode::NegativeInfinity, '-1.01'],  // half floor → -1.01
+            [-1.999,  2, RoundingMode::NegativeInfinity, '-2'],     // carry‑over: floor(-199.9) = -200 → -2.00
+            [0.001,   2, RoundingMode::NegativeInfinity, '0'],      // tiny positive → 0.00
+            [-0.001,  2, RoundingMode::NegativeInfinity, '-0.01'],  // tiny negative → -0.01
+
+            [1.0,    0, RoundingMode::PositiveInfinity,  '1'],      // exact integer → unchanged
+            [1.1,    0, RoundingMode::PositiveInfinity,  '2'],      // any fraction → round up (ceil)
+            [1.5,    0, RoundingMode::PositiveInfinity,  '2'],      // half → up
+            [1.999,  0, RoundingMode::PositiveInfinity,  '2'],      // just below 2 → up
+            [0.1,    0, RoundingMode::PositiveInfinity,  '1'],      // small positive fraction → 1
+            [-1.0,   0, RoundingMode::PositiveInfinity,  '-1'],     // exact negative → unchanged
+            [-1.1,   0, RoundingMode::PositiveInfinity,  '-1'],     // ceil: -1 > -1.1 → -1
+            [-1.5,   0, RoundingMode::PositiveInfinity,  '-1'],     // half → up (toward +∞)
+            [-1.999, 0, RoundingMode::PositiveInfinity,  '-1'],     // almost -2 → ceil gives -1
+            [-0.1,   0, RoundingMode::PositiveInfinity,  '0'],      // negative tiny fraction → 0
+
+            [1.2,     2, RoundingMode::PositiveInfinity,  '1.2'],   // exact → unchanged
+            [1.001,   2, RoundingMode::PositiveInfinity,  '1.01'],  // any fraction → round up
+            [1.005,   2, RoundingMode::PositiveInfinity,  '1.01'],   // half → up
+            [1.999,   2, RoundingMode::PositiveInfinity,  '2'],     // carry‑over: 1.999 → 2.00
+            [0.001,   2, RoundingMode::PositiveInfinity,  '0.01'],  // tiny positive → up
+            [-1.001,  2, RoundingMode::PositiveInfinity,  '-1'],    // ceil: -1.00 > -1.001
+            [-1.005,  2, RoundingMode::PositiveInfinity,  '-1'],    // half → -1.00
+            [-1.999,  2, RoundingMode::PositiveInfinity,  '-1.99'],  // ceil of -199.9 → -199 → -1.99
+            [-0.001,  2, RoundingMode::PositiveInfinity,  '0'],     // negative tiny → ceil to zero
+        ];
     }
 }

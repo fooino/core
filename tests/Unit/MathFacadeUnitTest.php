@@ -190,6 +190,72 @@ describe('Math facade using FooinoMathHandler', function () {
     })
         ->with(Datasets::mathRemainder());
 
+    test('power method', function ($number, $exponent, $expected) {
+
+        expect(Math::power(number: $number, exponent: $exponent))->toBe($expected);
+
+        // 
+    })
+        ->with(Datasets::mathPower());
+
+    test('sqrt method', function ($number, $expected) {
+
+        expect(Math::sqrt(number: $number))->toBe($expected);
+
+        // 
+    })
+        ->with(Datasets::mathSqrt());
+
+    test('roundUp method', function ($number, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::roundUp(number: $number))->toBe($expected);
+
+            return;
+        }
+
+        expect(roundUp(number: $number))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathRoundUp());
+
+    test('roundDown method', function ($number, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::roundDown(number: $number))->toBe($expected);
+
+            return;
+        }
+
+        expect(roundDown(number: $number))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathRoundDown());
+
+    test('roundClose method', function ($number, $precision, $mode, $expected) {
+
+        if (rand(0, 1)) {
+
+            expect(Math::roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
+
+            return;
+        }
+
+        expect(roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
+
+        return;
+
+        // 
+    })
+        ->with(Datasets::mathRoundClose());
 
     describe('handle exceptions', function () {
 
