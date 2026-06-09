@@ -2,6 +2,9 @@
 
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
+use Fooino\Core\Facades\Math;
+
+use Fooino\Core\Interfaces\Mathable;
 use Illuminate\Http\JsonResponse;
 
 if (!function_exists('isJson')) {
@@ -76,6 +79,198 @@ if (!function_exists('dateConvert')) {
     }
 }
 
+if (!function_exists('math')) {
+    /**
+     * Get a fresh Mathable instance configured with the given precision
+     */
+    function math(int $precision = 12): Mathable
+    {
+        return Math::setPrecision(precision: $precision);
+    }
+}
+
+if (!function_exists('number')) {
+    /**
+     * Format one or more numbers by truncating them to the configured precision, removing trailing zeros, and returning clean numeric strings
+     */
+    function number(mixed ...$number): string|array
+    {
+        return Math::number(...$number);
+    }
+}
+
+if (!function_exists('numberFormat')) {
+    /**
+     * Format a number with thousands separators and apply precision truncation, returning a locale-friendly currency-style string
+     */
+    function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string
+    {
+        return Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator,);
+    }
+}
+
+if (!function_exists('sum')) {
+    /**
+     * Add a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
+     */
+    function sum(mixed ...$operand): string
+    {
+        return Math::sum(...$operand);
+    }
+}
+
+if (!function_exists('subtract')) {
+    /**
+     * Subtract a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
+     */
+    function subtract(mixed ...$operand): string
+    {
+        return Math::subtract(...$operand);
+    }
+}
+
+if (!function_exists('multiply')) {
+    /**
+     * Multiply a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
+     */
+    function multiply(mixed ...$operand): string
+    {
+        return Math::multiply(...$operand);
+    }
+}
+
+if (!function_exists('divide')) {
+    /**
+     * Divide a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
+     */
+    function divide(mixed ...$operand): string
+    {
+        return Math::divide(...$operand);
+    }
+}
+
+if (!function_exists('remainder')) {
+    /**
+     * Compute the modulus (remainder) of a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
+     */
+    function remainder(mixed ...$operand): string
+    {
+        return Math::remainder(...$operand);
+    }
+}
+
+if (!function_exists('roundUp')) {
+    /**
+     * Round a number up to the next integer (ceiling), away from zero
+     */
+    function roundUp(string|int|float|array $number): string|array
+    {
+        return Math::roundUp(number: $number);
+    }
+}
+
+if (!function_exists('roundDown')) {
+    /**
+     * Round a number down to the previous integer (floor), toward zero
+     */
+    function roundDown(string|int|float|array $number): string|array
+    {
+        return Math::roundDown(number: $number);
+    }
+}
+
+if (!function_exists('roundClose')) {
+    /**
+     * Round a number to a specified precision using a configurable rounding mode
+     */
+    function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array
+    {
+        return Math::roundClose(number: $number, precision: $precision, mode: $mode);
+    }
+}
+
+if (!function_exists('greaterThan')) {
+    /**
+     * Compare two numbers
+     */
+    function greaterThan(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::greaterThan(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('greaterThanOrEqual')) {
+    /**
+     * Compare two numbers
+     */
+    function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::greaterThanOrEqual(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('lessThan')) {
+    /**
+     * Compare two numbers
+     */
+    function lessThan(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::lessThan(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('lessThanOrEqual')) {
+    /**
+     * Compare two numbers
+     */
+    function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::lessThanOrEqual(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('equal')) {
+    /**
+     * Compare two numbers
+     */
+    function equal(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::equal(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('notEqual')) {
+    /**
+     * Compare two numbers
+     */
+    function notEqual(string|int|float $a, string|int|float $b): bool
+    {
+        return Math::notEqual(a: $a, b: $b);
+    }
+}
+
+if (!function_exists('isZero')) {
+    /**
+     * Check the value is zero or not
+     */
+    function isZero(int|float|string|null|bool|array|object|callable $value): bool
+    {
+        $value = (is_object($value) && $value instanceof Stringable) ? $value->__toString() : $value;
+
+        if (
+            is_null($value) ||
+            is_bool($value) ||
+            is_array($value) ||
+            is_object($value) ||
+            $value instanceof Closure
+        ) {
+            return false;
+        }
+
+        return preg_match(pattern: '/^[-+]?(?:0+\.?0*|\.0+|(?:0*\.?0*)?[Ee][+-]?\d+)$/', subject: trim((string) $value)) === 1;
+    }
+}
+
 if (!function_exists('nullIfBlank')) {
     /**
      * Returns a fallback value when the input is considered "blank" or a null-like string which usually produce by js.
@@ -94,7 +289,7 @@ if (!function_exists('nullIfBlankOrZero')) {
     {
         $value = nullIfBlank(value: $value);
 
-        return ((is_numeric($value) && ((float) $value) === 0.0) ? null : $value) ?? $fallback;
+        return (isZero(value: $value) ? null : $value) ?? $fallback;
     }
 }
 

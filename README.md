@@ -76,6 +76,58 @@ exit
 
     ```
 
+3. Math
+    + Interface `Fooino\Core\Interfaces\Mathable`
+    + Concrete  `Fooino\Core\Concretes\Math\MathManager` (default driver: `FooinoMathHandler`)
+    + Unit test `Fooino\Core\Tests\Unit\MathFacadeUnitTest`
+    + Available helpers: `math()`, `number()`, `numberFormat()`, `sum()`, `subtract()`, `multiply()`, `divide()`, `remainder()`, `roundUp()`, `roundDown()`, `roundClose()`, `greaterThan()`, `greaterThanOrEqual()`, `lessThan()`, `lessThanOrEqual()`, `equal()`, `notEqual()`
+    + Basic Usage (all methods are also available as helper functions, e.g. `math()` instead of `Math::`):
+    ```php
+        use Fooino\Core\Facades\Math;
+
+        // --- Precision management ---
+        Math::getPrecision();                          // 12 (default)
+        Math::setPrecision(precision: 4)->getPrecision(); // 4 (returns fresh instance)
+
+        // --- Number string handling ---
+        Math::convertScientificNumber('1.1e+8');       // "110000000.000000000000"
+        Math::trimTrailingZeros('110000000.000000000000'); // "110000000"
+        Math::countDecimalPlaces(1.1e-8);              // 9
+
+        // --- Precision‑truncated number ---
+        Math::number(1.1e+8);                          // "110000000"
+        Math::setPrecision(precision: 4)->number(0.44015042); // "0.4401"
+        Math::number(1.123456789, 2.345678901);        // ["1.123456789", "2.345678901"] (array)
+
+        // --- Locale‑friendly number format ---
+        Math::numberFormat('2000000.12');                          // "2,000,000.12"
+        Math::numberFormat(number: '2000000.12', thousandsSeparator: ' '); // "2 000 000.12"
+
+        // --- Arithmetic (variadic / array) ---
+        Math::sum(1, 2, 3);                             // "6"
+        Math::subtract(10, 3, 2);                       // "5"
+        Math::multiply(2, 3, 4);                        // "24"
+        Math::divide(100, 4, 5);                        // "5"
+        Math::remainder(10, 3);                         // "1"
+
+        // --- Power & square root ---
+        Math::power(2, 3);                              // "8"
+        Math::sqrt(144);                                // "12"
+
+        // --- Rounding ---
+        Math::roundUp(2.1);                             // "3"
+        Math::roundDown(2.9);                           // "2"
+        Math::roundClose(2.5678, precision: 2);         // "2.57" (default mode: HalfAwayFromZero)
+
+        // --- Comparison ---
+        Math::greaterThan(5, 3);                        // true
+        Math::greaterThanOrEqual(5, 5);                 // true
+        Math::lessThan(3, 5);                           // true
+        Math::lessThanOrEqual(3, 3);                    // true
+        Math::equal(10, 10);                            // true
+        Math::notEqual(10, 5);                          // true
+    ```
+
 **Helpers**
 1. `nullIfBlank()` Returns a fallback value when the input is considered `blank` or a `null-like string` which usually produce by js.
 2. `nullIfBlankOrZero()` Convert value to null when the value is ZERO or blank base on `nullIfBlank()`

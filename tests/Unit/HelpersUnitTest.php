@@ -2,6 +2,8 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use Fooino\Core\Tests\Data\Datasets;
+use stdClass;
 use Stringable;
 
 class CustomClass
@@ -25,6 +27,45 @@ class CustomClass
 };
 
 describe('Helpers unit tests', function () {
+
+    test('isZero returns true', function ($zero) {
+
+        expect(isZero($zero))->toBeTrue();
+
+        // 
+    })
+        ->with(Datasets::merge(
+            'zeros',
+            new class implements Stringable {
+                public function __toString()
+                {
+                    return '0';
+                }
+            },
+        ));
+
+
+    test('isZero returns false', function ($nonZero) {
+
+        expect(isZero($nonZero))->toBeFalse();
+
+        // 
+    })
+        ->with(Datasets::merge(
+            'nonZero',
+            true,
+            false,
+            fn() => [],
+            fn() => [0],
+            fn() => fn() => 0,
+            new stdClass,
+            new class implements Stringable {
+                public function __toString()
+                {
+                    return 'foobar';
+                }
+            }
+        ));
 
     test('nullIfBlank returns value when it is filled', function () {
 
@@ -174,6 +215,15 @@ describe('Helpers unit tests', function () {
             public function __toString(): string
             {
                 return '';
+            }
+        };
+
+        expect(nullIfBlankOrZero(value: $object))->toBeNull();
+
+        $object = new class implements Stringable {
+            public function __toString(): string
+            {
+                return '0';
             }
         };
 
