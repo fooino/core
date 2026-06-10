@@ -360,4 +360,16 @@ describe('Helpers unit tests', function () {
         expect(percentageChange(from: 13, to: 14))->toBe('7.69');
         expect(percentageChange(from: 13, to: 14, precision: 12))->toBe('7.6923076923');
     });
+
+    test('formatNumberWithUnit method', function () {
+
+        $trillion = __('msg.trillion');
+        $billion = __('msg.billion');
+        $million = __('msg.million');
+        $thousand = __('msg.thousand');
+
+        expect(unitNumberFormat(number: 1))->toBe('1');
+        expect(unitNumberFormat(number: 1000, unit: 'Persons'))->toBe('1,000 Persons');
+        expect(unitNumberFormat(number: 1_000_000, unit: 'Persons'))->toBe('1 ' . $million . ' Persons');
+    });
 });

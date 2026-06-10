@@ -412,3 +412,22 @@ if (!function_exists('percentageChange')) {
         };
     }
 }
+
+if (!function_exists('unitNumberFormat')) {
+
+    function unitNumberFormat(string|int|float $number, string $unit = '', int $precision = 2): string
+    {
+        return match (true) {
+
+            greaterThanOrEqual(abs($number), 1_000_000_000_000)      => trim(math(precision: $precision)->numberFormat(divide($number, 1_000_000_000_000)) . ' ' . __('msg.trillion') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), 1_000_000_000)          => trim(math(precision: $precision)->numberFormat(divide($number, 1_000_000_000)) . ' ' . __('msg.billion') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), 1_000_000)              => trim(math(precision: $precision)->numberFormat(divide($number, 1_000_000)) . ' ' . __('msg.million') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), 1_000)                  => trim(math(precision: $precision)->numberFormat(divide($number, 1_000)) . ' ' . __('msg.thousand') . ' ' . $unit),
+
+            default                                                  => trim((string) $number . ' ' . $unit),
+        };
+    }
+}
