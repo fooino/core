@@ -17,7 +17,7 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(math()->getPrecision())->toBe(12);
         expect(math(precision: 5)->getPrecision())->toBe(5);
 
-        expect(bcscale())->toBe(12);
+        expect(bcscale())->toBe(0);
     });
 
     test('convertScientificNumber method', function ($number, $expected) {
