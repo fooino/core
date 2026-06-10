@@ -382,3 +382,33 @@ if (!function_exists('callMethodIfExists')) {
         return method_exists($object, $method) ? (is_string($object) ? (new $object(...$constructorArgs)) : $object)->{$method}(...$methodArgs) : value($fallback, ...$methodArgs);
     }
 }
+
+if (!function_exists('percentageChange')) {
+    /**
+     * Calculate the relative percentage change from $from to $to.
+     */
+    function percentageChange(
+        int|float $from,
+        int|float $to,
+        int $precision = 2
+    ): string {
+
+        return match (true) {
+
+            isZero($from)   => '100',
+
+            isZero($to)     => '-100',
+
+            default         => math(precision: $precision)
+                ->number(
+                    multiply(
+                        divide(
+                            subtract($to, $from),
+                            abs($from)
+                        ),
+                        100
+                    )
+                )
+        };
+    }
+}

@@ -343,4 +343,21 @@ describe('Helpers unit tests', function () {
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: 'NOT EXIST'))->toBe('NOT EXIST');
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: fn($a) => $a * $a, methodArgs: ['a' => 5]))->toBe(25);
     });
+
+    test('percentageChange method', function () {
+
+        expect(percentageChange(from: 200, to: 50))->toBe('-75');
+        expect(percentageChange(from: 20, to: 40))->toBe('100');
+        expect(percentageChange(from: 40, to: 20))->toBe('-50');
+        expect(percentageChange(from: 10, to: 12))->toBe('20');
+
+        expect(percentageChange(from: 12, to: 12))->toBe('0');
+        expect(percentageChange(from: 12, to: -12))->toBe('-200');
+        expect(percentageChange(from: 12, to: 0))->toBe('-100');
+        expect(percentageChange(from: 0, to: -12))->toBe('100');
+        expect(percentageChange(from: -12, to: 12))->toBe('200');
+
+        expect(percentageChange(from: 13, to: 14))->toBe('7.69');
+        expect(percentageChange(from: 13, to: 14, precision: 12))->toBe('7.6923076923');
+    });
 });
