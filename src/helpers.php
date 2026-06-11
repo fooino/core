@@ -1,11 +1,22 @@
 <?php
 
+use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
 
 use Fooino\Core\Interfaces\Mathable;
 use Illuminate\Http\JsonResponse;
+
+if (!defined('CONSTANTS_DEFINED')) {
+
+
+    // datesBetween exceptions
+    define('INVALID_PERIOD_FOR_DATE_RANGE_MESSAGE', 'msg.invalidPeriodForDateRange');
+    define('INVALID_PERIOD_FOR_DATE_RANGE_CODE', 1001);
+
+    define('CONSTANTS_DEFINED', true);
+}
 
 if (!function_exists('isJson')) {
     /**
@@ -431,5 +442,60 @@ if (!function_exists('unitNumberFormat')) {
 
             default                                                  => trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit),
         };
+    }
+}
+
+if (!function_exists('datesBetween')) {
+    /**
+     * Generate an array of dates within a given range at specified intervals and format.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * 
+     * @throws \Fooino\Core\Exceptions\FooinoException
+     */
+    function datesBetween(
+        string|int $from,
+        string|int $to,
+        string $format = 'Y-m-d',
+        string $interval = 'P1D'
+    ): array {
+
+        $originalFrom = $from;
+        $originalTo = $to;
+
+        $from = dateConvert(date: $from, throwException: true);
+        $to = dateConvert(date: $to, throwException: true);
+
+        if ($to < $from) {
+
+            app(FooinoException::class)
+                ->setMessage(INVALID_PERIOD_FOR_DATE_RANGE_MESSAGE)
+                ->setCode(INVALID_PERIOD_FOR_DATE_RANGE_CODE)
+                ->warning()
+                ->shouldReport()
+                ->with([
+                    'from'      => $originalFrom,
+                    'to'        => $originalTo,
+                    'format'    => $format,
+                    'interval'  => $interval,
+                ])
+                ->throw();
+        }
+
+        $output = [];
+        $utc = new DateTimeZone(timezone: 'UTC');
+
+        $period = new DatePeriod(
+            start: new DateTime(datetime: $from, timezone: $utc),
+            interval: new DateInterval(duration: $interval),
+            end: new DateTime(datetime: $to, timezone: $utc),
+            options: DatePeriod::INCLUDE_END_DATE
+        );
+
+        foreach ($period as $value) {
+            $output[] = $value->format($format);
+        }
+
+        return $output;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use Fooino\Core\Exceptions\CanNotConvertDateException;
+use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Tests\Data\Datasets;
 use stdClass;
 use Stringable;
@@ -361,10 +363,10 @@ describe('Helpers unit tests', function () {
         expect(percentageChange(from: 13, to: 14, precision: 12))->toBe('7.6923076923');
 
         $zeros = Datasets::zeros();
-        $count = count($zeros);
+        $lastIndex = count($zeros) - 1;
 
-        expect(percentageChange(from: 12, to: $zeros[rand(0, $count)]))->toBe('-100');
-        expect(percentageChange(from: $zeros[rand(0, $count)], to: -12))->toBe('100');
+        expect(percentageChange(from: 12, to: $zeros[rand(0, $lastIndex)]))->toBe('-100');
+        expect(percentageChange(from: $zeros[rand(0, $lastIndex)], to: -12))->toBe('100');
     });
 
     test('unitNumberFormat method', function () {
@@ -396,5 +398,72 @@ describe('Helpers unit tests', function () {
 
         expect(unitNumberFormat(number: 0.0E+1, unit: 'seconds'))->toBe('0 seconds');
         expect(unitNumberFormat(number: 0, unit: 'seconds'))->toBe('0 seconds');
+    });
+
+    test('datesBetween method', function () {
+
+        expect(datesBetween(from: '2024-01-01', to: '2024-01-05'))->toBe([
+            '2024-01-01',
+            '2024-01-02',
+            '2024-01-03',
+            '2024-01-04',
+            '2024-01-05',
+        ]);
+
+        expect(datesBetween(from: '2024-06-01', to: '2024-06-01'))->toBe(['2024-06-01']);
+
+        expect(datesBetween(from: '2024-01-01', to: '2024-01-03', format: 'Y/m/d'))->toBe([
+            '2024/01/01',
+            '2024/01/02',
+            '2024/01/03',
+        ]);
+
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-02 00:00:00', format: 'Y-m-d H:i:s', interval: 'PT4H'))->toBe([
+            '2024-01-01 00:00:00',
+            '2024-01-01 04:00:00',
+            '2024-01-01 08:00:00',
+            '2024-01-01 12:00:00',
+            '2024-01-01 16:00:00',
+            '2024-01-01 20:00:00',
+            '2024-01-02 00:00:00',
+        ]);
+
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P2DT4H'))->toBe([
+            '2024-01-01 00:00:00',
+            '2024-01-03 04:00:00',
+            '2024-01-05 08:00:00',
+        ]);
+
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P1W'))->toBe(['2024-01-01 00:00:00']);
+
+        expect(datesBetween(from: strtotime('2024-01-01'), to: strtotime('2024-01-03')))->toBe([
+            '2024-01-01',
+            '2024-01-02',
+            '2024-01-03',
+        ]);
+
+        expect(fn() => datesBetween(from: 'foobar', to: '2024-01-05'))->toThrow(CanNotConvertDateException::class);
+        expect(fn() => datesBetween(from: '2024-01-05', to: 'foobar'))->toThrow(CanNotConvertDateException::class);
+
+        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoException::class);
+
+        try {
+
+            datesBetween(from: '2024-06-01', to: '2024-01-01');
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.invalidPeriodForDateRange');
+            expect($e->getCode())->toBe(1001);
+            expect($e->reportable())->toBeTrue();
+            expect($e->getLevel())->toBe('warning');
+            expect($e->getWith())->toBe([
+                'from'      => '2024-06-01',
+                'to'        => '2024-01-01',
+                'format'    => 'Y-m-d',
+                'interval'  => 'P1D',
+            ]);
+        }
     });
 });
