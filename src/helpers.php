@@ -414,8 +414,10 @@ if (!function_exists('percentageChange')) {
 }
 
 if (!function_exists('unitNumberFormat')) {
-
-    function unitNumberFormat(string|int|float $number, string $unit = '', int $precision = 2): string
+    /**
+     * Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions)
+     */
+    function unitNumberFormat(string|int|float $number, string $unit = '', int $precision = 3): string
     {
         return match (true) {
 
@@ -427,7 +429,7 @@ if (!function_exists('unitNumberFormat')) {
 
             greaterThanOrEqual(abs($number), 1_000)                  => trim(math(precision: $precision)->numberFormat(divide($number, 1_000)) . ' ' . __('msg.thousand') . ' ' . $unit),
 
-            default                                                  => trim((string) $number . ' ' . $unit),
+            default                                                  => trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit),
         };
     }
 }

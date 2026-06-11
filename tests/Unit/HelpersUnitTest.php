@@ -359,17 +359,42 @@ describe('Helpers unit tests', function () {
 
         expect(percentageChange(from: 13, to: 14))->toBe('7.69');
         expect(percentageChange(from: 13, to: 14, precision: 12))->toBe('7.6923076923');
+
+        $zeros = Datasets::zeros();
+        $count = count($zeros);
+
+        expect(percentageChange(from: 12, to: $zeros[rand(0, $count)]))->toBe('-100');
+        expect(percentageChange(from: $zeros[rand(0, $count)], to: -12))->toBe('100');
     });
 
-    test('formatNumberWithUnit method', function () {
+    test('unitNumberFormat method', function () {
 
         $trillion = __('msg.trillion');
         $billion = __('msg.billion');
         $million = __('msg.million');
         $thousand = __('msg.thousand');
 
-        expect(unitNumberFormat(number: 1))->toBe('1');
-        expect(unitNumberFormat(number: 1000, unit: 'Persons'))->toBe('1,000 Persons');
-        expect(unitNumberFormat(number: 1_000_000, unit: 'Persons'))->toBe('1 ' . $million . ' Persons');
+        expect(unitNumberFormat(number: 1.e20, unit: 'Persons'))->toBe('100,000,000 ' . $trillion . ' Persons');
+
+        expect(unitNumberFormat(number: 10_000_000_000,))->toBe('10 ' . $billion);
+
+        expect(unitNumberFormat(number: 123_000_000, unit: '$'))->toBe('123 ' . $million . ' $');
+
+        expect(unitNumberFormat(number: -123_076_012, unit: '$'))->toBe('-123.076 ' . $million . ' $');
+
+        expect(unitNumberFormat(number: 123_076_012, unit: '$', precision: 5))->toBe('123.07601 ' . $million . ' $');
+
+        expect(unitNumberFormat(number: 1000, unit: 'Persons'))->toBe('1 ' . $thousand . ' Persons');
+
+        expect(unitNumberFormat(number: 2501, unit: 'Persons'))->toBe('2.501 ' . $thousand . ' Persons');
+
+        expect(unitNumberFormat(number: 100, unit: 'minute'))->toBe('100 minute');
+
+        expect(unitNumberFormat(number: 0.011, unit: 'seconds'))->toBe('0.011 seconds');
+        expect(unitNumberFormat(number: -0.011, unit: 'seconds'))->toBe('-0.011 seconds');
+        expect(unitNumberFormat(number: 0.0112, unit: 'seconds'))->toBe('0.011 seconds');
+
+        expect(unitNumberFormat(number: 0.0E+1, unit: 'seconds'))->toBe('0 seconds');
+        expect(unitNumberFormat(number: 0, unit: 'seconds'))->toBe('0 seconds');
     });
 });
