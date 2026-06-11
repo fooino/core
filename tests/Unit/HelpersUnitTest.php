@@ -400,6 +400,37 @@ describe('Helpers unit tests', function () {
         expect(unitNumberFormat(number: 0, unit: 'seconds'))->toBe('0 seconds');
     });
 
+    test('unitSizeFormat method', function () {
+
+        expect(unitSizeFormat(bytes: 1099511627776))->toBe('1 TB');
+        expect(unitSizeFormat(bytes: 2199023255552))->toBe('2 TB');
+        expect(unitSizeFormat(bytes: 1649267441664))->toBe('1.5 TB');
+
+        expect(unitSizeFormat(bytes: 1073741824))->toBe('1 GB');
+        expect(unitSizeFormat(bytes: 2147483648))->toBe('2 GB');
+        expect(unitSizeFormat(bytes: 1610612736))->toBe('1.5 GB');
+
+        expect(unitSizeFormat(bytes: 1048576))->toBe('1 MB');
+        expect(unitSizeFormat(bytes: 2097152))->toBe('2 MB');
+        expect(unitSizeFormat(bytes: 1572864))->toBe('1.5 MB');
+
+        expect(unitSizeFormat(bytes: 1024))->toBe('1 KB');
+        expect(unitSizeFormat(bytes: 2048))->toBe('2 KB');
+        expect(unitSizeFormat(bytes: 1536))->toBe('1.5 KB');
+
+        expect(unitSizeFormat(bytes: 500))->toBe('500 bytes');
+        expect(unitSizeFormat(bytes: 2))->toBe('2 bytes');
+
+        expect(unitSizeFormat(bytes: 1))->toBe('1 byte');
+
+        expect(unitSizeFormat(bytes: 0))->toBe('0 byte');
+
+        expect(unitSizeFormat(bytes: -10))->toBe('-10 msg.isInvalid');
+
+        expect(unitSizeFormat(bytes: 1234567))->toBe('1.177 MB');
+        expect(unitSizeFormat(bytes: 1234567, precision: 5))->toBe('1.17737 MB');
+    });
+
     test('datesBetween method', function () {
 
         expect(datesBetween(from: '2024-01-01', to: '2024-01-05'))->toBe([

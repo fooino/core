@@ -428,19 +428,44 @@ if (!function_exists('unitNumberFormat')) {
     /**
      * Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions)
      */
-    function unitNumberFormat(string|int|float $number, string $unit = '', int $precision = 3): string
+    function unitNumberFormat(int|float|string $number, string $unit = '', int $precision = 3): string
     {
         return match (true) {
 
-            greaterThanOrEqual(abs($number), 1_000_000_000_000)      => trim(math(precision: $precision)->numberFormat(divide($number, 1_000_000_000_000)) . ' ' . __('msg.trillion') . ' ' . $unit),
+            greaterThanOrEqual(abs($number), '1000000000000')      => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000000')) . ' ' . __('msg.trillion') . ' ' . $unit),
 
-            greaterThanOrEqual(abs($number), 1_000_000_000)          => trim(math(precision: $precision)->numberFormat(divide($number, 1_000_000_000)) . ' ' . __('msg.billion') . ' ' . $unit),
+            greaterThanOrEqual(abs($number), '1000000000')         => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000')) . ' ' . __('msg.billion') . ' ' . $unit),
 
-            greaterThanOrEqual(abs($number), 1_000_000)              => trim(math(precision: $precision)->numberFormat(divide($number, 1_000_000)) . ' ' . __('msg.million') . ' ' . $unit),
+            greaterThanOrEqual(abs($number), '1000000')            => trim(math(precision: $precision)->numberFormat(divide($number, '1000000')) . ' ' . __('msg.million') . ' ' . $unit),
 
-            greaterThanOrEqual(abs($number), 1_000)                  => trim(math(precision: $precision)->numberFormat(divide($number, 1_000)) . ' ' . __('msg.thousand') . ' ' . $unit),
+            greaterThanOrEqual(abs($number), '1000')               => trim(math(precision: $precision)->numberFormat(divide($number, '1000')) . ' ' . __('msg.thousand') . ' ' . $unit),
 
-            default                                                  => trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit),
+            default                                                => trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit),
+        };
+    }
+}
+
+if (!function_exists('unitSizeFormat')) {
+    /**
+     * Format bytes into a human-readable file size string (B, KB, MB, GB, TB)
+     */
+    function unitSizeFormat(int|float|string $bytes, int $precision = 3): string
+    {
+        return match (true) {
+
+            greaterThanOrEqual($bytes, '1099511627776')   => math(precision: $precision)->numberFormat(divide($bytes, '1099511627776')) . ' TB',
+
+            greaterThanOrEqual($bytes, '1073741824')      => math(precision: $precision)->numberFormat(divide($bytes, '1073741824')) . ' GB',
+
+            greaterThanOrEqual($bytes, '1048576')         => math(precision: $precision)->numberFormat(divide($bytes, '1048576')) . ' MB',
+
+            greaterThanOrEqual($bytes, '1024')            => math(precision: $precision)->numberFormat(divide($bytes, '1024')) . ' KB',
+
+            greaterThan($bytes, '1')                      => $bytes . ' bytes',
+
+            greaterThanOrEqual($bytes, '0')               => $bytes . ' byte',
+
+            default                                       => $bytes . ' ' . __('msg.isInvalid'),
         };
     }
 }
