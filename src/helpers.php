@@ -6,9 +6,17 @@ use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
 
 use Fooino\Core\Interfaces\Mathable;
+use Fooino\Core\Support\Sanitizer;
 use Illuminate\Http\JsonResponse;
 
 if (!defined('CONSTANTS_DEFINED')) {
+
+    define('FE', [
+
+        //===============Fooino\Core\Exceptions\InfiniteLoopException===============
+        'SANITIZER_MADE_INFINITE_LOOP_MESSAGE'  => 'msg.infiniteLoopException',
+        'SANITIZER_MADE_INFINITE_LOOP_CODE'     => 10201,
+    ]);
 
 
     // datesBetween exceptions
@@ -522,5 +530,43 @@ if (!function_exists('datesBetween')) {
         }
 
         return $output;
+    }
+}
+
+if (!function_exists('sanitizer')) {
+    /**
+     * Create a new Sanitizer instance for the given value
+     */
+    function sanitizer(string|int|float|null|bool|array $value): Sanitizer
+    {
+        return new Sanitizer(value: $value);
+    }
+}
+
+if (!function_exists('sanitizeUrl')) {
+    /**
+     * Clean a value for use in URLs by replacing forbidden characters with dashes
+     */
+    function sanitizeUrl(string|int|float|null|bool|array $value): string|int|float|null|bool|array
+    {
+        return sanitizer(value: $value)
+            ->replaceForbiddenCharacters(excludes: ['/', '=', ':', '?', '&', '.', '-', '#', '@', '~', '%', '+'], replaceWith: '-')
+            ->collapse('-')
+            ->value();
+    }
+}
+
+if (!function_exists('sanitizeSlug')) {
+    /**
+     * Generate a URL-friendly slug from the given value
+     */
+    function sanitizeSlug(string|int|float|null|bool|array $value): string|int|float|null|bool|array
+    {
+        return sanitizer(value: $value)
+            ->replaceForbiddenCharacters(excludes: ['-'], replaceWith: '-')
+            ->collapse(char: '-')
+            ->trim(char: '-')
+            ->lowercase()
+            ->value();
     }
 }

@@ -497,4 +497,31 @@ describe('Helpers unit tests', function () {
             ]);
         }
     });
+
+    test('sanitizeUrl and sanitizeSlug method', function () {
+
+        expect(sanitizeUrl(value: 1))->toBe(1);
+        expect(sanitizeUrl(value: 1.1))->toBe(1.1);
+        expect(sanitizeUrl(value: null))->toBe(null);
+        expect(sanitizeUrl(value: true))->toBe(true);
+        expect(sanitizeUrl(value: false))->toBe(false);
+        expect(sanitizeUrl(value: []))->toBe([]);
+
+        expect(sanitizeUrl(value: "test / prettify canonical ? %& $ *"))->toBe("test-/-prettify-canonical-?-%&-");
+
+        expect(sanitizeUrl(value: "https://google.com/laravel_tips!for-2025"))->toBe("https://google.com/laravel-tips-for-2025");
+        expect(sanitizeUrl(value: ["https://google.com/laravel_tips!for-2025", "https://fooino.com/I am_god"]))->toBe(["https://google.com/laravel-tips-for-2025", "https://fooino.com/I-am-god"]);
+
+
+        expect(sanitizeSlug(value: 1))->toBe(1);
+        expect(sanitizeSlug(value: 1.1))->toBe(1.1);
+        expect(sanitizeSlug(value: null))->toBe(null);
+        expect(sanitizeSlug(value: true))->toBe(true);
+        expect(sanitizeSlug(value: false))->toBe(false);
+        expect(sanitizeSlug(value: []))->toBe([]);
+
+        expect(sanitizeSlug(value: "test / Prettify slug ? %& $ *"))->toBe('test-prettify-slug');
+        expect(sanitizeSlug(value: "Laravel_tips!for-2025"))->toBe('laravel-tips-for-2025');
+        expect(sanitizeSlug(value: ["Laravel_tips!for-2025", "I am_god"]))->toBe(["laravel-tips-for-2025", "i-am-god"]);
+    });
 });
