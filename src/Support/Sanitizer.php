@@ -38,20 +38,20 @@ class Sanitizer
     {
         $value = $this->value();
 
-        $isJson = isJson(value: $value) && !is_numeric($value);
+        $isJson = isJson(value: $value);
 
         if ($isJson) {
 
             $decoded = jsonDecode(json: $value);
 
             if (in_array(gettype($decoded), ['object', 'array'])) {
-                $decoded = jsonDecodeToArray(json: $value);
-            }
 
-            $value = $decoded;
+                $value = jsonDecodeToArray(json: $value);
+            }
         }
 
         if (is_array($value)) {
+
             array_walk_recursive($value, fn(&$item) => $item = $this->normalizeValue(value: $item));
         }
 
@@ -60,6 +60,7 @@ class Sanitizer
             is_int($value) ||
             is_float($value)
         ) {
+
             return $this->setValue(value: $this->normalizeValue(value: $value));
         }
 
@@ -124,6 +125,23 @@ class Sanitizer
         }
 
         return $this->setValue(value: $this->replace(search: $sensitives, replace: $replaceWith, subject: $value));
+    }
+
+    /**
+     * Remove or replace emoji characters from the value
+     */
+    public function replaceEmoji(string $replaceWith = ''): static
+    {
+        $value = $this->value();
+
+        if (
+            (!is_string($value) && !is_array($value)) ||
+            $value === '' || $value === []
+        ) {
+            return $this;
+        }
+
+        return $this->setValue(value: $this->replaceEmojiValue(value: $value, replaceWith: $replaceWith));
     }
 
     /**
@@ -444,6 +462,41 @@ class Sanitizer
         }
 
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replace(search: $search, replace: $replace, subject: $item) : $item, $subject);
+    }
+
+    private function replaceEmojiValue(string|array $value, string $replaceWith): string|array
+    {
+        $this->assertRecursionLimit(method: 'replaceEmojiValue');
+
+        if (is_string($value)) {
+
+            $pattern = '/(' .
+                '[\x{1F600}-\x{1F64F}]' .      // Emoticons                             😀, 😎, 😭, 🙏, 🤔
+                '|[\x{1F300}-\x{1F5FF}]' .     // Misc Symbols & Pictographs            🐶, 🏠, ⌛, 🎉, 🔪
+                '|[\x{1F680}-\x{1F6FF}]' .     // Transport & Map                       🚗, 🚲, ✈️, 🏁, 🚦
+                '|[\x{1F1E6}-\x{1F1FF}]' .     // Regional Indicator (Flags)            🇦🇽, 🇧🇬, 🇧🇱, 🇧🇷, 🇨🇦
+                '|[\x{1F900}-\x{1F9FF}]' .     // Supplemental Symbols & Pictographs    🤠, 🥳, 🧠, 🦾, 🥸
+                '|[\x{1FA70}-\x{1FAFF}]' .     // Symbols & Pictographs Extended-A      🩰, 🪢, 🧈, 🪠
+                '|[\x{1FB00}-\x{1FBFF}]' .     // Symbols Extended-B
+                '|[\x{1F3FB}-\x{1F3FF}]' .     // Skin Tone Modifiers
+                '|[\x{2600}-\x{26FF}]' .       // Misc Symbols                          ☀️, ♀️, ♿, ⚠️, ⭐
+                '|[\x{2700}-\x{27BF}]' .       // Dingbats                              ✂️, ✈️, ✨, ❤️, ❌
+                '|[\x{2B00}-\x{2BFF}]' .       // Misc Symbols & Arrows
+                '|[\x{231A}-\x{231B}]' .       // Watch, Hourglass                      ⌛, ⌚, ⏰, 🕛, 🕐
+                '|[\x{23E9}-\x{23F3}]' .       // Media controls                        🔀, 🔁, 🔂, 🔼, ⏩
+                '|[\x{23F8}-\x{23FA}]' .       // Pause, stop buttons                   ⏸, ⏹, ⏺
+                '|[\x{25AA}-\x{25FE}]' .       // Geometric shapes                      🔷, 🔶, 🔺, 🔻,🔹
+                '|[\x{2614}-\x{2615}]' .       // Umbrella, hot beverage                ☔, ☕
+                '|[\x{FE00}-\x{FE0F}]' .       // Variation Selectors
+                '|\x{200D}' .                  // Zero Width Joiner
+                '|\x{20E3}' .                  // Combining Enclosing Keycap
+                '|[\x{E0020}-\x{E007F}]' .     // Tags (subdivision flags)              🏴󠁧󠁢󠁥󠁮󠁧󠁿, 🏴󠁧󠁢󠁳󠁣󠁴󠁿, 🏴󠁧󠁢󠁷󠁬󠁳󠁿
+                ')/u';
+
+            return preg_replace(pattern: $pattern, replacement: $replaceWith, subject: $value);
+        }
+
+        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replaceEmojiValue(value: $item, replaceWith: $replaceWith) : $item, $value);
     }
 
     /**

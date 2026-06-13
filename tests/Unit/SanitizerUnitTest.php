@@ -130,8 +130,6 @@ describe('Sanitizer utilities', function () {
         expect(sanitizer('عيسي')->normalizeInput()->value())->toBe('عیسی');
         expect(sanitizer('زکريا')->normalizeInput()->value())->toBe('زکریا');
 
-        expect(sanitizer('{}')->normalizeInput()->value())->toBe('[]');
-        expect(sanitizer('[]')->normalizeInput()->value())->toBe('[]');
         expect(sanitizer('{"foo":null,"bar":{"baz":"۰۱۲۳"}}')->normalizeInput()->value())->toBe('{"foo":null,"bar":{"baz":"0123"}}');
         expect(sanitizer(jsonEncode([null, true, false, 0]))->normalizeInput()->value())->toBe(jsonEncode([null, true, false, 0]));
         expect(sanitizer(jsonEncode([['deep' => 'foobar۰۱۲۳']]))->normalizeInput()->value())->toBe(jsonEncode([['deep' => 'foobar0123']]));
@@ -147,8 +145,16 @@ describe('Sanitizer utilities', function () {
 
         expect(sanitizer('{"name":"foo <b>bar</b>","num":"۰۱۲۳"}')->normalizeInput()->value())->toBe('{"name":"foo <b>bar<\/b>","num":"0123"}');
 
+        expect(sanitizer('true')->normalizeInput()->value())->toBe('true');
+        expect(sanitizer('false')->normalizeInput()->value())->toBe('false');
+        expect(sanitizer('null')->normalizeInput()->value())->toBe('null');
         expect(sanitizer('0')->normalizeInput()->value())->toBe('0');
         expect(sanitizer('-0')->normalizeInput()->value())->toBe('-0');
+        expect(sanitizer('0.123')->normalizeInput()->value())->toBe('0.123');
+        expect(sanitizer('1,123.123')->normalizeInput()->value())->toBe('1,123.123');
+
+        expect(sanitizer('{}')->normalizeInput()->value())->toBe('[]');
+        expect(sanitizer('[]')->normalizeInput()->value())->toBe('[]');
     });
 
     test('replaceForbiddenCharacters method', function () {
@@ -351,6 +357,40 @@ describe('Sanitizer utilities', function () {
         expect((new Sanitizer(value: '.env'))->replaceSensitiveFiles(replaceWith: '[HIDDEN]')->value())->toBe('[HIDDEN]');
 
         expect((new Sanitizer(value: [1, 1.1, null, true, false, 'config/database.php', [1, 1.1, null, true, false, '.env']]))->replaceSensitiveFiles()->value())->toBe([1, 1.1, null, true, false, 'config/database', [1, 1.1, null, true, false, '']]);
+    });
+
+    test('replaceEmoji method', function () {
+
+        expect((new Sanitizer(value: 1))->replaceEmoji()->value())->toBe(1);
+        expect((new Sanitizer(value: 1.1))->replaceEmoji()->value())->toBe(1.1);
+        expect((new Sanitizer(value: null))->replaceEmoji()->value())->toBe(null);
+        expect((new Sanitizer(value: true))->replaceEmoji()->value())->toBe(true);
+        expect((new Sanitizer(value: false))->replaceEmoji()->value())->toBe(false);
+        expect((new Sanitizer(value: ''))->replaceEmoji()->value())->toBe('');
+        expect((new Sanitizer(value: ' '))->replaceEmoji()->value())->toBe(' ');
+        expect((new Sanitizer(value: []))->replaceEmoji()->value())->toBe([]);
+        expect((new Sanitizer(value: [123]))->replaceEmoji()->value())->toBe([123]);
+
+        expect((new Sanitizer(value: 'hello world'))->replaceEmoji()->value())->toBe('hello world');
+        expect((new Sanitizer(value: 'foo123bar'))->replaceEmoji()->value())->toBe('foo123bar');
+
+        expect((new Sanitizer(value: '😀'))->replaceEmoji()->value())->toBe('');
+        expect((new Sanitizer(value: 'Hello 😎 World'))->replaceEmoji()->value())->toBe('Hello  World');
+        expect((new Sanitizer(value: '😊😎👍'))->replaceEmoji()->value())->toBe('');
+        expect((new Sanitizer(value: 'a😊b😎c👍d'))->replaceEmoji()->value())->toBe('abcd');
+        expect((new Sanitizer(value: 'Hello 😊😎👍 World'))->replaceEmoji()->value())->toBe('Hello  World');
+        expect((new Sanitizer(value: '🚗💨'))->replaceEmoji()->value())->toBe('');
+        expect((new Sanitizer(value: '🇩🇪'))->replaceEmoji()->value())->toBe('');
+        expect((new Sanitizer(value: '👨‍👩‍👧‍👦'))->replaceEmoji()->value())->toBe('');
+        expect((new Sanitizer(value: '👋🏽'))->replaceEmoji()->value())->toBe('');
+        expect((new Sanitizer(value: '٩'))->replaceEmoji()->value())->toBe('٩');
+
+        expect((new Sanitizer(value: '😀'))->replaceEmoji(replaceWith: '[emoji]')->value())->toBe('[emoji]');
+        expect((new Sanitizer(value: 'Hello 😎 World'))->replaceEmoji(replaceWith: '-')->value())->toBe('Hello - World');
+
+        expect((new Sanitizer(value: [1, 1.1, null, true, false, 'hello 😊 world', [1, 1.1, null, true, false, 'foo 😎 bar']]))->replaceEmoji()->value())->toBe([1, 1.1, null, true, false, 'hello  world', [1, 1.1, null, true, false, 'foo  bar']]);
+
+        expect((new Sanitizer(value: ['nested' => ['deep' => 'test 😊']]))->replaceEmoji()->value())->toBe(['nested' => ['deep' => 'test ']]);
     });
 
     describe('handle exceptions', function () {
