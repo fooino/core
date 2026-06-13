@@ -537,9 +537,20 @@ if (!function_exists('sanitizer')) {
     /**
      * Create a new Sanitizer instance for the given value
      */
-    function sanitizer(string|int|float|null|bool|array $value): Sanitizer
+    function sanitizer(string|int|float|null|bool|array|object $value): Sanitizer
     {
         return new Sanitizer(value: $value);
+    }
+}
+
+if (!function_exists('normalizeInput')) {
+    /**
+     * Normalize the input by converting Persian/Arabic digits and letters,
+     * removing zero-width non-joiners, stripping XSS vectors, and trimming whitespace
+     */
+    function normalizeInput(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
+    {
+        return sanitizer(value: $value)->normalizeInput()->value();
     }
 }
 

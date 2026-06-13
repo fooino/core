@@ -10,12 +10,12 @@ class Sanitizer
 
     private const int MAX_ATTEMPT = 25;
 
-    public function __construct(private string|int|float|null|bool|array $value) {}
+    public function __construct(private string|int|float|null|bool|array|object $value) {}
 
     /**
      * Get the current value
      */
-    public function value(): string|int|float|null|bool|array
+    public function value(): string|int|float|null|bool|array|object
     {
         return $this->value;
     }
@@ -23,11 +23,47 @@ class Sanitizer
     /**
      * Set a new value
      */
-    private function setValue(string|int|float|null|bool|array $value): static
+    private function setValue(string|int|float|null|bool|array|object $value): static
     {
         $this->value = $value;
 
         return $this;
+    }
+
+    /**
+     * Normalize the input by converting Persian/Arabic digits and letters,
+     * removing zero-width non-joiners, stripping XSS vectors, and trimming whitespace
+     */
+    public function normalizeInput(): static
+    {
+        $value = $this->value();
+
+        $isJson = isJson(value: $value) && !is_numeric($value);
+
+        if ($isJson) {
+
+            $decoded = jsonDecode(json: $value);
+
+            if (in_array(gettype($decoded), ['object', 'array'])) {
+                $decoded = jsonDecodeToArray(json: $value);
+            }
+
+            $value = $decoded;
+        }
+
+        if (is_array($value)) {
+            array_walk_recursive($value, fn(&$item) => $item = $this->normalizeValue(value: $item));
+        }
+
+        if (
+            is_string($value) ||
+            is_int($value) ||
+            is_float($value)
+        ) {
+            return $this->setValue(value: $this->normalizeValue(value: $value));
+        }
+
+        return $this->setValue(value: ($isJson) ? jsonEncode($value) : $value);
     }
 
     /**
@@ -303,6 +339,100 @@ class Sanitizer
     }
 
     /**
+     * Normalize a scalar value: convert digits, replace Arabic letters,
+     * remove half-spaces, strip XSS vectors from allowed tags, and trim
+     */
+    private function normalizeValue(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
+    {
+        if (
+            is_null($value) ||
+            is_bool($value) ||
+            is_array($value) ||
+            is_object($value)
+        ) {
+            return $value;
+        }
+
+        $type = gettype($value);
+
+        // remove ZWNJ, ZWJ, BOM characters
+        $value = preg_replace('/[\x{200C}\x{200D}\x{FEFF}]/u', '', $value);
+
+        $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        $arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        $english = range(0, 9);
+        $replaced = str_replace($arabic, $english, str_replace($persian, $english, $value));
+
+        $arabicLetters = ['ي', 'ك'];
+        $persianLetters = ['ی', 'ک'];
+        $replaced = str_replace($arabicLetters, $persianLetters, $replaced);
+
+        $replaced = strip_tags($replaced, $this->allowedTags());
+
+        $replaced = mb_trim($replaced);
+
+        settype($replaced, $type);
+
+        return $replaced;
+    }
+
+    private function allowedTags(): array
+    {
+        return [
+            '<b>',
+            '<strong>',
+            '<em>',
+            '<i>',
+            '<u>',
+            '<s>',
+            '<sub>',
+            '<sup>',
+            '<p>',
+            '<br>',
+            '<hr>',
+            '<pre>',
+            '<code>',
+            '<img>',
+            '<button>',
+            '<div>',
+            '<span>',
+            '<h1>',
+            '<h2>',
+            '<h3>',
+            '<h4>',
+            '<h5>',
+            '<h6>',
+            '<table>',
+            '<caption>',
+            '<col>',
+            '<colgroup>',
+            '<td>',
+            '<tr>',
+            '<th>',
+            '<thead>',
+            '<tbody>',
+            '<ul>',
+            '<ol>',
+            '<li>',
+            '<dl>',
+            '<dt>',
+            '<dd>',
+            '<blockquote>',
+            '<q>',
+            '<figure>',
+            '<figcaption>',
+            '<mark>',
+            '<small>',
+            '<del>',
+            '<ins>',
+            '<abbr>',
+            '<cite>',
+            '<a>',
+            '<picture>'
+        ];
+    }
+
+    /**
      * Replace search strings in the subject, handling arrays recursively.
      */
     private function replace(string|array $search, string|array $replace, string|array $subject): string|array
@@ -371,7 +501,7 @@ class Sanitizer
 
         if (is_string($value)) {
 
-            return trim($value, $char);
+            return mb_trim($value, $char);
         }
 
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->trimValue(value: $item, char: $char) : $item, $value);

@@ -4,8 +4,152 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Exceptions\InfiniteLoopException;
 use Fooino\Core\Support\Sanitizer;
+use stdClass;
 
 describe('Sanitizer utilities', function () {
+
+    test('normalizeInput method', function () {
+        $object = new stdClass;
+        $object->number = '۰۱۲۳';
+
+        expect(sanitizer(123)->normalizeInput()->value())->toBe(123);
+        expect(sanitizer(123.123)->normalizeInput()->value())->toBe(123.123);
+        expect(sanitizer('foobar')->normalizeInput()->value())->toBe('foobar');
+        expect(sanitizer('foobar123')->normalizeInput()->value())->toBe('foobar123');
+        expect(sanitizer([])->normalizeInput()->value())->toBe([]);
+        expect(sanitizer(null)->normalizeInput()->value())->toBe(null);
+        expect(sanitizer(true)->normalizeInput()->value())->toBe(true);
+        expect(sanitizer(false)->normalizeInput()->value())->toBe(false);
+        expect(sanitizer($object)->normalizeInput()->value())->toBe($object);
+        expect(gettype(sanitizer(123)->normalizeInput()->value()))->toBe(gettype(123));
+        expect(gettype(sanitizer(123.123)->normalizeInput()->value()))->toBe(gettype(123.123));
+
+        expect(sanitizer('علیك سلام')->normalizeInput()->value())->toBe('علیک سلام');
+        expect(sanitizer('عليك سلام')->normalizeInput()->value())->toBe('علیک سلام');
+        expect(sanitizer('باي بای علیك')->normalizeInput()->value())->toBe('بای بای علیک');
+        expect(sanitizer('۰۱۲۳۴۵۶۷۸۹')->normalizeInput()->value())->toBe('0123456789');
+        expect(sanitizer('۰۱۲۳٤٥٦۷۸۹')->normalizeInput()->value())->toBe('0123456789');
+        expect(sanitizer('foobar۰۱۲۳٤٥٦۷۸۹')->normalizeInput()->value())->toBe('foobar0123456789');
+        expect(sanitizer(['۰۱۲۳'])->normalizeInput()->value())->toBe(['0123']);
+        expect(sanitizer(jsonEncode(['۰۱۲۳']))->normalizeInput()->value())->toBe(jsonEncode(['0123']));
+        expect(sanitizer(jsonEncode(['۰۱۲۳', 'foobar4567۸']))->normalizeInput()->value())->toBe(jsonEncode(['0123', 'foobar45678']));
+
+        expect(sanitizer('foobar ')->normalizeInput()->value())->toBe('foobar');
+        expect(sanitizer(' foobar')->normalizeInput()->value())->toBe('foobar');
+        expect(sanitizer(' foobar ')->normalizeInput()->value())->toBe('foobar');
+
+        expect(sanitizer('Hello 👋🏼')->normalizeInput()->value())->toBe('Hello 👋🏼');
+        expect(sanitizer('Hello <input name="password" value="123">')->normalizeInput()->value())->toBe('Hello');
+        expect(sanitizer('Hello <script>alert("XSS");</script> World')->normalizeInput()->value())->toBe('Hello alert("XSS"); World');
+        expect(sanitizer('')->normalizeInput()->value())->toBe('');
+        expect(sanitizer('😊😎👍')->normalizeInput()->value())->toBe('😊😎👍');
+        expect(sanitizer('😊 <script>alert("XSS");</script> 😎')->normalizeInput()->value())->toBe('😊 alert("XSS"); 😎');
+        expect(sanitizer('<script>alert("XSS");</script>')->normalizeInput()->value())->toBe('alert("XSS");');
+
+        expect(
+            sanitizer([
+                0       => 'bar۰۱۲۳',
+                1       => '۱.۰',
+                2       => true,
+                3       => false,
+                4       => null,
+                5       => '۱٤۰۱/۱۰/۱٤',
+                'foo'   => '۰۱۲۳',
+                '2d'    => [
+                    '123',
+                    '۰۱۲۳'
+                ],
+                'withKey'    => [
+                    'foo' => '123',
+                    'bar' => '۰۱۲۳',
+                    'third' => [
+                        'foo'   => '123',
+                        'bar'   => '۰۱۲۳',
+                        'john'  => null,
+                        'doe'   => true
+                    ]
+                ]
+            ])->normalizeInput()->value()
+        )
+            ->toBe(
+                [
+                    0       => 'bar0123',
+                    1       => '1.0',
+                    2       => true,
+                    3       => false,
+                    4       => null,
+                    5       => '1401/10/14',
+                    'foo'   => '0123',
+                    '2d'    => [
+                        '123',
+                        '0123'
+                    ],
+                    'withKey'    => [
+                        'foo' => '123',
+                        'bar' => '0123',
+                        'third' => [
+                            'foo'   => '123',
+                            'bar'   => '0123',
+                            'john'  => null,
+                            'doe'   => true
+                        ]
+                    ]
+                ]
+            );
+
+        expect(normalizeInput('<script>alert("hi");</script> <h1>hi</h1>'))->toBe('alert("hi"); <h1>hi</h1>');
+
+        expect(sanitizer('foo' . json_decode('"\u200C"') . 'bar')->normalizeInput()->value())->toBe('foobar');
+        expect(sanitizer('سلام' . json_decode('"\u200C"') . 'علیک')->normalizeInput()->value())->toBe('سلامعلیک');
+
+        expect(sanitizer('<a href="javascript:alert(1)">click</a>')->normalizeInput()->value())->toBe('<a href="javascript:alert(1)">click</a>');
+        expect(sanitizer('<img src="x" onerror="alert(1)">')->normalizeInput()->value())->toBe('<img src="x" onerror="alert(1)">');
+        expect(sanitizer('<div class="foo" onclick="evil()">content</div>')->normalizeInput()->value())->toBe('<div class="foo" onclick="evil()">content</div>');
+
+        expect(sanitizer('<b>bold</b> <i>italic</i>')->normalizeInput()->value())->toBe('<b>bold</b> <i>italic</i>');
+
+        expect(sanitizer('<script>alert(1)</script>')->normalizeInput()->value())->toBe('alert(1)');
+
+        expect(sanitizer('<unknown>tag</unknown>')->normalizeInput()->value())->toBe('tag');
+
+        expect(sanitizer(0)->normalizeInput()->value())->toBe(0);
+        expect(sanitizer(-5)->normalizeInput()->value())->toBe(-5);
+
+        expect(gettype(sanitizer(123)->normalizeInput()->value()))->toBe('integer');
+        expect(gettype(sanitizer(99.99)->normalizeInput()->value()))->toBe('double');
+        expect(gettype(sanitizer('foobar')->normalizeInput()->value()))->toBe('string');
+
+        $deep = ['level1' => ['level2' => ['level3' => ['level4' => ['level5' => 'foo۰۱۲۳bar']]]]];
+        expect(sanitizer($deep)->normalizeInput()->value())->toBe(['level1' => ['level2' => ['level3' => ['level4' => ['level5' => 'foo0123bar']]]]]);
+
+        expect(sanitizer('سلام' . json_decode('"\u200D"') . 'علیک')->normalizeInput()->value())->toBe('سلامعلیک');
+        expect(sanitizer('سلام' . json_decode('"\uFEFF"') . 'علیک')->normalizeInput()->value())->toBe('سلامعلیک');
+
+        expect(sanitizer('باي بای علي')->normalizeInput()->value())->toBe('بای بای علی');
+        expect(sanitizer('مصطفي')->normalizeInput()->value())->toBe('مصطفی');
+        expect(sanitizer('عيسي')->normalizeInput()->value())->toBe('عیسی');
+        expect(sanitizer('زکريا')->normalizeInput()->value())->toBe('زکریا');
+
+        expect(sanitizer('{}')->normalizeInput()->value())->toBe('[]');
+        expect(sanitizer('[]')->normalizeInput()->value())->toBe('[]');
+        expect(sanitizer('{"foo":null,"bar":{"baz":"۰۱۲۳"}}')->normalizeInput()->value())->toBe('{"foo":null,"bar":{"baz":"0123"}}');
+        expect(sanitizer(jsonEncode([null, true, false, 0]))->normalizeInput()->value())->toBe(jsonEncode([null, true, false, 0]));
+        expect(sanitizer(jsonEncode([['deep' => 'foobar۰۱۲۳']]))->normalizeInput()->value())->toBe(jsonEncode([['deep' => 'foobar0123']]));
+
+        expect(sanitizer("   \t\r\nfoo  bar \n")->normalizeInput()->value())->toBe("foo  bar");
+        expect(sanitizer("   ")->normalizeInput()->value())->toBe("");
+        expect(sanitizer('  ' . json_decode('"\u200C"') . '  ')->normalizeInput()->value())->toBe("");
+
+        expect(sanitizer(0.0)->normalizeInput()->value())->toBe(0.0);
+        expect(sanitizer(-99.99)->normalizeInput()->value())->toBe(-99.99);
+
+        expect(sanitizer('Hello <img src="x" onclick="evil()"> World')->normalizeInput()->value())->toBe('Hello <img src="x" onclick="evil()"> World');
+
+        expect(sanitizer('{"name":"foo <b>bar</b>","num":"۰۱۲۳"}')->normalizeInput()->value())->toBe('{"name":"foo <b>bar<\/b>","num":"0123"}');
+
+        expect(sanitizer('0')->normalizeInput()->value())->toBe('0');
+        expect(sanitizer('-0')->normalizeInput()->value())->toBe('-0');
+    });
 
     test('replaceForbiddenCharacters method', function () {
 
