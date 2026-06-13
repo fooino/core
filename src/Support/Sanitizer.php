@@ -61,6 +61,36 @@ class Sanitizer
     }
 
     /**
+     * Remove or replace sensitive file names and extensions from the value
+     */
+    public function replaceSensitiveFiles(array $excludes = [], string $replaceWith = ''): static
+    {
+        $value = $this->value();
+
+        if (
+            (!is_string($value) && !is_array($value)) ||
+            $value === '' || $value === []
+        ) {
+            return $this;
+        }
+
+        $sensitives = $this->sensitiveFiles();
+
+        foreach ($excludes as $exclude) {
+
+            foreach ($sensitives as $key => $sensitive) {
+
+                if ($exclude === $sensitive) {
+
+                    unset($sensitives[$key]);
+                }
+            }
+        }
+
+        return $this->setValue(value: $this->replace(search: $sensitives, replace: $replaceWith, subject: $value));
+    }
+
+    /**
      * Convert the value to lowercase
      */
     public function lowercase(): static
@@ -114,7 +144,7 @@ class Sanitizer
     /**
      * Trim characters from the beginning and end of the value
      */
-    public function trim(string $char): static
+    public function trim(string $char = ' '): static
     {
         $value = $this->value();
 
@@ -175,6 +205,101 @@ class Sanitizer
         usort($chars, fn($a, $b) => strlen($b) <=> strlen($a));
 
         return $chars;
+    }
+
+    /**
+     * Default set of sensitive file names and extensions to remove or replace
+     */
+    private function sensitiveFiles(): array
+    {
+        $files = [
+            'oauth-private.key',
+            'oauth-public.key',
+            'package-lock.json',
+            'package.json',
+            'composer.json',
+            'composer.lock',
+            '.gitlab-ci.yml',
+            '.gitlab-ci.yaml',
+            '.env.example',
+            '.env.testing',
+            '.env.local',
+            '.env.production',
+            '.env.staging',
+            '.env.development',
+            '.env.encrypted',
+            '.env.decrypted',
+            '.env.old',
+            '.env.backup',
+            '.env',
+            'index.php',
+            'supervisor.log',
+            'phpunit.xml',
+            'error_log',
+            '.gitignore',
+            '.gitkeep',
+            'laravel.logs',
+            'laravel.log',
+            'api-docs.json',
+            '.editorconfig',
+            '.htaccess',
+            '.htpasswd',
+            '.key',
+            '.pem',
+            '.crt',
+            '.logs',
+            '.log',
+            '.php',
+            '.phtml',
+            '.phar',
+            '.pht',
+            '.php3',
+            '.php4',
+            '.php5',
+            '.php7',
+            '.php8',
+            '.shtml',
+            '.shtm',
+            '.git',
+            '.sql',
+            '.sqlite',
+            '.json',
+            '.zip',
+            '.rar',
+            '.js',
+            '.css',
+            '.html',
+            '.xml',
+            '.yml',
+            '.yaml',
+            '.md',
+            '.blade',
+            '.stub',
+            '.bak',
+            '.swp',
+            '.swo',
+            '.old',
+            '.orig',
+            '.py',
+            '.pyc',
+            '.bat',
+            '.bash',
+            '.sh',
+            '.exe',
+            '.cmd',
+            '.asp',
+            '.aspx',
+            '.jsp',
+            '.cgi',
+            '.pl',
+            '.rb',
+            'artisan'
+        ];
+
+
+        usort($files, fn($a, $b) => strlen($b) <=> strlen($a));
+
+        return $files;
     }
 
     /**

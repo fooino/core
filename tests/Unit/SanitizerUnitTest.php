@@ -175,6 +175,40 @@ describe('Sanitizer utilities', function () {
         expect((new Sanitizer(value: 'یfooیbarی'))->trim(char: 'ی')->value())->toBe('fooیbar');
     });
 
+    test('replaceSensitiveFiles method', function () {
+
+        expect((new Sanitizer(value: 1))->replaceSensitiveFiles()->value())->toBe(1);
+        expect((new Sanitizer(value: 1.1))->replaceSensitiveFiles()->value())->toBe(1.1);
+        expect((new Sanitizer(value: null))->replaceSensitiveFiles()->value())->toBe(null);
+        expect((new Sanitizer(value: true))->replaceSensitiveFiles()->value())->toBe(true);
+        expect((new Sanitizer(value: false))->replaceSensitiveFiles()->value())->toBe(false);
+        expect((new Sanitizer(value: ''))->replaceSensitiveFiles()->value())->toBe('');
+        expect((new Sanitizer(value: ' '))->replaceSensitiveFiles()->value())->toBe(' ');
+        expect((new Sanitizer(value: []))->replaceSensitiveFiles()->value())->toBe([]);
+        expect((new Sanitizer(value: [123]))->replaceSensitiveFiles()->value())->toBe([123]);
+
+        expect((new Sanitizer(value: 'hello world'))->replaceSensitiveFiles()->value())->toBe('hello world');
+
+        expect((new Sanitizer(value: 'config/database.php'))->replaceSensitiveFiles()->value())->toBe('config/database');
+        expect((new Sanitizer(value: 'storage/logs/laravel.log'))->replaceSensitiveFiles()->value())->toBe('storage/logs/');
+        expect((new Sanitizer(value: '.env'))->replaceSensitiveFiles()->value())->toBe('');
+        expect((new Sanitizer(value: '/.git/config'))->replaceSensitiveFiles()->value())->toBe('//config');
+
+        expect((new Sanitizer(value: '.env.backup'))->replaceSensitiveFiles()->value())->toBe('');
+        expect((new Sanitizer(value: '/.env.backup'))->replaceSensitiveFiles()->value())->toBe('/');
+        expect((new Sanitizer(value: '/path/.env.example'))->replaceSensitiveFiles()->value())->toBe('/path/');
+
+        expect((new Sanitizer(value: '/path/composer.json'))->replaceSensitiveFiles()->value())->toBe('/path/');
+
+        expect((new Sanitizer(value: 'config/database.php'))->replaceSensitiveFiles(excludes: ['.php'])->value())->toBe('config/database.php');
+        expect((new Sanitizer(value: '/path/.env'))->replaceSensitiveFiles(excludes: ['.env'])->value())->toBe('/path/.env');
+
+        expect((new Sanitizer(value: 'config/database.php'))->replaceSensitiveFiles(replaceWith: '[REMOVED]')->value())->toBe('config/database[REMOVED]');
+        expect((new Sanitizer(value: '.env'))->replaceSensitiveFiles(replaceWith: '[HIDDEN]')->value())->toBe('[HIDDEN]');
+
+        expect((new Sanitizer(value: [1, 1.1, null, true, false, 'config/database.php', [1, 1.1, null, true, false, '.env']]))->replaceSensitiveFiles()->value())->toBe([1, 1.1, null, true, false, 'config/database', [1, 1.1, null, true, false, '']]);
+    });
+
     describe('handle exceptions', function () {
 
         test('recursion limit throws before exceeding max depth', function () {
