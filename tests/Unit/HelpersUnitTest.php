@@ -2,6 +2,8 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use Fooino\Core\Exceptions\CanNotConvertDateException;
+use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Tests\Data\Datasets;
 use stdClass;
 use Stringable;
@@ -342,5 +344,184 @@ describe('Helpers unit tests', function () {
 
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: 'NOT EXIST'))->toBe('NOT EXIST');
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: fn($a) => $a * $a, methodArgs: ['a' => 5]))->toBe(25);
+    });
+
+    test('percentageChange method', function () {
+
+        expect(percentageChange(from: 200, to: 50))->toBe('-75');
+        expect(percentageChange(from: 20, to: 40))->toBe('100');
+        expect(percentageChange(from: 40, to: 20))->toBe('-50');
+        expect(percentageChange(from: 10, to: 12))->toBe('20');
+
+        expect(percentageChange(from: 12, to: 12))->toBe('0');
+        expect(percentageChange(from: 12, to: -12))->toBe('-200');
+        expect(percentageChange(from: 12, to: 0))->toBe('-100');
+        expect(percentageChange(from: 0, to: -12))->toBe('100');
+        expect(percentageChange(from: -12, to: 12))->toBe('200');
+
+        expect(percentageChange(from: 13, to: 14))->toBe('7.69');
+        expect(percentageChange(from: 13, to: 14, precision: 12))->toBe('7.6923076923');
+
+        $zeros = Datasets::zeros();
+        $lastIndex = count($zeros) - 1;
+
+        expect(percentageChange(from: 12, to: $zeros[rand(0, $lastIndex)]))->toBe('-100');
+        expect(percentageChange(from: $zeros[rand(0, $lastIndex)], to: -12))->toBe('100');
+    });
+
+    test('unitNumberFormat method', function () {
+
+        $trillion = __('msg.trillion');
+        $billion = __('msg.billion');
+        $million = __('msg.million');
+        $thousand = __('msg.thousand');
+
+        expect(unitNumberFormat(number: 1.e20, unit: 'Persons'))->toBe('100,000,000 ' . $trillion . ' Persons');
+
+        expect(unitNumberFormat(number: 10_000_000_000,))->toBe('10 ' . $billion);
+
+        expect(unitNumberFormat(number: 123_000_000, unit: '$'))->toBe('123 ' . $million . ' $');
+
+        expect(unitNumberFormat(number: -123_076_012, unit: '$'))->toBe('-123.076 ' . $million . ' $');
+
+        expect(unitNumberFormat(number: 123_076_012, unit: '$', precision: 5))->toBe('123.07601 ' . $million . ' $');
+
+        expect(unitNumberFormat(number: 1000, unit: 'Persons'))->toBe('1 ' . $thousand . ' Persons');
+
+        expect(unitNumberFormat(number: 2501, unit: 'Persons'))->toBe('2.501 ' . $thousand . ' Persons');
+
+        expect(unitNumberFormat(number: 100, unit: 'minute'))->toBe('100 minute');
+
+        expect(unitNumberFormat(number: 0.011, unit: 'seconds'))->toBe('0.011 seconds');
+        expect(unitNumberFormat(number: -0.011, unit: 'seconds'))->toBe('-0.011 seconds');
+        expect(unitNumberFormat(number: 0.0112, unit: 'seconds'))->toBe('0.011 seconds');
+
+        expect(unitNumberFormat(number: 0.0E+1, unit: 'seconds'))->toBe('0 seconds');
+        expect(unitNumberFormat(number: 0, unit: 'seconds'))->toBe('0 seconds');
+    });
+
+    test('unitSizeFormat method', function () {
+
+        expect(unitSizeFormat(bytes: 1099511627776))->toBe('1 TB');
+        expect(unitSizeFormat(bytes: 2199023255552))->toBe('2 TB');
+        expect(unitSizeFormat(bytes: 1649267441664))->toBe('1.5 TB');
+
+        expect(unitSizeFormat(bytes: 1073741824))->toBe('1 GB');
+        expect(unitSizeFormat(bytes: 2147483648))->toBe('2 GB');
+        expect(unitSizeFormat(bytes: 1610612736))->toBe('1.5 GB');
+
+        expect(unitSizeFormat(bytes: 1048576))->toBe('1 MB');
+        expect(unitSizeFormat(bytes: 2097152))->toBe('2 MB');
+        expect(unitSizeFormat(bytes: 1572864))->toBe('1.5 MB');
+
+        expect(unitSizeFormat(bytes: 1024))->toBe('1 KB');
+        expect(unitSizeFormat(bytes: 2048))->toBe('2 KB');
+        expect(unitSizeFormat(bytes: 1536))->toBe('1.5 KB');
+
+        expect(unitSizeFormat(bytes: 500))->toBe('500 bytes');
+        expect(unitSizeFormat(bytes: 2))->toBe('2 bytes');
+
+        expect(unitSizeFormat(bytes: 1))->toBe('1 byte');
+
+        expect(unitSizeFormat(bytes: 0))->toBe('0 byte');
+
+        expect(unitSizeFormat(bytes: -10))->toBe('-10 msg.isInvalid');
+
+        expect(unitSizeFormat(bytes: 1234567))->toBe('1.177 MB');
+        expect(unitSizeFormat(bytes: 1234567, precision: 5))->toBe('1.17737 MB');
+    });
+
+    test('datesBetween method', function () {
+
+        expect(datesBetween(from: '2024-01-01', to: '2024-01-05'))->toBe([
+            '2024-01-01',
+            '2024-01-02',
+            '2024-01-03',
+            '2024-01-04',
+            '2024-01-05',
+        ]);
+
+        expect(datesBetween(from: '2024-06-01', to: '2024-06-01'))->toBe(['2024-06-01']);
+
+        expect(datesBetween(from: '2024-01-01', to: '2024-01-03', format: 'Y/m/d'))->toBe([
+            '2024/01/01',
+            '2024/01/02',
+            '2024/01/03',
+        ]);
+
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-02 00:00:00', format: 'Y-m-d H:i:s', interval: 'PT4H'))->toBe([
+            '2024-01-01 00:00:00',
+            '2024-01-01 04:00:00',
+            '2024-01-01 08:00:00',
+            '2024-01-01 12:00:00',
+            '2024-01-01 16:00:00',
+            '2024-01-01 20:00:00',
+            '2024-01-02 00:00:00',
+        ]);
+
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P2DT4H'))->toBe([
+            '2024-01-01 00:00:00',
+            '2024-01-03 04:00:00',
+            '2024-01-05 08:00:00',
+        ]);
+
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P1W'))->toBe(['2024-01-01 00:00:00']);
+
+        expect(datesBetween(from: strtotime('2024-01-01'), to: strtotime('2024-01-03')))->toBe([
+            '2024-01-01',
+            '2024-01-02',
+            '2024-01-03',
+        ]);
+
+        expect(fn() => datesBetween(from: 'foobar', to: '2024-01-05'))->toThrow(CanNotConvertDateException::class);
+        expect(fn() => datesBetween(from: '2024-01-05', to: 'foobar'))->toThrow(CanNotConvertDateException::class);
+
+        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoException::class);
+
+        try {
+
+            datesBetween(from: '2024-06-01', to: '2024-01-01');
+
+            // 
+        } catch (FooinoException $e) {
+
+            expect($e->getMessage())->toBe('msg.invalidPeriodForDateRange');
+            expect($e->getCode())->toBe(1001);
+            expect($e->reportable())->toBeTrue();
+            expect($e->getLevel())->toBe('warning');
+            expect($e->getWith())->toBe([
+                'from'      => '2024-06-01',
+                'to'        => '2024-01-01',
+                'format'    => 'Y-m-d',
+                'interval'  => 'P1D',
+            ]);
+        }
+    });
+
+    test('sanitizeUrl and sanitizeSlug method', function () {
+
+        expect(sanitizeUrl(value: 1))->toBe(1);
+        expect(sanitizeUrl(value: 1.1))->toBe(1.1);
+        expect(sanitizeUrl(value: null))->toBe(null);
+        expect(sanitizeUrl(value: true))->toBe(true);
+        expect(sanitizeUrl(value: false))->toBe(false);
+        expect(sanitizeUrl(value: []))->toBe([]);
+
+        expect(sanitizeUrl(value: "test / prettify canonical ? %& $ *"))->toBe("test-/-prettify-canonical-?-%&-");
+
+        expect(sanitizeUrl(value: "https://google.com/laravel_tips!for-2025"))->toBe("https://google.com/laravel-tips-for-2025");
+        expect(sanitizeUrl(value: ["https://google.com/laravel_tips!for-2025", "https://fooino.com/I am_god"]))->toBe(["https://google.com/laravel-tips-for-2025", "https://fooino.com/I-am-god"]);
+
+
+        expect(sanitizeSlug(value: 1))->toBe(1);
+        expect(sanitizeSlug(value: 1.1))->toBe(1.1);
+        expect(sanitizeSlug(value: null))->toBe(null);
+        expect(sanitizeSlug(value: true))->toBe(true);
+        expect(sanitizeSlug(value: false))->toBe(false);
+        expect(sanitizeSlug(value: []))->toBe([]);
+
+        expect(sanitizeSlug(value: "test / Prettify slug ? %& $ *"))->toBe('test-prettify-slug');
+        expect(sanitizeSlug(value: "Laravel_tips!for-2025"))->toBe('laravel-tips-for-2025');
+        expect(sanitizeSlug(value: ["Laravel_tips!for-2025", "I am_god"]))->toBe(["laravel-tips-for-2025", "i-am-god"]);
     });
 });

@@ -1,11 +1,52 @@
 <?php
 
+use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
 
 use Fooino\Core\Interfaces\Mathable;
+use Fooino\Core\Support\Sanitizer;
 use Illuminate\Http\JsonResponse;
+
+if (!defined('CONSTANTS_DEFINED')) {
+
+    define('FE', [
+
+        //===============Fooino\Core\Exceptions\InfiniteLoopException===============
+        'SANITIZER_MADE_INFINITE_LOOP_MESSAGE'                                                          => 'msg.infiniteLoopException',
+        'SANITIZER_MADE_INFINITE_LOOP_CODE'                                                             => 10201,
+
+        'TOKEN_GENERATOR_MADE_INFINITE_LOOP_MESSAGE'                                                    => 'msg.infiniteLoopExceptionInTokenGenerator',
+        'TOKEN_GENERATOR_MADE_INFINITE_LOOP_CODE'                                                       => 10202,
+
+        //===============Fooino\Core\Exceptions\TokenGeneratorException=============
+        'TOKEN_GENERATOR_LENGTH_MUST_BE_POSITIVE_MESSAGE'                                               => 'msg.tokenGeneratorExceptionLengthMustBePositive',
+        'TOKEN_GENERATOR_LENGTH_MUST_BE_POSITIVE_CODE'                                                  => 10401,
+
+        'TOKEN_GENERATOR_BIG_LENGTH_NUMBER_MESSAGE'                                                     => 'msg.tokenGeneratorExceptionBigLengthNumber',
+        'TOKEN_GENERATOR_BIG_LENGTH_NUMBER_CODE'                                                        => 10402,
+
+        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_STRONG_PASSWORD_MESSAGE'                               => 'msg.tokenGeneratorExceptionSmallLengthNumberForStrongPassword',
+        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_STRONG_PASSWORD_CODE'                                  => 10403,
+
+        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_PASSWORD_MESSAGE'                                      => 'msg.tokenGeneratorExceptionSmallLengthNumberForPassword',
+        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_PASSWORD_CODE'                                         => 10404,
+
+        'TOKEN_GENERATOR_FIELD_IS_REQUIRED_MESSAGE'                                                     => 'msg.tokenGeneratorExceptionFieldIsRequired',
+        'TOKEN_GENERATOR_FIELD_IS_REQUIRED_CODE'                                                        => 10405,
+
+        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_MESSAGE'                                     => 'msg.tokenGeneratorExceptionSmallLengthNumberForMemorable',
+        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_CODE'                                        => 10406,
+    ]);
+
+
+    // datesBetween exceptions
+    define('INVALID_PERIOD_FOR_DATE_RANGE_MESSAGE', 'msg.invalidPeriodForDateRange');
+    define('INVALID_PERIOD_FOR_DATE_RANGE_CODE', 1001);
+
+    define('CONSTANTS_DEFINED', true);
+}
 
 if (!function_exists('isJson')) {
     /**
@@ -380,5 +421,185 @@ if (!function_exists('callMethodIfExists')) {
     function callMethodIfExists(object|string $object, string $method, mixed $fallback = null, array $methodArgs = [], array $constructorArgs = []): mixed
     {
         return method_exists($object, $method) ? (is_string($object) ? (new $object(...$constructorArgs)) : $object)->{$method}(...$methodArgs) : value($fallback, ...$methodArgs);
+    }
+}
+
+if (!function_exists('percentageChange')) {
+    /**
+     * Calculate the relative percentage change from $from to $to.
+     */
+    function percentageChange(
+        int|float $from,
+        int|float $to,
+        int $precision = 2
+    ): string {
+
+        return match (true) {
+
+            isZero($from)   => '100',
+
+            isZero($to)     => '-100',
+
+            default         => math(precision: $precision)
+                ->number(
+                    multiply(
+                        divide(
+                            subtract($to, $from),
+                            abs($from)
+                        ),
+                        100
+                    )
+                )
+        };
+    }
+}
+
+if (!function_exists('unitNumberFormat')) {
+    /**
+     * Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions)
+     */
+    function unitNumberFormat(int|float|string $number, string $unit = '', int $precision = 3): string
+    {
+        return match (true) {
+
+            greaterThanOrEqual(abs($number), '1000000000000')      => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000000')) . ' ' . __('msg.trillion') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), '1000000000')         => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000')) . ' ' . __('msg.billion') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), '1000000')            => trim(math(precision: $precision)->numberFormat(divide($number, '1000000')) . ' ' . __('msg.million') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), '1000')               => trim(math(precision: $precision)->numberFormat(divide($number, '1000')) . ' ' . __('msg.thousand') . ' ' . $unit),
+
+            default                                                => trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit),
+        };
+    }
+}
+
+if (!function_exists('unitSizeFormat')) {
+    /**
+     * Format bytes into a human-readable file size string (B, KB, MB, GB, TB)
+     */
+    function unitSizeFormat(int|float|string $bytes, int $precision = 3): string
+    {
+        return match (true) {
+
+            greaterThanOrEqual($bytes, '1099511627776')   => math(precision: $precision)->numberFormat(divide($bytes, '1099511627776')) . ' TB',
+
+            greaterThanOrEqual($bytes, '1073741824')      => math(precision: $precision)->numberFormat(divide($bytes, '1073741824')) . ' GB',
+
+            greaterThanOrEqual($bytes, '1048576')         => math(precision: $precision)->numberFormat(divide($bytes, '1048576')) . ' MB',
+
+            greaterThanOrEqual($bytes, '1024')            => math(precision: $precision)->numberFormat(divide($bytes, '1024')) . ' KB',
+
+            greaterThan($bytes, '1')                      => $bytes . ' bytes',
+
+            greaterThanOrEqual($bytes, '0')               => $bytes . ' byte',
+
+            default                                       => $bytes . ' ' . __('msg.isInvalid'),
+        };
+    }
+}
+
+if (!function_exists('datesBetween')) {
+    /**
+     * Generate an array of dates within a given range at specified intervals and format.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * 
+     * @throws \Fooino\Core\Exceptions\FooinoException
+     */
+    function datesBetween(
+        string|int $from,
+        string|int $to,
+        string $format = 'Y-m-d',
+        string $interval = 'P1D'
+    ): array {
+
+        $originalFrom = $from;
+        $originalTo = $to;
+
+        $from = dateConvert(date: $from, throwException: true);
+        $to = dateConvert(date: $to, throwException: true);
+
+        if ($to < $from) {
+
+            app(FooinoException::class)
+                ->setMessage(INVALID_PERIOD_FOR_DATE_RANGE_MESSAGE)
+                ->setCode(INVALID_PERIOD_FOR_DATE_RANGE_CODE)
+                ->warning()
+                ->shouldReport()
+                ->with([
+                    'from'      => $originalFrom,
+                    'to'        => $originalTo,
+                    'format'    => $format,
+                    'interval'  => $interval,
+                ])
+                ->throw();
+        }
+
+        $output = [];
+        $utc = new DateTimeZone(timezone: 'UTC');
+
+        $period = new DatePeriod(
+            start: new DateTime(datetime: $from, timezone: $utc),
+            interval: new DateInterval(duration: $interval),
+            end: new DateTime(datetime: $to, timezone: $utc),
+            options: DatePeriod::INCLUDE_END_DATE
+        );
+
+        foreach ($period as $value) {
+            $output[] = $value->format($format);
+        }
+
+        return $output;
+    }
+}
+
+if (!function_exists('sanitizer')) {
+    /**
+     * Create a new Sanitizer instance for the given value
+     */
+    function sanitizer(string|int|float|null|bool|array|object $value): Sanitizer
+    {
+        return new Sanitizer(value: $value);
+    }
+}
+
+if (!function_exists('normalizeInput')) {
+    /**
+     * Normalize the input by converting Persian/Arabic digits and letters,
+     * removing zero-width non-joiners, stripping XSS vectors, and trimming whitespace
+     */
+    function normalizeInput(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
+    {
+        return sanitizer(value: $value)->normalizeInput()->value();
+    }
+}
+
+if (!function_exists('sanitizeUrl')) {
+    /**
+     * Clean a value for use in URLs by replacing forbidden characters with dashes
+     */
+    function sanitizeUrl(string|int|float|null|bool|array $value): string|int|float|null|bool|array
+    {
+        return sanitizer(value: $value)
+            ->replaceForbiddenCharacters(excludes: ['/', '=', ':', '?', '&', '.', '-', '#', '@', '~', '%', '+'], replaceWith: '-')
+            ->collapse('-')
+            ->value();
+    }
+}
+
+if (!function_exists('sanitizeSlug')) {
+    /**
+     * Generate a URL-friendly slug from the given value
+     */
+    function sanitizeSlug(string|int|float|null|bool|array $value): string|int|float|null|bool|array
+    {
+        return sanitizer(value: $value)
+            ->replaceForbiddenCharacters(excludes: ['-'], replaceWith: '-')
+            ->collapse(char: '-')
+            ->trim(char: '-')
+            ->lowercase()
+            ->value();
     }
 }

@@ -30,11 +30,8 @@ class FooinoMathHandler implements Mathable
          * 
          *  All calculations use BC_SCALE which is a high number to not loss precision
          */
-
-        bcscale(scale: self::BC_SCALE);
-
         if (
-            $this->getPrecision() > bcscale() ||
+            $this->getPrecision() > self::BC_SCALE ||
             $this->getPrecision() < 0
         ) {
             $this->throwInvalidPrecisionException();
@@ -308,7 +305,7 @@ class FooinoMathHandler implements Mathable
 
     private function compare(string|int|float $a, string|int|float $b): int
     {
-        return bccomp($this->convertScientificNumber(number: $a), $this->convertScientificNumber(number: $b));
+        return bccomp(num1: $this->convertScientificNumber(number: $a), num2: $this->convertScientificNumber(number: $b), scale: self::BC_SCALE);
     }
 
     /**
@@ -378,7 +375,7 @@ class FooinoMathHandler implements Mathable
 
         if (in_array($method, $twoOperand)) {
 
-            $defaultTwoOperandTemplate = ['num1' => 'result', 'num2' => 'number', 'scale' => null];
+            $defaultTwoOperandTemplate = ['num1' => 'result', 'num2' => 'number', 'scale' => self::BC_SCALE];
 
             list($result, $start, $template) = match ($method) {
 
@@ -402,7 +399,14 @@ class FooinoMathHandler implements Mathable
                 $mapped = [];
                 foreach ($template as $argKey => $argValue) {
 
-                    $mapped[$argKey] = !is_null($argValue) ? ${$argValue} : null;
+                    $mapped[$argKey] = match (true) {
+
+                        is_string($argValue) && isset(${$argValue})     => ${$argValue},
+
+                        is_string($argValue) || is_numeric($argValue)   => $argValue,
+
+                        default                                         => null
+                    };
 
                     // 
                 }
@@ -417,9 +421,9 @@ class FooinoMathHandler implements Mathable
 
             $template = match ($method) {
 
-                'bcpow'             => ['num' => 'value', 'exponent' => 'args.exponent', 'scale' => null],
+                'bcpow'             => ['num' => 'value', 'exponent' => 'args.exponent', 'scale' => self::BC_SCALE],
 
-                'bcsqrt'            => ['num' => 'value', 'scale' => null],
+                'bcsqrt'            => ['num' => 'value', 'scale' => self::BC_SCALE],
 
                 'bcceil'            => ['num' => 'value'],
 
@@ -437,7 +441,16 @@ class FooinoMathHandler implements Mathable
                 $mapped = [];
                 foreach ($template as $argKey => $argValue) {
 
-                    $mapped[$argKey] = !is_null($argValue) ? ((strpos($argValue, '.') !== false) ? data_get($operandAndArgs, $argValue) : ${$argValue}) : null;
+                    $mapped[$argKey] = match (true) {
+
+                        is_string($argValue) && strpos($argValue, '.') !== false    => data_get($operandAndArgs, $argValue),
+
+                        is_string($argValue) && isset(${$argValue})                 => ${$argValue},
+
+                        is_string($argValue) || is_numeric($argValue)               => $argValue,
+
+                        default                                                     => null
+                    };
 
                     // 
                 }
@@ -488,7 +501,7 @@ class FooinoMathHandler implements Mathable
 
             if (
                 $method === 'bcsqrt' &&
-                $number < 0
+                bccomp(num1: $number, num2: '0', scale: self::BC_SCALE) === -1
             ) {
                 $this->throwInvalidValueErrorException(method: $method, operand: $operand);
             }
@@ -505,7 +518,7 @@ class FooinoMathHandler implements Mathable
             ->critical()
             ->with([
                 'precision' => $this->getPrecision(),
-                'bc_scale'  => bcscale()
+                'bc_scale'  => self::BC_SCALE
             ])
             ->throw();
     }
