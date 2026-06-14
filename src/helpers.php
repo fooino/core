@@ -35,6 +35,9 @@ if (!defined('CONSTANTS_DEFINED')) {
 
         'TOKEN_GENERATOR_FIELD_IS_REQUIRED_MESSAGE'                                                     => 'msg.tokenGeneratorExceptionFieldIsRequired',
         'TOKEN_GENERATOR_FIELD_IS_REQUIRED_CODE'                                                        => 10405,
+
+        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_MESSAGE'                                     => 'msg.tokenGeneratorExceptionSmallLengthNumberForMemorable',
+        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_CODE'                                        => 10406,
     ]);
 
 

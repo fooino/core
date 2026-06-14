@@ -208,6 +208,17 @@ class TokenGenerator
     }
 
     /**
+     * Memorable OTP format: numeric token with at least one pair of adjacent identical
+     * digits (e.g. 247719), making the code easier to remember for users.
+     */
+    public function memorableOtp(): static
+    {
+        $this->format = 'memorableOtp';
+
+        return $this;
+    }
+
+    /**
      * Apply strtolower transformation to the generated token via the pipeline.
      */
     public function lowercase(): static
@@ -294,6 +305,18 @@ class TokenGenerator
             app(TokenGeneratorException::class)
                 ->setMessage(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_PASSWORD_MESSAGE'])
                 ->setCode(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_PASSWORD_CODE'])
+                ->with($this->fooinoExceptionWith())
+                ->throw();
+        }
+
+        if (
+            $this->getFormat() === 'memorableOtp' &&
+            $this->getLength() < 2
+        ) {
+
+            app(TokenGeneratorException::class)
+                ->setMessage(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_MESSAGE'])
+                ->setCode(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_CODE'])
                 ->with($this->fooinoExceptionWith())
                 ->throw();
         }
@@ -426,6 +449,26 @@ class TokenGenerator
     protected function generateUuid7(): string
     {
         return str()->uuid7()->toString();
+    }
+
+    /**
+     * Generate a numeric token with at least one pair of adjacent identical digits.
+     * Uses generateNumeric() internally and forces a duplicate if none exists.
+     */
+    protected function generateMemorableOtp(): string
+    {
+        $digits = str_split($this->generateNumeric());
+
+        for ($i = 0; $i < $this->getLength() - 1; $i++) {
+            if ($digits[$i] === $digits[$i + 1]) {
+                return implode('', $digits);
+            }
+        }
+
+        $pos = random_int(0, $this->getLength() - 2);
+        $digits[$pos + 1] = $digits[$pos];
+
+        return implode('', $digits);
     }
 
     /**

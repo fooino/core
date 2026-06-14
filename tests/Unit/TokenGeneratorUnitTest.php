@@ -40,6 +40,7 @@ describe('TokenGenerator utilities', function () {
         expect(app(TokenGenerator::class)->strongPassword()->getFormat())->toBe('strongPassword');
         expect(app(TokenGenerator::class)->uuid4()->getFormat())->toBe('uuid4');
         expect(app(TokenGenerator::class)->uuid7()->getFormat())->toBe('uuid7');
+        expect(app(TokenGenerator::class)->memorableOtp()->getFormat())->toBe('memorableOtp');
     });
 
     test('numeric format', function () {
@@ -136,6 +137,28 @@ describe('TokenGenerator utilities', function () {
         expect(strlen(app(TokenGenerator::class)->uuid7()->lowercase()->token()))->toBe(36);
 
         expect(strlen(app(TokenGenerator::class)->uuid7()->uppercase()->token()))->toBe(36);
+    });
+
+    test('memorableOtp format', function () {
+
+        expect(strlen(app(TokenGenerator::class)->memorableOtp()->length(6)->token()))->toBe(6);
+
+        expect(ctype_digit(app(TokenGenerator::class)->memorableOtp()->length(10)->token()))->toBeTrue();
+
+        expect(app(TokenGenerator::class)->memorableOtp()->length(10)->token()[0])->not->toBe('0');
+
+        $token = app(TokenGenerator::class)->memorableOtp()->length(6)->token();
+        $hasAdjacentPair = false;
+        for ($j = 0; $j < strlen($token) - 1; $j++) {
+            if ($token[$j] === $token[$j + 1]) {
+                $hasAdjacentPair = true;
+                break;
+            }
+        }
+        expect($hasAdjacentPair)->toBeTrue();
+
+        expect(ctype_digit(app(TokenGenerator::class)->memorableOtp()->length(10)->lowercase()->token()))->toBeTrue();
+        expect(ctype_digit(app(TokenGenerator::class)->memorableOtp()->length(10)->uppercase()->token()))->toBeTrue();
     });
 
     test('check token uniqueness', function () {
@@ -346,6 +369,30 @@ describe('TokenGenerator utilities', function () {
                     'attempted' => 0,
                     'length'    => 5,
                     'format'    => 'password'
+                ]);
+            }
+        });
+
+        test('memorableOtp length number', function () {
+
+            expect(fn() => app(TokenGenerator::class)->memorableOtp()->length(1)->token())->toThrow(TokenGeneratorException::class);
+            expect(fn() => app(TokenGenerator::class)->memorableOtp()->length(0)->token())->toThrow(TokenGeneratorException::class);
+
+            try {
+
+                app(TokenGenerator::class)->memorableOtp()->length(1)->token();
+
+                // 
+            } catch (FooinoException $e) {
+
+                expect($e->getMessage())->toBe('msg.tokenGeneratorExceptionSmallLengthNumberForMemorable');
+                expect($e->getCode())->toBe(10406);
+                expect($e->getLevel())->toBe('error');
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'attempted' => 0,
+                    'length'    => 1,
+                    'format'    => 'memorableOtp'
                 ]);
             }
         });
