@@ -38,6 +38,8 @@ describe('TokenGenerator utilities', function () {
         expect(app(TokenGenerator::class)->weakPassword()->getFormat())->toBe('weakPassword');
         expect(app(TokenGenerator::class)->password()->getFormat())->toBe('password');
         expect(app(TokenGenerator::class)->strongPassword()->getFormat())->toBe('strongPassword');
+        expect(app(TokenGenerator::class)->uuid4()->getFormat())->toBe('uuid4');
+        expect(app(TokenGenerator::class)->uuid7()->getFormat())->toBe('uuid7');
     });
 
     test('numeric format', function () {
@@ -108,6 +110,32 @@ describe('TokenGenerator utilities', function () {
 
         expect(strpbrk(app(TokenGenerator::class)->strongPassword()->length(12)->token(), implode('', $symbols)))->not->toBeFalse();
         // 
+    });
+
+    test('uuid4 format', function () {
+
+        expect(strlen(app(TokenGenerator::class)->uuid4()->token()))->toBe(36);
+
+        expect(preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', app(TokenGenerator::class)->uuid4()->token()))->toBe(1);
+
+        expect(ctype_xdigit(str_replace('-', '', app(TokenGenerator::class)->uuid4()->token())))->toBeTrue();
+
+        expect(strlen(app(TokenGenerator::class)->uuid4()->lowercase()->token()))->toBe(36);
+
+        expect(strlen(app(TokenGenerator::class)->uuid4()->uppercase()->token()))->toBe(36);
+    });
+
+    test('uuid7 format', function () {
+
+        expect(strlen(app(TokenGenerator::class)->uuid7()->token()))->toBe(36);
+
+        expect(preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', app(TokenGenerator::class)->uuid7()->token()))->toBe(1);
+
+        expect(ctype_xdigit(str_replace('-', '', app(TokenGenerator::class)->uuid7()->token())))->toBeTrue();
+
+        expect(strlen(app(TokenGenerator::class)->uuid7()->lowercase()->token()))->toBe(36);
+
+        expect(strlen(app(TokenGenerator::class)->uuid7()->uppercase()->token()))->toBe(36);
     });
 
     test('check token uniqueness', function () {

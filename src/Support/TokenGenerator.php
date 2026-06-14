@@ -188,6 +188,26 @@ class TokenGenerator
     }
 
     /**
+     * UUID v4 format like 550e8400-e29b-41d4-a716-446655440000
+     */
+    public function uuid4(): static
+    {
+        $this->format = 'uuid4';
+
+        return $this;
+    }
+
+    /**
+     * UUID v7 format (time-ordered) like 018f3a6e-1b3c-7d45-a123-456789abcdef
+     */
+    public function uuid7(): static
+    {
+        $this->format = 'uuid7';
+
+        return $this;
+    }
+
+    /**
      * Apply strtolower transformation to the generated token via the pipeline.
      */
     public function lowercase(): static
@@ -390,6 +410,22 @@ class TokenGenerator
     protected function generateStrongPassword(): string
     {
         return str()->password(length: $this->getLength(), letters: true, numbers: true, symbols: true);
+    }
+
+    /**
+     * Generate a UUID v4 string using Laravel's string helper.
+     */
+    protected function generateUuid4(): string
+    {
+        return str()->uuid()->toString();
+    }
+
+    /**
+     * Generate a UUID v7 string (time-ordered) using Laravel's string helper.
+     */
+    protected function generateUuid7(): string
+    {
+        return str()->uuid7()->toString();
     }
 
     /**
