@@ -27,8 +27,10 @@ describe('TokenGenerator utilities', function () {
         expect(app(TokenGenerator::class)->field('code')->getField())->toBe('code');
 
         expect(app(TokenGenerator::class)->getWhere())->toBe([]);
+        expect(app(TokenGenerator::class)->where([])->getWhere())->toBe([]);
         expect(app(TokenGenerator::class)->where([['foo', '<>', 'bar']])->getWhere())->toBe([['foo', '<>', 'bar']]);
         expect(app(TokenGenerator::class)->where(['foo', '<>', 'bar'])->getWhere())->toBe([['foo', '<>', 'bar']]);
+        expect(app(TokenGenerator::class)->where([['a', '=', 1], ['b', '>', 2]])->getWhere())->toBe([['a', '=', 1], ['b', '>', 2]]);
 
         expect(app(TokenGenerator::class)->getFormat())->toBe('numeric');
         expect(app(TokenGenerator::class)->alphaNumeric()->getFormat())->toBe('alphaNumeric');
@@ -70,6 +72,8 @@ describe('TokenGenerator utilities', function () {
 
         expect(ctype_lower(app(TokenGenerator::class)->alphabet()->length(16)->lowercase()->token()))->toBeTrue();
         expect(ctype_upper(app(TokenGenerator::class)->alphabet()->length(16)->uppercase()->token()))->toBeTrue();
+
+        expect(ctype_upper(app(TokenGenerator::class)->alphabet()->length(16)->lowercase()->uppercase()->token()))->toBeTrue();
     });
 
     test('password format methods', function () {
@@ -90,7 +94,7 @@ describe('TokenGenerator utilities', function () {
         expect(ctype_alnum(app(TokenGenerator::class)->password()->length(12)->token()))->toBeTrue();
 
         expect(strpbrk(app(TokenGenerator::class)->password()->length(12)->lowercase()->token(), implode('', range('A', 'Z'))))->toBeFalse();
-        expect(strpbrk(app(TokenGenerator::class)->password()->length(12)->uppercase()->token(), implode('', range('a', 'a'))))->toBeFalse();
+        expect(strpbrk(app(TokenGenerator::class)->password()->length(12)->uppercase()->token(), implode('', range('a', 'z'))))->toBeFalse();
 
         expect(strpbrk(app(TokenGenerator::class)->password()->length(12)->token(), implode('', $symbols)))->toBeFalse();
 
@@ -100,7 +104,7 @@ describe('TokenGenerator utilities', function () {
         expect(strlen(app(TokenGenerator::class)->strongPassword()->length(12)->token()))->toBe(12);
 
         expect(strpbrk(app(TokenGenerator::class)->strongPassword()->length(12)->lowercase()->token(), implode('', range('A', 'Z'))))->toBeFalse();
-        expect(strpbrk(app(TokenGenerator::class)->strongPassword()->length(12)->uppercase()->token(), implode('', range('a', 'a'))))->toBeFalse();
+        expect(strpbrk(app(TokenGenerator::class)->strongPassword()->length(12)->uppercase()->token(), implode('', range('a', 'z'))))->toBeFalse();
 
         expect(strpbrk(app(TokenGenerator::class)->strongPassword()->length(12)->token(), implode('', $symbols)))->not->toBeFalse();
         // 
@@ -129,6 +133,41 @@ describe('TokenGenerator utilities', function () {
         $token = app(TokenGenerator::class)->model($model)->field('code')->numeric()->length(1)->token();
 
         expect($token)->toBe('9'); // 0 - 8 is already inserted and the 9 is the last number with length 1
+    });
+
+    test('where conditions are applied in uniqueness check', function () {
+
+        Schema::create('codes_table', function (Blueprint $table) {
+            $table->id();
+            $table->string('code');
+            $table->string('status');
+        });
+
+        $model = new class extends Model
+        {
+            protected $table = 'codes_table';
+        };
+
+        $insert = [];
+        // Codes 1-8 are taken with ACTIVE status
+        foreach (range(1, 8) as $i) {
+            $insert[] = ['code' => $i, 'status' => 'ACTIVE'];
+        }
+        // Code 9 exists but with INACTIVE status — should not be blocked when filtering by ACTIVE
+        $insert[] = ['code' => 9, 'status' => 'INACTIVE'];
+
+        $model->insert($insert);
+
+        $token = app(TokenGenerator::class)
+            ->model($model)
+            ->field('code')
+            ->where(['status', 'ACTIVE'])
+            ->numeric()
+            ->length(1)
+            ->token();
+
+        // With ACTIVE filter, only 1-8 are taken; 9 is INACTIVE so it is available
+        expect($token)->toBe('9');
     });
 
     describe('handle exceptions', function () {

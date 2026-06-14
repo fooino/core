@@ -29,7 +29,8 @@ class TokenGenerator
     public const int MAX_LENGTH = 255;
 
     /**
-     * To make and output token
+     * Generate and return the token. This is the entry point that triggers validation,
+     * generation, and optional uniqueness check against the database.
      */
     public function token(): string
     {
@@ -40,7 +41,7 @@ class TokenGenerator
     }
 
     /**
-     * Token setter
+     * Store the generated token internally.
      */
     protected function setToken(string $token): static
     {
@@ -67,6 +68,10 @@ class TokenGenerator
         return $this->length;
     }
 
+    /**
+     * Set the model class for database uniqueness check.
+     * Accepts a fully qualified class name string or a Model instance.
+     */
     public function model(string|Model $model): static
     {
         $this->model = ($model instanceof Model) ? get_class($model) : $model;
@@ -74,11 +79,17 @@ class TokenGenerator
         return $this;
     }
 
+    /**
+     * Get the model class name used for uniqueness check.
+     */
     public function getModel(): string
     {
         return $this->model;
     }
 
+    /**
+     * Set the database column name to check for token uniqueness.
+     */
     public function field(string $field): static
     {
         $this->field = $field;
@@ -86,18 +97,29 @@ class TokenGenerator
         return $this;
     }
 
+    /**
+     * Get the database column name used for uniqueness check.
+     */
     public function getField(): string
     {
         return $this->field;
     }
 
+    /**
+     * Set additional where conditions for the uniqueness database query.
+     * Accepts a single flat array (e.g. ['col', '=', 'val']) or an array of arrays
+     * (e.g. [['col1', '=', 'val1'], ['col2', '>', 'val2']]).
+     */
     public function where(array $where): static
     {
-        $this->where = !is_array($where[0] ?? null) ? [$where] : $where;
+        $this->where = $where === [] ? [] : (!is_array($where[0] ?? null) ? [$where] : $where);
 
         return $this;
     }
 
+    /**
+     * Get the where conditions used in the uniqueness database query.
+     */
     public function getWhere(): array
     {
         return $this->where;
@@ -133,6 +155,9 @@ class TokenGenerator
         return $this;
     }
 
+    /**
+     * Weak password format: only digits, no letters and no symbols.
+     */
     public function weakPassword(): static
     {
         $this->format = 'weakPassword';
@@ -140,6 +165,10 @@ class TokenGenerator
         return $this;
     }
 
+    /**
+     * Password format: letters and digits, no symbols.
+     * Minimum length is 8 characters.
+     */
     public function password(): static
     {
         $this->format = 'password';
@@ -147,6 +176,10 @@ class TokenGenerator
         return $this;
     }
 
+    /**
+     * Strong password format: letters, digits, and symbols.
+     * Minimum length is 12 characters.
+     */
     public function strongPassword(): static
     {
         $this->format = 'strongPassword';
@@ -154,16 +187,26 @@ class TokenGenerator
         return $this;
     }
 
+    /**
+     * Apply strtolower transformation to the generated token via the pipeline.
+     */
     public function lowercase(): static
     {
         return $this->pipeline('strtolower');
     }
 
+    /**
+     * Apply strtoupper transformation to the generated token via the pipeline.
+     */
     public function uppercase(): static
     {
         return $this->pipeline('strtoupper');
     }
 
+    /**
+     * Append a transformation method to the pipeline.
+     * Pipeline transformations are applied sequentially after token generation.
+     */
     protected function pipeline(string $method): static
     {
         $this->pipeline = array_merge($this->pipeline, [$method]);
@@ -171,6 +214,9 @@ class TokenGenerator
         return $this;
     }
 
+    /**
+     * Get the list of transformation methods queued in the pipeline.
+     */
     protected function getPipeline(): array
     {
         return $this->pipeline;
@@ -184,6 +230,10 @@ class TokenGenerator
         return $this->format;
     }
 
+    /**
+     * Validate the current configuration before generation.
+     * Checks length boundaries, format-specific minimums, and model/field consistency.
+     */
     protected function validate(): static
     {
         if ($this->getLength() <= 0) {
@@ -243,6 +293,11 @@ class TokenGenerator
         return $this;
     }
 
+    /**
+     * Generate a token by calling the format-specific generator, applying pipeline
+     * transformations, and recursively retrying if the token already exists in
+     * the database (when a model is configured).
+     */
     protected function generate(): static
     {
         $this->attempted();
@@ -262,6 +317,9 @@ class TokenGenerator
         return $this->setToken(token: $token);
     }
 
+    /**
+     * Apply all queued pipeline transformations (lowercase/uppercase) to the token sequentially.
+     */
     protected function shape(string $token): string
     {
         foreach ($this->getPipeline() as $pipeline) {
@@ -278,6 +336,10 @@ class TokenGenerator
     }
 
 
+    /**
+     * Generate a numeric-only token. The first digit is never 0 to avoid
+     * issues with parsing the token as a number and losing leading zeros.
+     */
     protected function generateNumeric(): string
     {
         $digits[] = random_int(1, 9); // the first digit must not be 0 to prevent unwanted problems
@@ -290,31 +352,49 @@ class TokenGenerator
         return implode('', $digits);
     }
 
+    /**
+     * Generate an alphanumeric token using digits and both uppercase and lowercase letters.
+     */
     protected function generateAlphaNumeric(): string
     {
         return $this->makeFromSet(set: array_merge(range(0, 9), range('a', 'z'), range('A', 'Z')));
     }
 
+    /**
+     * Generate a token using only alphabet letters (both uppercase and lowercase).
+     */
     protected function generateAlphabet(): string
     {
         return $this->makeFromSet(set: array_merge(range('a', 'z'), range('A', 'Z')));
     }
 
+    /**
+     * Generate a weak password (digits only) using Laravel's string password helper.
+     */
     protected function generateWeakPassword(): string
     {
         return str()->password(length: $this->getLength(), letters: false, numbers: true, symbols: false);
     }
 
+    /**
+     * Generate a password (letters and digits) using Laravel's string password helper.
+     */
     protected function generatePassword(): string
     {
         return str()->password(length: $this->getLength(), letters: true, numbers: true, symbols: false);
     }
 
+    /**
+     * Generate a strong password (letters, digits, and symbols) using Laravel's string password helper.
+     */
     protected function generateStrongPassword(): string
     {
         return str()->password(length: $this->getLength(), letters: true, numbers: true, symbols: true);
     }
 
+    /**
+     * Build a token of the configured length by randomly picking characters from the given set.
+     */
     protected function makeFromSet(array $set): string
     {
         $letters = [];
@@ -328,6 +408,10 @@ class TokenGenerator
         return implode('', $letters);
     }
 
+    /**
+     * Increment the attempt counter and throw an InfiniteLoopException if
+     * the maximum number of retries (100) is exceeded.
+     */
     protected function attempted(): void
     {
         $this->attempted++;
@@ -344,6 +428,9 @@ class TokenGenerator
         }
     }
 
+    /**
+     * Build the context array attached to thrown exceptions for debugging purposes.
+     */
     private function fooinoExceptionWith(): array
     {
         return [
