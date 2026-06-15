@@ -45,6 +45,28 @@ if (!defined('CONSTANTS_DEFINED')) {
     define('INVALID_PERIOD_FOR_DATE_RANGE_MESSAGE', 'msg.invalidPeriodForDateRange');
     define('INVALID_PERIOD_FOR_DATE_RANGE_CODE', 1001);
 
+
+    define('FOOINO_PER_PAGE', 30);
+    define('FOOINO_PRIORITY_STEP', 1000);
+
+    define('FOOINO_IMAGE_EXTENSION', ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp']);
+    define('FOOINO_VIDEO_EXTENSION', ['mp4']);
+    define('FOOINO_EXCEL_EXTENSION', ['xlsx', 'xls']);
+    define('FOOINO_IMAGE_AND_VIDEO_EXTENSION', [...FOOINO_IMAGE_EXTENSION, ...FOOINO_VIDEO_EXTENSION]);
+
+    define('FOOINO_VERY_LOW_TTL_TIME', (60 * 5)); // 5 minutes
+    define('FOOINO_LOW_TTL_TIME', (60 * 60)); // 1 hour
+    define('FOOINO_MEDIUM_TTL_TIME', (60 * 60 * 24)); // 1 day
+    define('FOOINO_HIGH_TTL_TIME', (60 * 60 * 24 * 7)); // 1 week
+    define('FOOINO_VERY_HIGH_TTL_TIME', (60 * 60 * 24 * 30)); // 1 month
+
+    define('FOOINO_CACHE_KEY', [
+        'ACTIVE_LANGUAGES'  => 'fooino:languages:active',
+        'MODELS'            => 'fooino:models',
+        'ALL_COUNTRIES'     => 'fooino:countries:all',
+        'ACTIVE_COUNTRIES'  => 'fooino:countries:active',
+    ]);
+
     define('CONSTANTS_DEFINED', true);
 }
 
