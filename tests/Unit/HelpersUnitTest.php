@@ -30,13 +30,9 @@ class CustomClass
 
 describe('Helpers unit tests', function () {
 
-    test('isZero returns true', function ($zero) {
+    test('isZero returns true', function () {
 
-        expect(isZero($zero))->toBeTrue();
-
-        // 
-    })
-        ->with(Datasets::merge(
+        foreach (Datasets::merge(
             'zeros',
             new class implements Stringable {
                 public function __toString()
@@ -44,16 +40,20 @@ describe('Helpers unit tests', function () {
                     return '0';
                 }
             },
-        ));
+        ) as $zero) {
 
+            expect(isZero($zero))->toBeTrue();
 
-    test('isZero returns false', function ($nonZero) {
-
-        expect(isZero($nonZero))->toBeFalse();
+            // 
+        }
 
         // 
-    })
-        ->with(Datasets::merge(
+    });
+
+
+    test('isZero returns false', function () {
+
+        foreach (Datasets::merge(
             'nonZero',
             true,
             false,
@@ -67,7 +67,15 @@ describe('Helpers unit tests', function () {
                     return 'foobar';
                 }
             }
-        ));
+        ) as $nonZero) {
+
+            expect(isZero($nonZero))->toBeFalse();
+
+            // 
+        }
+
+        // 
+    });
 
     test('nullIfBlank returns value when it is filled', function () {
 
