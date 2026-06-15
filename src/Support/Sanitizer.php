@@ -568,10 +568,7 @@ class Sanitizer
         if ($this->attempted[$method] > self::MAX_ATTEMPT) {
 
             app(InfiniteLoopException::class)
-                ->setMessage(FE['SANITIZER_MADE_INFINITE_LOOP_MESSAGE'])
-                ->setCode(FE['SANITIZER_MADE_INFINITE_LOOP_CODE'])
-                ->critical()
-                ->shouldReport()
+                ->_10201()
                 ->with([
                     'method'    => $method,
                     'attempted' => $this->attempted[$method],

@@ -513,9 +513,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidPrecisionException(): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidPrecision')
-            ->setCode(10101)
-            ->critical()
+            ->_10101()
             ->with([
                 'precision' => $this->getPrecision(),
                 'bc_scale'  => self::BC_SCALE
@@ -526,8 +524,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidArgumentsCountException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
-            ->setCode(10102)
+            ->_10102()
             ->with([
                 'method'    => $method,
                 'operand'   => $operand,
@@ -539,8 +536,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
-            ->setCode(10103)
+            ->_10103()
             ->with([
                 'method'    => $method,
                 'operand'   => $operand,
@@ -552,9 +548,7 @@ class FooinoMathHandler implements Mathable
     private function throwDivisionByZeroException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionDivisionByZero')
-            ->setCode(10104)
-            ->critical()
+            ->_10104()
             ->with([
                 'method'      => $method,
                 'operand'     => $operand,
@@ -566,9 +560,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidValueErrorException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidValueError')
-            ->setCode(10105)
-            ->critical()
+            ->_10105()
             ->with([
                 'method'          => $method,
                 'operand'         => $operand,
@@ -579,8 +571,8 @@ class FooinoMathHandler implements Mathable
 
     private function throwUnsupportedFunctionException(string $method, string|int|float|array $operand, array $args = []): never
     {
-        app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionUnsupportedFunction')
-            ->setCode(10106)
+        app(MathCalculationException::class)
+            ->_10106()
             ->with([
                 'method'        => $method,
                 'operand'       => $operand,

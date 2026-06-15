@@ -11,41 +11,6 @@ use Illuminate\Http\JsonResponse;
 
 if (!defined('CONSTANTS_DEFINED')) {
 
-    define('FE', [
-
-        //===============Fooino\Core\Exceptions\InfiniteLoopException===============
-        'SANITIZER_MADE_INFINITE_LOOP_MESSAGE'                                                          => 'msg.infiniteLoopException',
-        'SANITIZER_MADE_INFINITE_LOOP_CODE'                                                             => 10201,
-
-        'TOKEN_GENERATOR_MADE_INFINITE_LOOP_MESSAGE'                                                    => 'msg.infiniteLoopExceptionInTokenGenerator',
-        'TOKEN_GENERATOR_MADE_INFINITE_LOOP_CODE'                                                       => 10202,
-
-        //===============Fooino\Core\Exceptions\TokenGeneratorException=============
-        'TOKEN_GENERATOR_LENGTH_MUST_BE_POSITIVE_MESSAGE'                                               => 'msg.tokenGeneratorExceptionLengthMustBePositive',
-        'TOKEN_GENERATOR_LENGTH_MUST_BE_POSITIVE_CODE'                                                  => 10401,
-
-        'TOKEN_GENERATOR_BIG_LENGTH_NUMBER_MESSAGE'                                                     => 'msg.tokenGeneratorExceptionBigLengthNumber',
-        'TOKEN_GENERATOR_BIG_LENGTH_NUMBER_CODE'                                                        => 10402,
-
-        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_STRONG_PASSWORD_MESSAGE'                               => 'msg.tokenGeneratorExceptionSmallLengthNumberForStrongPassword',
-        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_STRONG_PASSWORD_CODE'                                  => 10403,
-
-        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_PASSWORD_MESSAGE'                                      => 'msg.tokenGeneratorExceptionSmallLengthNumberForPassword',
-        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_PASSWORD_CODE'                                         => 10404,
-
-        'TOKEN_GENERATOR_FIELD_IS_REQUIRED_MESSAGE'                                                     => 'msg.tokenGeneratorExceptionFieldIsRequired',
-        'TOKEN_GENERATOR_FIELD_IS_REQUIRED_CODE'                                                        => 10405,
-
-        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_MESSAGE'                                     => 'msg.tokenGeneratorExceptionSmallLengthNumberForMemorable',
-        'TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_CODE'                                        => 10406,
-    ]);
-
-
-    // datesBetween exceptions
-    define('INVALID_PERIOD_FOR_DATE_RANGE_MESSAGE', 'msg.invalidPeriodForDateRange');
-    define('INVALID_PERIOD_FOR_DATE_RANGE_CODE', 1001);
-
-
     define('FOOINO_PER_PAGE', 30);
     define('FOOINO_PRIORITY_STEP', 1000);
 
@@ -546,10 +511,7 @@ if (!function_exists('datesBetween')) {
         if ($to < $from) {
 
             app(FooinoException::class)
-                ->setMessage(INVALID_PERIOD_FOR_DATE_RANGE_MESSAGE)
-                ->setCode(INVALID_PERIOD_FOR_DATE_RANGE_CODE)
-                ->warning()
-                ->shouldReport()
+                ->_1001()
                 ->with([
                     'from'      => $originalFrom,
                     'to'        => $originalTo,

@@ -270,8 +270,7 @@ class TokenGenerator
         if ($this->getLength() <= 0) {
 
             app(TokenGeneratorException::class)
-                ->setMessage(FE['TOKEN_GENERATOR_LENGTH_MUST_BE_POSITIVE_MESSAGE'])
-                ->setCode(FE['TOKEN_GENERATOR_LENGTH_MUST_BE_POSITIVE_CODE'])
+                ->_10401()
                 ->with($this->fooinoExceptionWith())
                 ->throw();
         }
@@ -279,8 +278,7 @@ class TokenGenerator
         if ($this->getLength() > self::MAX_LENGTH) {
 
             app(TokenGeneratorException::class)
-                ->setMessage(FE['TOKEN_GENERATOR_BIG_LENGTH_NUMBER_MESSAGE'])
-                ->setCode(FE['TOKEN_GENERATOR_BIG_LENGTH_NUMBER_CODE'])
+                ->_10402()
                 ->with($this->fooinoExceptionWith())
                 ->throw();
         }
@@ -291,8 +289,7 @@ class TokenGenerator
         ) {
 
             app(TokenGeneratorException::class)
-                ->setMessage(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_STRONG_PASSWORD_MESSAGE'])
-                ->setCode(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_STRONG_PASSWORD_CODE'])
+                ->_10403()
                 ->with($this->fooinoExceptionWith())
                 ->throw();
         }
@@ -303,8 +300,7 @@ class TokenGenerator
         ) {
 
             app(TokenGeneratorException::class)
-                ->setMessage(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_PASSWORD_MESSAGE'])
-                ->setCode(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_PASSWORD_CODE'])
+                ->_10404()
                 ->with($this->fooinoExceptionWith())
                 ->throw();
         }
@@ -315,8 +311,7 @@ class TokenGenerator
         ) {
 
             app(TokenGeneratorException::class)
-                ->setMessage(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_MESSAGE'])
-                ->setCode(FE['TOKEN_GENERATOR_SMALL_LENGTH_NUMBER_FOR_MEMORABLE_CODE'])
+                ->_10406()
                 ->with($this->fooinoExceptionWith())
                 ->throw();
         }
@@ -327,8 +322,7 @@ class TokenGenerator
         ) {
 
             app(TokenGeneratorException::class)
-                ->setMessage(FE['TOKEN_GENERATOR_FIELD_IS_REQUIRED_MESSAGE'])
-                ->setCode(FE['TOKEN_GENERATOR_FIELD_IS_REQUIRED_CODE'])
+                ->_10405()
                 ->with($this->fooinoExceptionWith())
                 ->throw();
         }
@@ -498,10 +492,7 @@ class TokenGenerator
         if ($this->attempted > self::MAX_ATTEMPTED) {
 
             app(InfiniteLoopException::class)
-                ->setMessage(FE['TOKEN_GENERATOR_MADE_INFINITE_LOOP_MESSAGE'])
-                ->setCode(FE['TOKEN_GENERATOR_MADE_INFINITE_LOOP_CODE'])
-                ->critical()
-                ->shouldReport()
+                ->_10202()
                 ->with($this->fooinoExceptionWith())
                 ->throw();
         }
