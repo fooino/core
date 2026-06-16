@@ -1,13 +1,21 @@
 <?php
 
 use Fooino\Core\Exceptions\FooinoException;
+use Fooino\Core\Exceptions\TransactionRollBackedException;
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
 
 use Fooino\Core\Interfaces\Mathable;
 use Fooino\Core\Support\Sanitizer;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\User;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 
 if (!defined('CONSTANTS_DEFINED')) {
 
@@ -321,6 +329,55 @@ if (!function_exists('nullIfBlankOrZero')) {
     }
 }
 
+if (!function_exists('nullIfBlankInput')) {
+    /**
+     * Retrieve an input value from the request and return null if it is blank
+     */
+    function nullIfBlankInput(string $key, int|float|string|null|bool|array|object|callable $fallback = null, Request|null $request = null): int|float|string|null|bool|array|object|callable
+    {
+        $request ??= request();
+
+        return nullIfBlank(value: $request->input($key), fallback: $fallback);
+    }
+}
+
+if (!function_exists('unwrapBackedEnum')) {
+    /**
+     * Unwrap a backed enum to its scalar value, or return the value unchanged if it is not a backed enum
+     */
+    function unwrapBackedEnum(int|float|string|null|bool|array|object $object): int|float|string|null|bool|array|object
+    {
+        return ($object instanceof \BackedEnum) ? $object->value : $object;
+    }
+}
+
+if (!function_exists('mergeArraysByKey')) {
+    /**
+     * Merge multiple arrays by grouping values under shared keys into sub-arrays
+     */
+    function mergeArraysByKey(array ...$arrays): array
+    {
+        $merged = [];
+
+        foreach ($arrays as $array) {
+            foreach ($array as $key => $value) {
+                if (!isset($merged[$key])) {
+                    $merged[$key] = [];
+                }
+
+                if (is_array($value)) {
+                    $merged[$key] = array_merge($merged[$key], $value);
+                } else {
+                    $merged[$key][] = $value;
+                }
+            }
+        }
+
+        return $merged;
+    }
+}
+
+
 if (!function_exists('removeComma')) {
     /**
      * Remove comma between letters when the value is string or array
@@ -361,6 +418,26 @@ if (!function_exists('replaceSlashToDash')) {
     }
 }
 
+if (!function_exists('setUserTimezone')) {
+    /**
+     * Store the user timezone in the config so it can be retrieved later
+     */
+    function setUserTimezone(string $timezone): void
+    {
+        config(['user-timezone' => $timezone]);
+    }
+}
+
+if (!function_exists('getUserTimezone')) {
+    /**
+     * Retrieve the user timezone from config, falling back to UTC
+     */
+    function getUserTimezone(): string
+    {
+        return (config('user-timezone', 'UTC')) ?: 'UTC';
+    }
+}
+
 if (!function_exists('setDefaultLocale')) {
     /**
      * Setter for 'app.locale' config
@@ -378,6 +455,20 @@ if (!function_exists('getDefaultLocale')) {
     function getDefaultLocale(): string
     {
         return (config('app.locale', 'fa')) ?: 'fa';
+    }
+}
+
+if (!function_exists('perPage')) {
+    /**
+     * Resolve the per-page value from the request with validation against a maximum
+     */
+    function perPage(string $key = 'per_page', int $maxPerPage = 300, Request|null $request = null): int
+    {
+        $request ??= request();
+
+        $perPage = $request->input($key);
+
+        return (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0 || $perPage > $maxPerPage) ? FOOINO_PER_PAGE : $perPage;
     }
 }
 
@@ -585,5 +676,158 @@ if (!function_exists('sanitizeSlug')) {
             ->trim(char: '-')
             ->lowercase()
             ->value();
+    }
+}
+
+if (!function_exists('jsonAttribute')) {
+    /**
+     * Cast an Eloquent attribute to/from JSON automatically
+     */
+    function jsonAttribute(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => !is_null(nullIfBlank($value)) ? jsonDecodeToArray($value) : [],
+            set: fn($value) => !is_null(nullIfBlank($value)) ? jsonEncode($value)        : null,
+        );
+    }
+}
+
+
+
+if (!function_exists('resolveRequest')) {
+    /**
+     * Resolve and validate a FormRequest with the given data and optional authenticated user
+     */
+    function resolveRequest(string $request, array $data = [], User|null $user = null): FormRequest
+    {
+        $req = new $request();
+
+        $req->merge($data);
+
+        if (!is_null($user)) {
+            $req->setUserResolver(fn() => $user);
+        }
+
+        $container = app();
+
+        $req
+            ->setContainer($container)
+            ->setRedirector($container->make('redirect'))
+            ->validateResolved();
+
+        return $req;
+    }
+}
+
+if (!function_exists('dbTransaction')) {
+    /**
+     * Execute a callback within a database transaction, rethrowing any exception as a TransactionRollBackedException
+     */
+    function dbTransaction(callable $callback): mixed
+    {
+        try {
+            DB::beginTransaction();
+
+            $result = $callback();
+
+            DB::commit();
+
+            return $result;
+
+            // 
+        } catch (FooinoException | Exception $e) {
+
+            DB::rollBack();
+
+            app(TransactionRollBackedException::class)
+                ->setMessage($e->getMessage())
+                ->setCode($e->getCode())
+                ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))
+                ->report(callMethodIfExists(object: $e, method: 'reportable', fallback: true))
+                ->setHttpStatusCode(callMethodIfExists(object: $e, method: 'getHttpStatusCode', fallback: 500))
+                ->with(callMethodIfExists(object: $e, method: 'getWith', fallback: []))
+                ->throw();
+        }
+    }
+}
+
+
+if (!function_exists('userInfo')) {
+    /**
+     * Extract user information from a loaded polymorphic relationship
+     */
+    function userInfo(Model $model, string $relation): array
+    {
+
+        if (!$model->relationLoaded($relation)) {
+
+            return [
+                'id'                    => 0,
+                'country_id'            => 0,
+                'full_name'             => '',
+                'country_code'          => '',
+                'phone_number'          => '',
+                'phone_number_original' => '',
+                'type'                  => __(key: 'msg.unknown'),
+            ];
+        }
+
+        $user = $model?->{$relation};
+
+        if (is_null($user)) {
+            return [
+                'id'                    => 0,
+                'country_id'            => 0,
+                'full_name'             => '',
+                'country_code'          => '',
+                'phone_number'          => '',
+                'phone_number_original' => '',
+                'type'                  => __(key: 'msg.unknown'),
+            ];
+        }
+
+        return [
+            'id'                        => (float) ($user?->id ?? 0),
+
+            'country_id'                => (float) ($user?->country_id ?? 0),
+
+            'full_name'                 => (string) ($user?->full_name ?? $user?->name ?? trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? ''))),
+
+            'country_code'              => (string) ($user?->country_code ?? ''),
+
+            'phone_number'              => (string) ($user?->phone_number ?? ''),
+
+            'phone_number_original'     => (string) ($user?->getRawOriginal('phone_number', '') ?? ''),
+
+            'type'                      => callMethodIfExists(object: $user, method: 'objectName', fallback: [])['type'] ?? __(key: 'msg.unknown'),
+        ];
+    }
+}
+
+if (!function_exists('getUserable')) {
+    /**
+     * Resolve the authenticated user into polymorphic relation columns (e.g. creatorable_type, creatorable_id)
+     */
+    function getUserable(string $able, Request|Model|null $user = null, string $guard = 'web', bool $throwException = false): array
+    {
+        $user = match (true) {
+
+            ($user instanceof Request)  => $user->user(guard: $guard),
+
+            ($user instanceof Model)    => $user,
+
+            default                     => request()->user(guard: $guard)
+        };
+
+        $id = $user?->id ?? null;
+
+        if ($throwException && (blank($user) || blank($id))) {
+            throw new Exception('The user is empty');
+        }
+
+        return [
+            ($able . '_type') => (filled($user) && filled($id)) ? get_class($user) : null,
+            ($able . '_id')   => $id,
+        ];
     }
 }
