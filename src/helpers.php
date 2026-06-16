@@ -1,11 +1,47 @@
 <?php
 
+use Fooino\Core\Exceptions\FooinoException;
+use Fooino\Core\Exceptions\TransactionRollBackedException;
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
 
 use Fooino\Core\Interfaces\Mathable;
+use Fooino\Core\Support\Sanitizer;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\User;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
+
+if (!defined('CONSTANTS_DEFINED')) {
+
+    define('FOOINO_PER_PAGE', 30);
+    define('FOOINO_PRIORITY_STEP', 1000);
+
+    define('FOOINO_IMAGE_EXTENSION', ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp']);
+    define('FOOINO_VIDEO_EXTENSION', ['mp4']);
+    define('FOOINO_EXCEL_EXTENSION', ['xlsx', 'xls']);
+    define('FOOINO_IMAGE_AND_VIDEO_EXTENSION', [...FOOINO_IMAGE_EXTENSION, ...FOOINO_VIDEO_EXTENSION]);
+
+    define('FOOINO_VERY_LOW_TTL_TIME', (60 * 5)); // 5 minutes
+    define('FOOINO_LOW_TTL_TIME', (60 * 60)); // 1 hour
+    define('FOOINO_MEDIUM_TTL_TIME', (60 * 60 * 24)); // 1 day
+    define('FOOINO_HIGH_TTL_TIME', (60 * 60 * 24 * 7)); // 1 week
+    define('FOOINO_VERY_HIGH_TTL_TIME', (60 * 60 * 24 * 30)); // 1 month
+
+    define('FOOINO_CACHE_KEY', [
+        'ACTIVE_LANGUAGES'  => 'fooino:languages:active',
+        'MODELS'            => 'fooino:models',
+        'ALL_COUNTRIES'     => 'fooino:countries:all',
+        'ACTIVE_COUNTRIES'  => 'fooino:countries:active',
+    ]);
+
+    define('CONSTANTS_DEFINED', true);
+}
 
 if (!function_exists('isJson')) {
     /**
@@ -293,6 +329,55 @@ if (!function_exists('nullIfBlankOrZero')) {
     }
 }
 
+if (!function_exists('nullIfBlankInput')) {
+    /**
+     * Retrieve an input value from the request and return null if it is blank
+     */
+    function nullIfBlankInput(string $key, int|float|string|null|bool|array|object|callable $fallback = null, Request|null $request = null): int|float|string|null|bool|array|object|callable
+    {
+        $request ??= request();
+
+        return nullIfBlank(value: $request->input($key), fallback: $fallback);
+    }
+}
+
+if (!function_exists('unwrapBackedEnum')) {
+    /**
+     * Unwrap a backed enum to its scalar value, or return the value unchanged if it is not a backed enum
+     */
+    function unwrapBackedEnum(int|float|string|null|bool|array|object $object): int|float|string|null|bool|array|object
+    {
+        return ($object instanceof \BackedEnum) ? $object->value : $object;
+    }
+}
+
+if (!function_exists('mergeArraysByKey')) {
+    /**
+     * Merge multiple arrays by grouping values under shared keys into sub-arrays
+     */
+    function mergeArraysByKey(array ...$arrays): array
+    {
+        $merged = [];
+
+        foreach ($arrays as $array) {
+            foreach ($array as $key => $value) {
+                if (!isset($merged[$key])) {
+                    $merged[$key] = [];
+                }
+
+                if (is_array($value)) {
+                    $merged[$key] = array_merge($merged[$key], $value);
+                } else {
+                    $merged[$key][] = $value;
+                }
+            }
+        }
+
+        return $merged;
+    }
+}
+
+
 if (!function_exists('removeComma')) {
     /**
      * Remove comma between letters when the value is string or array
@@ -333,6 +418,26 @@ if (!function_exists('replaceSlashToDash')) {
     }
 }
 
+if (!function_exists('setUserTimezone')) {
+    /**
+     * Store the user timezone in the config so it can be retrieved later
+     */
+    function setUserTimezone(string $timezone): void
+    {
+        config(['user-timezone' => $timezone]);
+    }
+}
+
+if (!function_exists('getUserTimezone')) {
+    /**
+     * Retrieve the user timezone from config, falling back to UTC
+     */
+    function getUserTimezone(): string
+    {
+        return (config('user-timezone', 'UTC')) ?: 'UTC';
+    }
+}
+
 if (!function_exists('setDefaultLocale')) {
     /**
      * Setter for 'app.locale' config
@@ -350,6 +455,20 @@ if (!function_exists('getDefaultLocale')) {
     function getDefaultLocale(): string
     {
         return (config('app.locale', 'fa')) ?: 'fa';
+    }
+}
+
+if (!function_exists('perPage')) {
+    /**
+     * Resolve the per-page value from the request with validation against a maximum
+     */
+    function perPage(string $key = 'per_page', int $maxPerPage = 300, Request|null $request = null): int
+    {
+        $request ??= request();
+
+        $perPage = $request->input($key);
+
+        return (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0 || $perPage > $maxPerPage) ? FOOINO_PER_PAGE : $perPage;
     }
 }
 
@@ -380,5 +499,335 @@ if (!function_exists('callMethodIfExists')) {
     function callMethodIfExists(object|string $object, string $method, mixed $fallback = null, array $methodArgs = [], array $constructorArgs = []): mixed
     {
         return method_exists($object, $method) ? (is_string($object) ? (new $object(...$constructorArgs)) : $object)->{$method}(...$methodArgs) : value($fallback, ...$methodArgs);
+    }
+}
+
+if (!function_exists('percentageChange')) {
+    /**
+     * Calculate the relative percentage change from $from to $to.
+     */
+    function percentageChange(
+        int|float $from,
+        int|float $to,
+        int $precision = 2
+    ): string {
+
+        return match (true) {
+
+            isZero($from)   => '100',
+
+            isZero($to)     => '-100',
+
+            default         => math(precision: $precision)
+                ->number(
+                    multiply(
+                        divide(
+                            subtract($to, $from),
+                            abs($from)
+                        ),
+                        100
+                    )
+                )
+        };
+    }
+}
+
+if (!function_exists('unitNumberFormat')) {
+    /**
+     * Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions)
+     */
+    function unitNumberFormat(int|float|string $number, string $unit = '', int $precision = 3): string
+    {
+        return match (true) {
+
+            greaterThanOrEqual(abs($number), '1000000000000')      => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000000')) . ' ' . __('msg.trillion') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), '1000000000')         => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000')) . ' ' . __('msg.billion') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), '1000000')            => trim(math(precision: $precision)->numberFormat(divide($number, '1000000')) . ' ' . __('msg.million') . ' ' . $unit),
+
+            greaterThanOrEqual(abs($number), '1000')               => trim(math(precision: $precision)->numberFormat(divide($number, '1000')) . ' ' . __('msg.thousand') . ' ' . $unit),
+
+            default                                                => trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit),
+        };
+    }
+}
+
+if (!function_exists('unitSizeFormat')) {
+    /**
+     * Format bytes into a human-readable file size string (B, KB, MB, GB, TB)
+     */
+    function unitSizeFormat(int|float|string $bytes, int $precision = 3): string
+    {
+        return match (true) {
+
+            greaterThanOrEqual($bytes, '1099511627776')   => math(precision: $precision)->numberFormat(divide($bytes, '1099511627776')) . ' TB',
+
+            greaterThanOrEqual($bytes, '1073741824')      => math(precision: $precision)->numberFormat(divide($bytes, '1073741824')) . ' GB',
+
+            greaterThanOrEqual($bytes, '1048576')         => math(precision: $precision)->numberFormat(divide($bytes, '1048576')) . ' MB',
+
+            greaterThanOrEqual($bytes, '1024')            => math(precision: $precision)->numberFormat(divide($bytes, '1024')) . ' KB',
+
+            greaterThan($bytes, '1')                      => $bytes . ' bytes',
+
+            greaterThanOrEqual($bytes, '0')               => $bytes . ' byte',
+
+            default                                       => $bytes . ' ' . __('msg.isInvalid'),
+        };
+    }
+}
+
+if (!function_exists('datesBetween')) {
+    /**
+     * Generate an array of dates within a given range at specified intervals and format.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * 
+     * @throws \Fooino\Core\Exceptions\FooinoException
+     */
+    function datesBetween(
+        string|int $from,
+        string|int $to,
+        string $format = 'Y-m-d',
+        string $interval = 'P1D'
+    ): array {
+
+        $originalFrom = $from;
+        $originalTo = $to;
+
+        $from = dateConvert(date: $from, throwException: true);
+        $to = dateConvert(date: $to, throwException: true);
+
+        if ($to < $from) {
+
+            app(FooinoException::class)
+                ->_1001()
+                ->with([
+                    'from'      => $originalFrom,
+                    'to'        => $originalTo,
+                    'format'    => $format,
+                    'interval'  => $interval,
+                ])
+                ->throw();
+        }
+
+        $output = [];
+        $utc = new DateTimeZone(timezone: 'UTC');
+
+        $period = new DatePeriod(
+            start: new DateTime(datetime: $from, timezone: $utc),
+            interval: new DateInterval(duration: $interval),
+            end: new DateTime(datetime: $to, timezone: $utc),
+            options: DatePeriod::INCLUDE_END_DATE
+        );
+
+        foreach ($period as $value) {
+            $output[] = $value->format($format);
+        }
+
+        return $output;
+    }
+}
+
+if (!function_exists('sanitizer')) {
+    /**
+     * Create a new Sanitizer instance for the given value
+     */
+    function sanitizer(string|int|float|null|bool|array|object $value): Sanitizer
+    {
+        return new Sanitizer(value: $value);
+    }
+}
+
+if (!function_exists('normalizeInput')) {
+    /**
+     * Normalize the input by converting Persian/Arabic digits and letters,
+     * removing zero-width non-joiners, stripping XSS vectors, and trimming whitespace
+     */
+    function normalizeInput(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
+    {
+        return sanitizer(value: $value)->normalizeInput()->value();
+    }
+}
+
+if (!function_exists('sanitizeUrl')) {
+    /**
+     * Clean a value for use in URLs by replacing forbidden characters with dashes
+     */
+    function sanitizeUrl(string|int|float|null|bool|array $value): string|int|float|null|bool|array
+    {
+        return sanitizer(value: $value)
+            ->replaceForbiddenCharacters(excludes: ['/', '=', ':', '?', '&', '.', '-', '#', '@', '~', '%', '+'], replaceWith: '-')
+            ->collapse('-')
+            ->value();
+    }
+}
+
+if (!function_exists('sanitizeSlug')) {
+    /**
+     * Generate a URL-friendly slug from the given value
+     */
+    function sanitizeSlug(string|int|float|null|bool|array $value): string|int|float|null|bool|array
+    {
+        return sanitizer(value: $value)
+            ->replaceForbiddenCharacters(excludes: ['-'], replaceWith: '-')
+            ->collapse(char: '-')
+            ->trim(char: '-')
+            ->lowercase()
+            ->value();
+    }
+}
+
+if (!function_exists('jsonAttribute')) {
+    /**
+     * Cast an Eloquent attribute to/from JSON automatically
+     */
+    function jsonAttribute(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => !is_null(nullIfBlank($value)) ? jsonDecodeToArray($value) : [],
+            set: fn($value) => !is_null(nullIfBlank($value)) ? jsonEncode($value)        : null,
+        );
+    }
+}
+
+
+
+if (!function_exists('resolveRequest')) {
+    /**
+     * Resolve and validate a FormRequest with the given data and optional authenticated user
+     */
+    function resolveRequest(string $request, array $data = [], User|null $user = null): FormRequest
+    {
+        $req = new $request();
+
+        $req->merge($data);
+
+        if (!is_null($user)) {
+            $req->setUserResolver(fn() => $user);
+        }
+
+        $container = app();
+
+        $req
+            ->setContainer($container)
+            ->setRedirector($container->make('redirect'))
+            ->validateResolved();
+
+        return $req;
+    }
+}
+
+if (!function_exists('dbTransaction')) {
+    /**
+     * Execute a callback within a database transaction, rethrowing any exception as a TransactionRollBackedException
+     */
+    function dbTransaction(callable $callback): mixed
+    {
+        try {
+            DB::beginTransaction();
+
+            $result = $callback();
+
+            DB::commit();
+
+            return $result;
+
+            // 
+        } catch (FooinoException | Exception $e) {
+
+            DB::rollBack();
+
+            app(TransactionRollBackedException::class)
+                ->setMessage($e->getMessage())
+                ->setCode($e->getCode())
+                ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))
+                ->report(callMethodIfExists(object: $e, method: 'reportable', fallback: true))
+                ->setHttpStatusCode(callMethodIfExists(object: $e, method: 'getHttpStatusCode', fallback: 500))
+                ->with(callMethodIfExists(object: $e, method: 'getWith', fallback: []))
+                ->throw();
+        }
+    }
+}
+
+
+if (!function_exists('userInfo')) {
+    /**
+     * Extract user information from a loaded polymorphic relationship
+     */
+    function userInfo(Model $model, string $relation): array
+    {
+
+        if (!$model->relationLoaded($relation)) {
+
+            return [
+                'id'                    => 0,
+                'country_id'            => 0,
+                'full_name'             => '',
+                'country_code'          => '',
+                'phone_number'          => '',
+                'phone_number_original' => '',
+                'type'                  => __(key: 'msg.unknown'),
+            ];
+        }
+
+        $user = $model?->{$relation};
+
+        if (is_null($user)) {
+            return [
+                'id'                    => 0,
+                'country_id'            => 0,
+                'full_name'             => '',
+                'country_code'          => '',
+                'phone_number'          => '',
+                'phone_number_original' => '',
+                'type'                  => __(key: 'msg.unknown'),
+            ];
+        }
+
+        return [
+            'id'                        => (float) ($user?->id ?? 0),
+
+            'country_id'                => (float) ($user?->country_id ?? 0),
+
+            'full_name'                 => (string) ($user?->full_name ?? $user?->name ?? trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? ''))),
+
+            'country_code'              => (string) ($user?->country_code ?? ''),
+
+            'phone_number'              => (string) ($user?->phone_number ?? ''),
+
+            'phone_number_original'     => (string) ($user?->getRawOriginal('phone_number', '') ?? ''),
+
+            'type'                      => callMethodIfExists(object: $user, method: 'objectName', fallback: [])['type'] ?? __(key: 'msg.unknown'),
+        ];
+    }
+}
+
+if (!function_exists('getUserable')) {
+    /**
+     * Resolve the authenticated user into polymorphic relation columns (e.g. creatorable_type, creatorable_id)
+     */
+    function getUserable(string $able, Request|Model|null $user = null, string $guard = 'web', bool $throwException = false): array
+    {
+        $user = match (true) {
+
+            ($user instanceof Request)  => $user->user(guard: $guard),
+
+            ($user instanceof Model)    => $user,
+
+            default                     => request()->user(guard: $guard)
+        };
+
+        $id = $user?->id ?? null;
+
+        if ($throwException && (blank($user) || blank($id))) {
+            throw new Exception('The user is empty');
+        }
+
+        return [
+            ($able . '_type') => (filled($user) && filled($id)) ? get_class($user) : null,
+            ($able . '_id')   => $id,
+        ];
     }
 }

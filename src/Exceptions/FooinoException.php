@@ -6,6 +6,8 @@ use Exception;
 
 class FooinoException extends Exception
 {
+    use FooinoExceptionList;
+
     protected string $level = 'error';
 
     protected int $httpStatusCode = 500;

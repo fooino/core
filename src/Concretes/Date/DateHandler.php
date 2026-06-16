@@ -439,10 +439,7 @@ class DateHandler
         ) {
 
             app(CanNotConvertDateException::class)
-                ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
-                ->setCode(10053)
-                ->error()
-                ->shouldReport()
+                ->_10053()
                 ->throw();
         }
 
@@ -478,10 +475,7 @@ class DateHandler
             if (!$this->validateTimezone(timezone: $timezone)) {
 
                 app(CanNotConvertDateException::class)
-                    ->setMessage('msg.canNotConvertDateExceptionInvalidTimezone')
-                    ->setCode(10051)
-                    ->error()
-                    ->shouldReport()
+                    ->_10051()
                     ->with([
                         'invalid_timezone'  => $timezone
                     ])

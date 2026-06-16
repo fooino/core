@@ -30,11 +30,8 @@ class FooinoMathHandler implements Mathable
          * 
          *  All calculations use BC_SCALE which is a high number to not loss precision
          */
-
-        bcscale(scale: self::BC_SCALE);
-
         if (
-            $this->getPrecision() > bcscale() ||
+            $this->getPrecision() > self::BC_SCALE ||
             $this->getPrecision() < 0
         ) {
             $this->throwInvalidPrecisionException();
@@ -308,7 +305,7 @@ class FooinoMathHandler implements Mathable
 
     private function compare(string|int|float $a, string|int|float $b): int
     {
-        return bccomp($this->convertScientificNumber(number: $a), $this->convertScientificNumber(number: $b));
+        return bccomp(num1: $this->convertScientificNumber(number: $a), num2: $this->convertScientificNumber(number: $b), scale: self::BC_SCALE);
     }
 
     /**
@@ -378,7 +375,7 @@ class FooinoMathHandler implements Mathable
 
         if (in_array($method, $twoOperand)) {
 
-            $defaultTwoOperandTemplate = ['num1' => 'result', 'num2' => 'number', 'scale' => null];
+            $defaultTwoOperandTemplate = ['num1' => 'result', 'num2' => 'number', 'scale' => self::BC_SCALE];
 
             list($result, $start, $template) = match ($method) {
 
@@ -402,7 +399,14 @@ class FooinoMathHandler implements Mathable
                 $mapped = [];
                 foreach ($template as $argKey => $argValue) {
 
-                    $mapped[$argKey] = !is_null($argValue) ? ${$argValue} : null;
+                    $mapped[$argKey] = match (true) {
+
+                        is_string($argValue) && isset(${$argValue})     => ${$argValue},
+
+                        is_string($argValue) || is_numeric($argValue)   => $argValue,
+
+                        default                                         => null
+                    };
 
                     // 
                 }
@@ -417,9 +421,9 @@ class FooinoMathHandler implements Mathable
 
             $template = match ($method) {
 
-                'bcpow'             => ['num' => 'value', 'exponent' => 'args.exponent', 'scale' => null],
+                'bcpow'             => ['num' => 'value', 'exponent' => 'args.exponent', 'scale' => self::BC_SCALE],
 
-                'bcsqrt'            => ['num' => 'value', 'scale' => null],
+                'bcsqrt'            => ['num' => 'value', 'scale' => self::BC_SCALE],
 
                 'bcceil'            => ['num' => 'value'],
 
@@ -437,7 +441,16 @@ class FooinoMathHandler implements Mathable
                 $mapped = [];
                 foreach ($template as $argKey => $argValue) {
 
-                    $mapped[$argKey] = !is_null($argValue) ? ((strpos($argValue, '.') !== false) ? data_get($operandAndArgs, $argValue) : ${$argValue}) : null;
+                    $mapped[$argKey] = match (true) {
+
+                        is_string($argValue) && strpos($argValue, '.') !== false    => data_get($operandAndArgs, $argValue),
+
+                        is_string($argValue) && isset(${$argValue})                 => ${$argValue},
+
+                        is_string($argValue) || is_numeric($argValue)               => $argValue,
+
+                        default                                                     => null
+                    };
 
                     // 
                 }
@@ -488,7 +501,7 @@ class FooinoMathHandler implements Mathable
 
             if (
                 $method === 'bcsqrt' &&
-                $number < 0
+                bccomp(num1: $number, num2: '0', scale: self::BC_SCALE) === -1
             ) {
                 $this->throwInvalidValueErrorException(method: $method, operand: $operand);
             }
@@ -500,12 +513,10 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidPrecisionException(): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidPrecision')
-            ->setCode(10101)
-            ->critical()
+            ->_10101()
             ->with([
                 'precision' => $this->getPrecision(),
-                'bc_scale'  => bcscale()
+                'bc_scale'  => self::BC_SCALE
             ])
             ->throw();
     }
@@ -513,8 +524,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidArgumentsCountException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
-            ->setCode(10102)
+            ->_10102()
             ->with([
                 'method'    => $method,
                 'operand'   => $operand,
@@ -526,8 +536,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
-            ->setCode(10103)
+            ->_10103()
             ->with([
                 'method'    => $method,
                 'operand'   => $operand,
@@ -539,9 +548,7 @@ class FooinoMathHandler implements Mathable
     private function throwDivisionByZeroException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionDivisionByZero')
-            ->setCode(10104)
-            ->critical()
+            ->_10104()
             ->with([
                 'method'      => $method,
                 'operand'     => $operand,
@@ -553,9 +560,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidValueErrorException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->setMessage('msg.mathCalculationExceptionInvalidValueError')
-            ->setCode(10105)
-            ->critical()
+            ->_10105()
             ->with([
                 'method'          => $method,
                 'operand'         => $operand,
@@ -566,8 +571,8 @@ class FooinoMathHandler implements Mathable
 
     private function throwUnsupportedFunctionException(string $method, string|int|float|array $operand, array $args = []): never
     {
-        app(MathCalculationException::class)->setMessage('msg.mathCalculationExceptionUnsupportedFunction')
-            ->setCode(10106)
+        app(MathCalculationException::class)
+            ->_10106()
             ->with([
                 'method'        => $method,
                 'operand'       => $operand,

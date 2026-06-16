@@ -17,348 +17,496 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(math()->getPrecision())->toBe(12);
         expect(math(precision: 5)->getPrecision())->toBe(5);
 
-        expect(bcscale())->toBe(12);
+        expect(bcscale())->toBe(0);
     });
 
-    test('convertScientificNumber method', function ($number, $expected) {
+    test('convertScientificNumber method', function () {
 
-        expect(Math::convertScientificNumber($number))->toBe($expected);
+        foreach (Datasets::mathConvertScientificNumber() as $dataset) {
 
-        // 
-    })
-        ->with(Datasets::mathConvertScientificNumber());
+            $number = $dataset[0];
+            $expected = $dataset[1];
 
-    test('trimTrailingZeros method', function ($number, $expected) {
-
-        expect(Math::trimTrailingZeros($number))->toBe($expected);
+            expect(Math::convertScientificNumber($number))->toBe($expected);
+        }
 
         // 
-    })
-        ->with(Datasets::mathTrimTrailingZeros());
+    });
 
-    test('countDecimalPlaces method', function ($number, $expected) {
+    test('trimTrailingZeros method', function () {
 
-        expect(Math::countDecimalPlaces($number))->toBe($expected);
+        foreach (Datasets::mathTrimTrailingZeros() as $dataset) {
+
+            $number = $dataset[0];
+            $expected = $dataset[1];
+
+            expect(Math::trimTrailingZeros($number))->toBe($expected);
+        }
+
+        // 
+    });
+
+    test('countDecimalPlaces method', function () {
+
+        foreach (Datasets::mathCountDecimalPlaces() as $dataset) {
+
+            $number = $dataset[0];
+            $expected = $dataset[1];
+
+            expect(Math::countDecimalPlaces($number))->toBe($expected);
+        }
 
         //
-    })
-        ->with(Datasets::mathCountDecimalPlaces());
+    });
 
-    test('number method', function ($number, $expected, $precision = null) {
+    test('number method', function () {
 
-        if (is_callable($number)) {
-            $number();
-            return;
-        }
+        foreach (Datasets::mathNumber() as $dataset) {
 
-        if (rand(0, 1)) {
+            $number = $dataset[0];
+            $expected = $dataset[1];
+            $precision = $dataset[2] ?? null;
+
+            if (is_callable($number)) {
+                $number();
+                continue;
+            }
+
+            if (rand(0, 1)) {
+
+                if (!is_null($precision)) {
+
+                    expect(Math::setPrecision(precision: $precision)->number($number))->toBe($expected);
+                    continue;
+                }
+
+                expect(Math::number($number))->toBe($expected);
+            }
 
             if (!is_null($precision)) {
 
-                expect(Math::setPrecision(precision: $precision)->number($number))->toBe($expected);
-                return;
+                expect(math(precision: $precision)->number($number))->toBe($expected);
+                continue;
             }
 
-            expect(Math::number($number))->toBe($expected);
+            expect(number($number))->toBe($expected);
         }
 
-        if (!is_null($precision)) {
-
-            expect(math(precision: $precision)->number($number))->toBe($expected);
-            return;
-        }
-
-        expect(number($number))->toBe($expected);
-    })
-        ->with(Datasets::mathNumber());
+        // 
+    });
 
 
-    test('numberFormat method', function ($number, $thousandsSeparator, $expected, $precision = null) {
+    test('numberFormat method', function () {
 
-        if (rand(0, 1)) {
+        foreach (Datasets::mathNumberFormat() as $dataset) {
+
+            $number = $dataset[0];
+            $thousandsSeparator = $dataset[1];
+            $expected = $dataset[2];
+            $precision = $dataset[3] ?? null;
+
+            if (rand(0, 1)) {
+
+                if (!is_null($precision)) {
+
+                    expect(Math::setPrecision(precision: $precision)->numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+                    continue;
+                }
+
+                expect(Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+            }
 
             if (!is_null($precision)) {
 
-                expect(Math::setPrecision(precision: $precision)->numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
-                return;
+                expect(math(precision: $precision)->numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+                continue;
             }
 
-            expect(Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+            expect(numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
         }
-
-        if (!is_null($precision)) {
-
-            expect(math(precision: $precision)->numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
-            return;
-        }
-
-        expect(numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
-    })
-        ->with(Datasets::mathNumberFormat());
-
-
-    test('sum method', function ($number, $expected) {
-
-        if (is_callable($number)) {
-            $number();
-            return;
-        }
-
-        if (rand(0, 1)) {
-
-            expect(Math::sum($number))->toBe($expected);
-
-            return;
-        }
-
-        expect(sum($number))->toBe($expected);
-    })
-        ->with(Datasets::mathSum());
-
-
-    test('subtract method', function ($number, $expected) {
-
-        if (is_callable($number)) {
-            $number();
-            return;
-        }
-
-        if (rand(0, 1)) {
-
-            expect(Math::subtract($number))->toBe($expected);
-
-            return;
-        }
-
-        expect(subtract($number))->toBe($expected);
-    })
-        ->with(Datasets::mathSubtract());
-
-
-    test('multiply method', function ($number, $expected) {
-
-        if (is_callable($number)) {
-            $number();
-            return;
-        }
-
-        if (rand(0, 1)) {
-
-            expect(Math::multiply($number))->toBe($expected);
-
-            return;
-        }
-
-        expect(multiply($number))->toBe($expected);
-    })
-        ->with(Datasets::mathMultiply());
-
-
-    test('divide method', function ($number, $expected) {
-
-        if (is_callable($number)) {
-            $number();
-            return;
-        }
-
-        if (rand(0, 1)) {
-
-            expect(Math::divide($number))->toBe($expected);
-
-            return;
-        }
-
-        expect(divide($number))->toBe($expected);
-    })
-        ->with(Datasets::mathDivide());
-
-    test('remainder method', function ($number, $expected) {
-
-        if (is_callable($number)) {
-            $number();
-            return;
-        }
-
-        if (rand(0, 1)) {
-
-            expect(Math::remainder($number))->toBe($expected);
-
-            return;
-        }
-
-        expect(remainder($number))->toBe($expected);
-    })
-        ->with(Datasets::mathRemainder());
-
-    test('power method', function ($number, $exponent, $expected) {
-
-        expect(Math::power(number: $number, exponent: $exponent))->toBe($expected);
 
         // 
-    })
-        ->with(Datasets::mathPower());
+    });
 
-    test('sqrt method', function ($number, $expected) {
 
-        expect(Math::sqrt(number: $number))->toBe($expected);
+    test('sum method', function () {
 
-        // 
-    })
-        ->with(Datasets::mathSqrt());
+        foreach (Datasets::mathSum() as $dataset) {
 
-    test('roundUp method', function ($number, $expected) {
+            $number = $dataset[0];
+            $expected = $dataset[1];
 
-        if (rand(0, 1)) {
+            if (is_callable($number)) {
+                $number();
+                continue;
+            }
 
-            expect(Math::roundUp(number: $number))->toBe($expected);
+            if (rand(0, 1)) {
 
-            return;
+                expect(Math::sum($number))->toBe($expected);
+
+                continue;
+            }
+
+            expect(sum($number))->toBe($expected);
         }
 
-        expect(roundUp(number: $number))->toBe($expected);
-
-        return;
-
         // 
-    })
-        ->with(Datasets::mathRoundUp());
+    });
 
-    test('roundDown method', function ($number, $expected) {
 
-        if (rand(0, 1)) {
+    test('subtract method', function () {
 
-            expect(Math::roundDown(number: $number))->toBe($expected);
+        foreach (Datasets::mathSubtract() as $dataset) {
 
-            return;
+            $number = $dataset[0];
+            $expected = $dataset[1];
+
+            if (is_callable($number)) {
+                $number();
+                continue;
+            }
+
+            if (rand(0, 1)) {
+
+                expect(Math::subtract($number))->toBe($expected);
+
+                continue;
+            }
+
+            expect(subtract($number))->toBe($expected);
         }
 
-        expect(roundDown(number: $number))->toBe($expected);
-
-        return;
-
         // 
-    })
-        ->with(Datasets::mathRoundDown());
+    });
 
-    test('roundClose method', function ($number, $precision, $mode, $expected) {
 
-        if (rand(0, 1)) {
+    test('multiply method', function () {
 
-            expect(Math::roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
+        foreach (Datasets::mathMultiply() as $dataset) {
 
-            return;
+            $number = $dataset[0];
+            $expected = $dataset[1];
+
+            if (is_callable($number)) {
+                $number();
+                continue;
+            }
+
+            if (rand(0, 1)) {
+
+                expect(Math::multiply($number))->toBe($expected);
+
+                continue;
+            }
+
+            expect(multiply($number))->toBe($expected);
         }
 
-        expect(roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
-
-        return;
-
         // 
-    })
-        ->with(Datasets::mathRoundClose());
+    });
 
-    test('greaterThan method', function ($a, $b, $expected) {
 
-        if (rand(0, 1)) {
+    test('divide method', function () {
 
-            expect(Math::greaterThan($a, $b))->toBe($expected);
+        foreach (Datasets::mathDivide() as $dataset) {
 
-            return;
+            $number = $dataset[0];
+            $expected = $dataset[1];
+
+            if (is_callable($number)) {
+                $number();
+                continue;
+            }
+
+            if (rand(0, 1)) {
+
+                expect(Math::divide($number))->toBe($expected);
+
+                continue;
+            }
+
+            expect(divide($number))->toBe($expected);
         }
 
-        expect(greaterThan($a, $b))->toBe($expected);
-
-        return;
-
         // 
-    })
-        ->with(Datasets::mathGreaterThan());
+    });
 
-    test('greaterThanOrEqual method', function ($a, $b, $expected) {
+    test('remainder method', function () {
 
-        if (rand(0, 1)) {
+        foreach (Datasets::mathRemainder() as $dataset) {
 
-            expect(Math::greaterThanOrEqual($a, $b))->toBe($expected);
+            $number = $dataset[0];
+            $expected = $dataset[1];
 
-            return;
+            if (is_callable($number)) {
+                $number();
+                continue;
+            }
+
+            if (rand(0, 1)) {
+
+                expect(Math::remainder($number))->toBe($expected);
+
+                continue;
+            }
+
+            expect(remainder($number))->toBe($expected);
         }
 
-        expect(greaterThanOrEqual($a, $b))->toBe($expected);
-
-        return;
-
         // 
-    })
-        ->with(Datasets::mathGreaterThanOrEqual());
+    });
 
-    test('lessThan method', function ($a, $b, $expected) {
+    test('power method', function () {
 
-        if (rand(0, 1)) {
+        foreach (Datasets::mathPower() as $dataset) {
 
-            expect(Math::lessThan($a, $b))->toBe($expected);
+            $number = $dataset[0];
+            $exponent = $dataset[1];
+            $expected = $dataset[2];
 
-            return;
+            expect(Math::power(number: $number, exponent: $exponent))->toBe($expected);
         }
 
-        expect(lessThan($a, $b))->toBe($expected);
-
-        return;
-
         // 
-    })
-        ->with(Datasets::mathLessThan());
+    });
 
-    test('lessThanOrEqual method', function ($a, $b, $expected) {
+    test('sqrt method', function () {
 
-        if (rand(0, 1)) {
+        foreach (Datasets::mathSqrt() as $dataset) {
 
-            expect(Math::lessThanOrEqual($a, $b))->toBe($expected);
+            $number = $dataset[0];
+            $expected = $dataset[1];
 
-            return;
+            expect(Math::sqrt(number: $number))->toBe($expected);
         }
 
-        expect(lessThanOrEqual($a, $b))->toBe($expected);
-
-        return;
-
         // 
-    })
-        ->with(Datasets::mathLessThanOrEqual());
+    });
 
-    test('equal method', function ($a, $b, $expected) {
+    test('roundUp method', function () {
 
-        if (rand(0, 1)) {
+        foreach (Datasets::mathRoundUp() as $dataset) {
 
-            expect(Math::equal($a, $b))->toBe($expected);
+            $number = $dataset[0];
+            $expected = $dataset[1];
 
-            return;
+            if (rand(0, 1)) {
+
+                expect(Math::roundUp(number: $number))->toBe($expected);
+
+                continue;
+            }
+
+            expect(roundUp(number: $number))->toBe($expected);
+
+            continue;
+
+            // 
         }
 
-        expect(equal($a, $b))->toBe($expected);
-
-        return;
-
         // 
-    })
-        ->with(Datasets::mathEqual());
+    });
 
-    test('notEqual method', function ($a, $b, $expected) {
+    test('roundDown method', function () {
 
-        if (rand(0, 1)) {
+        foreach (Datasets::mathRoundDown() as $dataset) {
 
-            expect(Math::notEqual($a, $b))->toBe($expected);
+            $number = $dataset[0];
+            $expected = $dataset[1];
 
-            return;
+            if (rand(0, 1)) {
+
+                expect(Math::roundDown(number: $number))->toBe($expected);
+
+                continue;
+            }
+
+            expect(roundDown(number: $number))->toBe($expected);
+
+            continue;
+
+            // 
         }
 
-        expect(notEqual($a, $b))->toBe($expected);
+        // 
+    });
 
-        return;
+    test('roundClose method', function () {
+
+        foreach (Datasets::mathRoundClose() as $dataset) {
+
+            $number = $dataset[0];
+            $precision = $dataset[1];
+            $mode = $dataset[2];
+            $expected = $dataset[3];
+
+            if (rand(0, 1)) {
+
+                expect(Math::roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
+
+                continue;
+            }
+
+            expect(roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
+
+            continue;
+
+            // 
+        }
 
         // 
-    })
-        ->with(Datasets::mathNotEqual());
+    });
 
+    test('greaterThan method', function () {
+
+        foreach (Datasets::mathGreaterThan() as $dataset) {
+
+            $a = $dataset[0];
+            $b = $dataset[1];
+            $expected = $dataset[2];
+
+            if (rand(0, 1)) {
+
+                expect(Math::greaterThan($a, $b))->toBe($expected);
+
+                continue;
+            }
+
+            expect(greaterThan($a, $b))->toBe($expected);
+
+            continue;
+
+            // 
+        }
+
+        // 
+    });
+
+    test('greaterThanOrEqual method', function () {
+
+        foreach (Datasets::mathGreaterThanOrEqual() as $dataset) {
+
+            $a = $dataset[0];
+            $b = $dataset[1];
+            $expected = $dataset[2];
+
+            if (rand(0, 1)) {
+
+                expect(Math::greaterThanOrEqual($a, $b))->toBe($expected);
+
+                continue;
+            }
+
+            expect(greaterThanOrEqual($a, $b))->toBe($expected);
+
+            continue;
+
+            // 
+        }
+
+        // 
+    });
+
+    test('lessThan method', function () {
+
+        foreach (Datasets::mathLessThan() as $dataset) {
+
+            $a = $dataset[0];
+            $b = $dataset[1];
+            $expected = $dataset[2];
+
+            if (rand(0, 1)) {
+
+                expect(Math::lessThan($a, $b))->toBe($expected);
+
+                continue;
+            }
+
+            expect(lessThan($a, $b))->toBe($expected);
+
+            continue;
+
+            // 
+        }
+
+        // 
+    });
+
+    test('lessThanOrEqual method', function () {
+
+        foreach (Datasets::mathLessThanOrEqual() as $dataset) {
+
+            $a = $dataset[0];
+            $b = $dataset[1];
+            $expected = $dataset[2];
+
+            if (rand(0, 1)) {
+
+                expect(Math::lessThanOrEqual($a, $b))->toBe($expected);
+
+                continue;
+            }
+
+            expect(lessThanOrEqual($a, $b))->toBe($expected);
+
+            continue;
+
+            // 
+        }
+
+        // 
+    });
+
+    test('equal method', function () {
+
+        foreach (Datasets::mathEqual() as $dataset) {
+
+            $a = $dataset[0];
+            $b = $dataset[1];
+            $expected = $dataset[2];
+
+            if (rand(0, 1)) {
+
+                expect(Math::equal($a, $b))->toBe($expected);
+
+                continue;
+            }
+
+            expect(equal($a, $b))->toBe($expected);
+
+            continue;
+
+            // 
+        }
+
+        // 
+    });
+
+    test('notEqual method', function () {
+
+        foreach (Datasets::mathNotEqual() as $dataset) {
+
+            $a = $dataset[0];
+            $b = $dataset[1];
+            $expected = $dataset[2];
+
+            if (rand(0, 1)) {
+
+                expect(Math::notEqual($a, $b))->toBe($expected);
+
+                continue;
+            }
+
+            expect(notEqual($a, $b))->toBe($expected);
+
+            continue;
+
+            // 
+        }
+
+        // 
+    });
 
 
     describe('handle exceptions', function () {
