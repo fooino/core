@@ -20,6 +20,7 @@
     "require-dev": {
         "orchestra/testbench": "^11.0",
         "pestphp/pest": "^4.7",
+        "pestphp/pest-plugin-type-coverage": "^4.0",
         "phpdocumentor/shim": "^3.10"
     },
     "autoload": {
