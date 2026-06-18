@@ -10,18 +10,27 @@
             "role": "owner"
         }
     ],
+    "keywords": [
+        "laravel",
+        "math",
+        "date",
+        "json",
+        "sanitizer",
+        "token-generator",
+        "bcmath"
+    ],
     "require": {
         "php": "^8.5",
         "ext-bcmath": "*",
         "ext-intl": "*",
+        "ext-json": "*",
         "ext-mbstring": "*",
         "morilog/jalali": "^3.5"
     },
     "require-dev": {
         "orchestra/testbench": "^11.0",
         "pestphp/pest": "^4.7",
-        "pestphp/pest-plugin-type-coverage": "^4.0",
-        "phpdocumentor/shim": "^3.10"
+        "pestphp/pest-plugin-type-coverage": "^4.0"
     },
     "autoload": {
         "psr-4": {
@@ -45,12 +54,13 @@
     },
     "config": {
         "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "phpdocumentor/shim": true
+            "pestphp/pest-plugin": true
         }
     },
     "scripts": {
         "pest": "./vendor/bin/pest",
-        "phpdoc": "./vendor/bin/phpdoc"
+        "pest:coverage": "./vendor/bin/pest --coverage",
+        "pest:coverage:html": "./vendor/bin/pest --coverage-html coverage",
+        "pest:coverage:type": "./vendor/bin/pest --type-coverage"
     }
 }

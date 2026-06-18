@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-    <title>Core Package docs</title>
+    <title>Fooino Core API Documentation</title>
     <parser>
-        <target>docs/core</target>
+        <target>docs/phpdoc/cache</target>
     </parser>
     <transformer>
-        <target>docs/core</target>
+        <target>docs/phpdoc</target>
     </transformer>
     <files>
         <directory>./src</directory>
-        <ignore>./vendor/*</ignore>
-        <ignore>./tests/*</ignore>
-        <ignore>./docs/*</ignore>
-        <ignore>./coverage/*</ignore>
     </files>
 </phpdoc>
