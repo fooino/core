@@ -29,6 +29,7 @@ jobs:
         run: ./vendor/bin/pest --ci
 
   docs:
+    needs: ci
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
@@ -40,10 +41,14 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.5
-          tools: phpdocumentor
+
+      - name: Download phpDocumentor
+        run: |
+          curl -L https://phpdoc.org/phpDocumentor.phar -o phpDocumentor.phar
+          chmod +x phpDocumentor.phar
 
       - name: Generate docs
-        run: phpdoc
+        run: php phpDocumentor.phar
 
       - name: Checkout fooino-docs
         uses: actions/checkout@v3
