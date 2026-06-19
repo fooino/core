@@ -43,13 +43,20 @@ enum WrappedBackedEnum: string
 {
     case ACTIVE   = 'ACTIVE';
     case INACTIVE = 'INACTIVE';
-}
+};
+
+enum WrappedNumberBackedEnum: int
+{
+    case ONE    = 1;
+    case TWO    = 2;
+};
 
 enum WrappedPureEnum
 {
     case ACTIVE;
     case INACTIVE;
-}
+};
+
 class TestFormRequest extends FormRequest
 {
     public function authorize(): bool
@@ -311,23 +318,32 @@ describe('Helpers unit tests', function () {
 
     test('unwrapBackedEnum helper', function () {
 
-        expect(unwrapBackedEnum(false))->toBeFalse();
-        expect(unwrapBackedEnum(true))->toBeTrue();
-        expect(unwrapBackedEnum(0))->toBe(0);
-        expect(unwrapBackedEnum(123))->toBe(123);
-        expect(unwrapBackedEnum(123.123))->toBe(123.123);
-        expect(unwrapBackedEnum(null))->toBeNull();
-        expect(unwrapBackedEnum([]))->toBe([]);
-        expect(unwrapBackedEnum([123]))->toBe([123]);
-        expect(unwrapBackedEnum(collect(['123'])))->toEqual(collect(['123']));
+        expect(unwrapBackedEnum(value: 0))->toBe(0);
+        expect(unwrapBackedEnum(value: 123))->toBe(123);
+        expect(unwrapBackedEnum(value: 123.123))->toBe(123.123);
+
+        expect(unwrapBackedEnum(value: ''))->toBe('');
+        expect(unwrapBackedEnum(value: ' '))->toBe(' ');
+        expect(unwrapBackedEnum(value: 'foobar'))->toBe('foobar');
+
+        expect(unwrapBackedEnum(value: false))->toBeFalse();
+        expect(unwrapBackedEnum(value: true))->toBeTrue();
+        expect(unwrapBackedEnum(value: null))->toBeNull();
+
+        expect(unwrapBackedEnum(value: []))->toBe([]);
+        expect(unwrapBackedEnum(value: [123]))->toBe([123]);
+        expect(unwrapBackedEnum(value: collect(['123'])))->toEqual(collect(['123']));
 
         $object = new stdClass;
-        expect(unwrapBackedEnum($object))->toBe($object);
+        expect(unwrapBackedEnum(value: $object))->toBe($object);
 
-        expect(unwrapBackedEnum(WrappedBackedEnum::ACTIVE))->toBe('ACTIVE');
-        expect(unwrapBackedEnum(WrappedBackedEnum::INACTIVE))->toBe('INACTIVE');
+        expect(unwrapBackedEnum(value: WrappedBackedEnum::ACTIVE))->toBe('ACTIVE');
+        expect(unwrapBackedEnum(value: WrappedBackedEnum::INACTIVE))->toBe('INACTIVE');
 
-        expect(unwrapBackedEnum(WrappedPureEnum::ACTIVE))->toBe(WrappedPureEnum::ACTIVE);
+        expect(unwrapBackedEnum(value: WrappedNumberBackedEnum::ONE))->toBe(1);
+        expect(unwrapBackedEnum(value: WrappedNumberBackedEnum::TWO))->toBe(2);
+
+        expect(unwrapBackedEnum(value: WrappedPureEnum::ACTIVE))->toBe(WrappedPureEnum::ACTIVE);
     });
 
     test('mergeArraysByKey helper', function () {

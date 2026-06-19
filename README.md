@@ -128,16 +128,7 @@ exit
         Math::notEqual(10, 5);                          // true
     ```
 
-**Helpers**
-1. `nullIfBlank()` Returns a fallback value when the input is considered `blank` or a `null-like string` which usually produce by js.
-2. `nullIfBlankOrZero()` Convert value to null when the value is ZERO or blank base on `nullIfBlank()`
-3. `removeComma()` Remove comma between letters when the value is string or array
-4. `removeSpace()` Remove space between letters when the value is string or array
-5. `sanitizeNumber()` Remove space and comma from value
-6. `replaceSlashToDash()` Replace slashes to dashes when the value is string or array
-7. `setDefaultLocale()` and `getDefaultLocale()` are getter and setter for `app.locale` config
-8. `currentDate()` and `currentDateTime()` returns date and time in `Y-m-d` and `Y-m-d H:i:s` format
-9. `callMethodIfExists()` Safely call a method on an object or class if it exists, otherwise return a fallback value.
+4. [Helpers](./docs/markdown/HELPERS.md)
 
 
 ## 🚀 Change log

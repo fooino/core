@@ -343,11 +343,11 @@ if (!function_exists('nullIfBlankInput')) {
 
 if (!function_exists('unwrapBackedEnum')) {
     /**
-     * Unwrap a backed enum to its scalar value, or return the value unchanged if it is not a backed enum
+     * Normalize a value to its primitive form by extracting the scalar value from BackedEnum instances
      */
-    function unwrapBackedEnum(int|float|string|null|bool|array|object $object): int|float|string|null|bool|array|object
+    function unwrapBackedEnum(int|float|string|null|bool|array|object $value): int|float|string|null|bool|array|object
     {
-        return ($object instanceof \BackedEnum) ? $object->value : $object;
+        return ($value instanceof \BackedEnum) ? $value->value : $value;
     }
 }
 
