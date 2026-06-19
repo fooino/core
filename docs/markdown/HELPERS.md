@@ -94,3 +94,13 @@ Get the current timestamp in MySQL-compatible datetime format.
 ```php
 currentDateTime(); // '2026-06-19 16:33:58'
 ```
+
+## perPage
+
+Resolve and validate the per-page value from the request, falling back to the `FOOINO_PER_PAGE` constant.
+
+```php
+perPage();                                      // FOOINO_PER_PAGE (when no 'per_page' in request)
+perPage(key: 'per_page', maxPerPage: 100);      // 100 or FOOINO_PER_PAGE if exceeded
+perPage(request: $customRequest);               // resolve from a specific request instance
+```

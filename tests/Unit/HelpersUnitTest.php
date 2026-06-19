@@ -6,6 +6,7 @@ use Fooino\Core\Exceptions\CanNotConvertDateException;
 use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Exceptions\TransactionRollBackedException;
 use Fooino\Core\Tests\Data\Datasets;
+
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -15,6 +16,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
+
 use stdClass;
 use Stringable;
 use Exception;
@@ -499,6 +501,9 @@ describe('Helpers unit tests', function () {
         request()->merge(['per_page' => 10]);
         expect(perPage())->toBe(10);
 
+        request()->merge(['per_page' => '10']);
+        expect(perPage())->toBe(10);
+
         request()->merge(['per_page' => 0]);
         expect(perPage())->toBe(FOOINO_PER_PAGE);
 
@@ -508,11 +513,20 @@ describe('Helpers unit tests', function () {
         request()->merge(['per_page' => 'abc']);
         expect(perPage())->toBe(FOOINO_PER_PAGE);
 
+        request()->merge(['per_page' => 1.5]);
+        expect(perPage())->toBe(1);
+
+        request()->merge(['per_page' => -5]);
+        expect(perPage())->toBe(FOOINO_PER_PAGE);
+
         request()->merge(['limit' => 50]);
         expect(perPage(key: 'limit', maxPerPage: 100))->toBe(50);
 
         request()->merge(['limit' => 150]);
         expect(perPage(key: 'limit', maxPerPage: 100))->toBe(FOOINO_PER_PAGE);
+
+        $customRequest = new Request(['per_page' => '25']);
+        expect(perPage(request: $customRequest))->toBe(25);
     });
 
     test('currentDate and currentDateTime helper', function () {

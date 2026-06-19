@@ -521,7 +521,7 @@ if (!function_exists('perPage')) {
 
         $perPage = $request->input($key);
 
-        return (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0 || $perPage > $maxPerPage) ? FOOINO_PER_PAGE : $perPage;
+        return (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0 || $perPage > $maxPerPage) ? FOOINO_PER_PAGE : (int) $perPage;
     }
 }
 
