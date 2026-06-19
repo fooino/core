@@ -799,6 +799,7 @@ if (!function_exists('dbTransaction')) {
             DB::rollBack();
 
             app(TransactionRollBackedException::class)
+                ->cause($e)
                 ->setMessage($e->getMessage())
                 ->setCode($e->getCode())
                 ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))
