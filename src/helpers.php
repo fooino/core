@@ -47,7 +47,7 @@ if (!defined('CONSTANTS_DEFINED')) {
 
 if (!function_exists('isJson')) {
     /**
-     * Validate a value is json or not.
+     * Determine whether a string is valid JSON
      */
     function isJson(int|float|string|null|bool|array|object $value): bool
     {
@@ -57,7 +57,7 @@ if (!function_exists('isJson')) {
 
 if (!function_exists('jsonEncode')) {
     /**
-     * Encode a value to json format.
+     * Serialize a value to a JSON string, passing through values that are already valid JSON
      */
     function jsonEncode(int|float|string|null|bool|array|object $value, int $flags = 0, int $depth = 512): string|false
     {
@@ -65,21 +65,21 @@ if (!function_exists('jsonEncode')) {
     }
 }
 
-if (!function_exists('jsonEncodePrettified')) {
+if (!function_exists('jsonEncodePretty')) {
     /**
-     * Encode a value to json format for showing purpose.
+     * Serialize a value to a human-readable JSON string with HTML-safe escaping for display
      */
-    function jsonEncodePrettified(string|array $value): string
+    function jsonEncodePretty(string|array $value): string
     {
-        return Json::encodePrettified(value: $value);
+        return Json::encodePretty(value: $value);
     }
 }
 
 if (!function_exists('jsonDecode')) {
     /**
-     * Decode a json to value.
+     * Convert a JSON string back to its original PHP value
      */
-    function jsonDecode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed
+    function jsonDecode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): int|float|string|null|bool|array|object
     {
         return Json::decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
     }
@@ -87,7 +87,7 @@ if (!function_exists('jsonDecode')) {
 
 if (!function_exists('jsonDecodeToArray')) {
     /**
-     * Decode a json to array.
+     * Convert a JSON string to an associative array
      */
     function jsonDecodeToArray(int|float|string|null|bool|array|object $json): array
     {
@@ -95,13 +95,13 @@ if (!function_exists('jsonDecodeToArray')) {
     }
 }
 
-if (!function_exists('jsonResponse')) {
+if (!function_exists('jsonRespond')) {
     /**
-     * Return response to user.
+     * Build a JSON HTTP response with a standardized structure for API responses
      */
-    function jsonResponse(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse
+    function jsonRespond(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse
     {
-        return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional, headers: $headers, options: $options);
+        return Json::respond(status: $status, message: $message, errors: $errors, data: $data, additional: $additional, headers: $headers, options: $options);
     }
 }
 

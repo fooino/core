@@ -53,6 +53,11 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->toBeFalse()
             ->and(isJson($object))->toBeFalse()
             ->and($object)->not->toBeJson();
+
+        expect(Json::is(''))
+            ->toBeFalse()
+            ->and(isJson(''))->toBeFalse()
+            ->and('')->not->toBeJson();
     });
 
     test('is method returns true', function () {
@@ -101,6 +106,21 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->toBeTrue()
             ->and(isJson($object))->toBeTrue()
             ->and($object)->toBeJson();
+
+        expect(Json::is('0'))
+            ->toBeTrue()
+            ->and(isJson('0'))->toBeTrue()
+            ->and('0')->toBeJson();
+
+        expect(Json::is('5'))
+            ->toBeTrue()
+            ->and(isJson('5'))->toBeTrue()
+            ->and('5')->toBeJson();
+
+        expect(Json::is('5.5'))
+            ->toBeTrue()
+            ->and(isJson('5.5'))->toBeTrue()
+            ->and('5.5')->toBeJson();
     });
 
     test('encode method returns json', function () {
@@ -115,59 +135,93 @@ describe('Json facade using FooinoJsonHandler', function () {
         $object->foo = 'bar';
 
         expect(Json::encode($int))
-            ->toEqual(json_encode($int))
+            ->toBe(json_encode($int))
             ->and(jsonEncode($int))->toBeJson();
 
         expect(Json::encode($float))
-            ->toEqual(json_encode($float))
+            ->toBe(json_encode($float))
             ->and(jsonEncode($float))->toBeJson();
 
         expect(Json::encode($string))
-            ->toEqual(json_encode($string))
+            ->toBe(json_encode($string))
             ->and(jsonEncode($string))->toBeJson();
 
         expect(Json::encode($null))
-            ->toEqual(json_encode($null))
+            ->toBe(json_encode($null))
             ->and(jsonEncode($null))->toBeJson();
 
         expect(Json::encode($boolean))
-            ->toEqual(json_encode($boolean))
+            ->toBe(json_encode($boolean))
             ->and(jsonEncode($boolean))->toBeJson();
 
         expect(Json::encode($array))
-            ->toEqual(json_encode($array))
+            ->toBe(json_encode($array))
             ->and(jsonEncode($array))->toBeJson();
 
         expect(jsonEncode(Json::encode(Json::encode($array))))
-            ->toEqual(json_encode($array));
+            ->toBe(json_encode($array));
 
         expect(Json::encode($object))
-            ->toEqual(json_encode($object))
+            ->toBe(json_encode($object))
             ->and(jsonEncode($object))->toBeJson();
+    });
+
+    test('encode method does not re-encode valid JSON', function () {
+
+        $int = json_encode(5);
+        $float = json_encode(5.5);
+        $string = json_encode('foo bar');
+        $null = json_encode(null);
+        $boolean = json_encode(true);
+        $array = json_encode(['foo' => 'bar']);
+        $object = new stdClass;
+        $object->foo = 'bar';
+        $object = json_encode($object);
+
+        expect(Json::encode($int))->toBe($int);
+        expect(jsonEncode($int))->toBe($int);
+
+        expect(Json::encode($float))->toBe($float);
+        expect(jsonEncode($float))->toBe($float);
+
+        expect(Json::encode($string))->toBe($string);
+        expect(jsonEncode($string))->toBe($string);
+
+        expect(Json::encode($null))->toBe($null);
+        expect(jsonEncode($null))->toBe($null);
+
+        expect(Json::encode($boolean))->toBe($boolean);
+        expect(jsonEncode($boolean))->toBe($boolean);
+
+        expect(Json::encode($array))->toBe($array);
+        expect(jsonEncode($array))->toBe($array);
+
+        expect(Json::encode($object))->toBe($object);
+        expect(jsonEncode($object))->toBe($object);
     });
 
     test('encode value in pretty format for showing purpose', function () {
 
-        expect(Json::encodePrettified(''))
+        expect(Json::encodePretty(''))
             ->toEqual('')
-            ->and(jsonEncodePrettified(''))->toEqual('');
+            ->and(jsonEncodePretty(''))->toEqual('');
 
-        expect(Json::encodePrettified('null'))
+        expect(Json::encodePretty('null'))
             ->toEqual('')
-            ->and(jsonEncodePrettified('NaN'))->toEqual('');
+            ->and(jsonEncodePretty('NaN'))->toEqual('');
 
-        expect(Json::encodePrettified('     '))
+        expect(Json::encodePretty('     '))
             ->toEqual('')
-            ->and(jsonEncodePrettified('    '))->toEqual('');
+            ->and(jsonEncodePretty('    '))->toEqual('');
 
-        expect(Json::encodePrettified([]))
+        expect(Json::encodePretty([]))
             ->toEqual('')
-            ->and(jsonEncodePrettified([]))->toEqual('');
+            ->and(jsonEncodePretty([]))->toEqual('');
 
 
-        expect(str_replace(["\n", " "], "", Json::encodePrettified(['foo' => 'bar'])) == '{&quot;foo&quot;:&quot;bar&quot;}')->toBeTrue();
+        expect(str_replace(["\n", " "], "", Json::encodePretty(['foo' => 'bar'])) == '{&quot;foo&quot;:&quot;bar&quot;}')->toBeTrue();
 
-        expect(str_replace(["\n", " "], "", Json::encodePrettified(json_encode(['foo' => 'bar']))) == '{&quot;foo&quot;:&quot;bar&quot;}')->toBeTrue();
+        expect(str_replace(["\n", " "], "", Json::encodePretty(json_encode(['foo' => 'bar']))) == '{&quot;foo&quot;:&quot;bar&quot;}')->toBeTrue();
     });
 
     test('decode method returns well-formatted value', function () {
@@ -351,10 +405,10 @@ describe('Json facade using FooinoJsonHandler', function () {
 
     test('json response return a http response with standarad structure', function () {
 
-        expect(Json::response())->toBeInstanceOf(JsonResponse::class);
-        expect(jsonResponse())->toBeInstanceOf(JsonResponse::class);
+        expect(Json::respond())->toBeInstanceOf(JsonResponse::class);
+        expect(jsonRespond())->toBeInstanceOf(JsonResponse::class);
 
-        $facade = Json::response(
+        $facade = Json::respond(
             status: 429,
             message: 'too many request',
             errors: [
@@ -371,7 +425,7 @@ describe('Json facade using FooinoJsonHandler', function () {
             ]
         );
 
-        $helper = jsonResponse(
+        $helper = jsonRespond(
             status: 429,
             message: 'too many request',
             errors: [
@@ -418,6 +472,14 @@ describe('Json facade using FooinoJsonHandler', function () {
 
         expect($facade->headers->all())->toEqual($expected->headers->all());
         expect($helper->headers->all())->toEqual($expected->headers->all());
+
+        $withOptions = Json::respond(
+            status: 200,
+            data: ['foo' => 'bar'],
+            options: JSON_UNESCAPED_UNICODE
+        );
+
+        expect($withOptions->getData(true)['data'])->toEqual(['foo' => 'bar']);
     });
 
     test('check json response template', function () {

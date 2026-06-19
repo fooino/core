@@ -31,28 +31,8 @@ exit
 ./vendor/bin/phpdoc # or composer phpdoc
 ```
 
-**Facades**
-1. Json
-    + Interface `Fooino\Core\Interfaces\Jsonable`
-    + Concrete  `Fooino\Core\Concretes\JsonManager`
-    + Unit test `Fooino\Core\Tests\JsonFacadeUnitTest`
-    + Basic Usage
-    ```php
-        use Fooino\Core\Facades\Json;
-            
-        // To validate a value is json or not | or use isJson() helper
-        Json::is(5); // false
-        Json::is(json_encode(['foo' => 'bar'])); // true
 
-        // To encode a value to json format | see jsonEncode(), Json::encodePrettified() and jsonEncodePrettified()
-        Json::encode(['foo' => 'bar']); // "{"foo":"bar"}"
-
-        // To decode a json to the original format | see jsonDecode(), Json::decodeToArray() and jsonDecodeToArray()
-        Json::decode('{"foo":"bar"}' , true); // ['foo' => 'bar']
-
-        // To return response to user in json format and standard structure | or use jsonResponse() helper
-        Json::response(status: 200, message: 'ok', errors: ['foo' => 'the foo is required'], data: ['foo' => 'bar'], additional: ['foo' => 'ino'], headers: ['language' => 'fa']) // it returns \Illuminate\Http\JsonResponse
-    ```
+1. [Json Facade](./docs/markdown/JSON_FACADE.md)
 
 2. Date
     + Interface `Fooino\Core\Interfaces\Dateable`
