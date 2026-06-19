@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\DB;
 if (!defined('CONSTANTS_DEFINED')) {
 
     define('FOOINO_PER_PAGE', 30);
+    define('FOOINO_MAX_PER_PAGE', 300);
+
     define('FOOINO_PRIORITY_STEP', 1000);
 
     define('FOOINO_IMAGE_EXTENSION', ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp']);
@@ -515,13 +517,17 @@ if (!function_exists('perPage')) {
     /**
      * Resolve the per-page value from the request with validation against a maximum
      */
-    function perPage(string $key = 'per_page', int $maxPerPage = 300, Request|null $request = null): int
+    function perPage(string $key = 'per_page', int $maxPerPage = FOOINO_MAX_PER_PAGE, Request|null $request = null): int
     {
         $request ??= request();
 
         $perPage = $request->input($key);
 
-        return (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0 || $perPage > $maxPerPage) ? FOOINO_PER_PAGE : (int) $perPage;
+        if (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0) {
+            return FOOINO_PER_PAGE;
+        }
+
+        return min((int) $perPage, $maxPerPage);
     }
 }
 

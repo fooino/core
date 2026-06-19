@@ -101,6 +101,16 @@ Resolve and validate the per-page value from the request, falling back to the `F
 
 ```php
 perPage();                                      // FOOINO_PER_PAGE (when no 'per_page' in request)
-perPage(key: 'per_page', maxPerPage: 100);      // 100 or FOOINO_PER_PAGE if exceeded
+perPage(key: 'per_page', maxPerPage: 100);      // less than 100 or 100 if exceeded
 perPage(request: $customRequest);               // resolve from a specific request instance
+```
+
+## callMethodIfExists
+
+Safely call a method on an object or class if it exists, otherwise return a fallback value.
+
+```php
+callMethodIfExists(object: new CustomClass, method: 'pi', fallback: 'fooino');                                  // 3.14
+callMethodIfExists(object: CustomClass::class, method: 'getPrecision', constructorArgs: ['precision' => 2]);    // 2
+callMethodIfExists(object: new CustomClass, method: 'nonexistent', fallback: 'default');                        // 'default'
 ```

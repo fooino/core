@@ -508,7 +508,7 @@ describe('Helpers unit tests', function () {
         expect(perPage())->toBe(FOOINO_PER_PAGE);
 
         request()->merge(['per_page' => 301]);
-        expect(perPage())->toBe(FOOINO_PER_PAGE);
+        expect(perPage())->toBe(FOOINO_MAX_PER_PAGE);
 
         request()->merge(['per_page' => 'abc']);
         expect(perPage())->toBe(FOOINO_PER_PAGE);
@@ -519,11 +519,14 @@ describe('Helpers unit tests', function () {
         request()->merge(['per_page' => -5]);
         expect(perPage())->toBe(FOOINO_PER_PAGE);
 
+        request()->merge(['limit' => 350]);
+        expect(perPage(key: 'limit', maxPerPage: 500))->toBe(350);
+
         request()->merge(['limit' => 50]);
         expect(perPage(key: 'limit', maxPerPage: 100))->toBe(50);
 
         request()->merge(['limit' => 150]);
-        expect(perPage(key: 'limit', maxPerPage: 100))->toBe(FOOINO_PER_PAGE);
+        expect(perPage(key: 'limit', maxPerPage: 100))->toBe(100);
 
         $customRequest = new Request(['per_page' => '25']);
         expect(perPage(request: $customRequest))->toBe(25);
@@ -535,7 +538,7 @@ describe('Helpers unit tests', function () {
         expect(currentDateTime())->toBe(date('Y-m-d H:i:s'));
     });
 
-    test('callMethodIfExists call existing method or returns the fallback', function () {
+    test('callMethodIfExists helper', function () {
 
         expect(callMethodIfExists(object: new CustomClass, method: 'pi', fallback: 'fooino'))->toBe(3.14);
 
@@ -548,6 +551,10 @@ describe('Helpers unit tests', function () {
 
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: 'NOT EXIST'))->toBe('NOT EXIST');
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: fn($a) => $a * $a, methodArgs: ['a' => 5]))->toBe(25);
+
+        expect(callMethodIfExists(object: new CustomClass, method: 'pi'))->toBe(3.14);
+
+        expect(callMethodIfExists(object: new CustomClass, method: 'nonexistent', fallback: 'default'))->toBe('default');
     });
 
     test('percentageChange method', function () {
