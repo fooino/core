@@ -422,7 +422,7 @@ if (!function_exists('removeSpace')) {
         }
 
         if (is_array($value)) {
-            
+
             $result = [];
 
             foreach ($value as $key => $item) {
@@ -446,13 +446,28 @@ if (!function_exists('sanitizeNumber')) {
     }
 }
 
-if (!function_exists('replaceSlashToDash')) {
+if (!function_exists('replaceSlashWithDash')) {
     /**
-     * Replace slashes to dashes when the value is string or array
+     * Normalize date strings by converting slashes to dashes
      */
-    function replaceSlashToDash(int|float|string|null|bool|array $value): int|float|string|null|bool|array
+    function replaceSlashWithDash(int|float|string|null|bool|array $value): int|float|string|null|bool|array
     {
-        return (\is_string($value) || \is_array($value)) ? \str_replace('/', '-', $value) : $value;
+        if (is_string($value)) {
+            return str_replace('/', '-', $value);
+        }
+
+        if (is_array($value)) {
+
+            $result = [];
+
+            foreach ($value as $key => $item) {
+                $result[$key] = is_string($item) ? str_replace('/', '-', $item) : $item;
+            }
+
+            return $result;
+        }
+
+        return $value;
     }
 }
 

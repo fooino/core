@@ -437,21 +437,26 @@ describe('Helpers unit tests', function () {
         expect(sanitizeNumber([0, 1, 11.11, null, true, false, ' 1,234 ']))->toBe([0, 1, 11.11, null, true, false, '1234']);
     });
 
-    test('replaceSlashToDash does the replacement when the value is string or array', function () {
+    test('replaceSlashWithDash helper', function () {
 
-        expect(replaceSlashToDash(value: 123))->toBe(123);
-        expect(replaceSlashToDash(value: 123.123))->toBe(123.123);
+        expect(replaceSlashWithDash(value: 123))->toBe(123);
+        expect(replaceSlashWithDash(value: 123.123))->toBe(123.123);
 
-        expect(replaceSlashToDash(value: '2023/01/02'))->toBe('2023-01-02');
-        expect(replaceSlashToDash(value: ''))->toBe('');
-        expect(replaceSlashToDash(value: ' foobar'))->toBe(' foobar');
+        expect(replaceSlashWithDash(value: '2023/01/02'))->toBe('2023-01-02');
+        expect(replaceSlashWithDash(value: ''))->toBe('');
+        expect(replaceSlashWithDash(value: ' foobar'))->toBe(' foobar');
 
-        expect(replaceSlashToDash(value: null))->toBe(null);
-        expect(replaceSlashToDash(value: true))->toBe(true);
-        expect(replaceSlashToDash(value: false))->toBe(false);
+        expect(replaceSlashWithDash(value: null))->toBe(null);
+        expect(replaceSlashWithDash(value: true))->toBe(true);
+        expect(replaceSlashWithDash(value: false))->toBe(false);
 
-        expect(replaceSlashToDash(value: ['hi/hello', '2023/01/02 11:00:00']))->toBe(['hi-hello', '2023-01-02 11:00:00']);
-        expect(replaceSlashToDash(value: [123]))->toBe(['123']);
+        expect(replaceSlashWithDash(value: ['hi/hello', '2023/01/02 11:00:00']))->toBe(['hi-hello', '2023-01-02 11:00:00']);
+        expect(replaceSlashWithDash(value: [123]))->toBe([123]);
+
+        expect(replaceSlashWithDash(value: [0, 1, 11.11, null, true, false, '2023/01/02']))->toBe([0, 1, 11.11, null, true, false, '2023-01-02']);
+
+        expect(replaceSlashWithDash(value: '/'))->toBe('-');
+        expect(replaceSlashWithDash(value: 'a//b'))->toBe('a--b');
     });
 
     test('setUserTimezone and getUserTimezone helper', function () {

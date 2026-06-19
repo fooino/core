@@ -25,7 +25,7 @@ class FooinoDateHandler extends DateHandler implements Dateable
 
         $date = is_numeric($date) ? date('Y-m-d H:i:s', $date) : $date;
 
-        $date = nullIfBlank(value: replaceSlashToDash(value: (string) $date));
+        $date = nullIfBlank(value: replaceSlashWithDash(value: (string) $date));
 
         if (
             !$throwException &&

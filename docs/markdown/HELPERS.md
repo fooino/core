@@ -44,3 +44,13 @@ Remove spaces and commas from strings, for sanitizing phone numbers and numeric 
 sanitizeNumber(value: '+98 912 111 2222 '); // '+989121112222'
 sanitizeNumber(value: ' 1,222 333,444');    // '1222333444'
 ```
+
+## replaceSlashWithDash
+
+Normalize date strings by converting slashes to dashes.
+
+```php
+replaceSlashWithDash(value: '2023/01/02');                  // '2023-01-02'
+replaceSlashWithDash(value: 'a//b');                        // 'a--b'
+replaceSlashWithDash(value: ['2023/01/02', 'hi/hello']);    // ['2023-01-02', 'hi-hello']
+```
