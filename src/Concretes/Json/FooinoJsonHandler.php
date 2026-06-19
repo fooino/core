@@ -27,7 +27,7 @@ class FooinoJsonHandler implements Jsonable
 
         $encoded = $this->encode(value: $input, flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-        return htmlspecialchars(string: $encoded, flags: ENT_QUOTES, encoding: 'UTF-8');
+        return e(value: $encoded);
     }
 
     public function decode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): int|float|string|null|bool|array|object

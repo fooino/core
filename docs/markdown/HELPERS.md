@@ -115,3 +115,28 @@ callMethodIfExists(object: new CustomClass, method: 'pi', fallback: 'fooino');  
 callMethodIfExists(object: CustomClass::class, method: 'getPrecision', constructorArgs: ['precision' => 2]);    // 2
 callMethodIfExists(object: new CustomClass, method: 'nonexistent', fallback: 'default');                        // 'default'
 ```
+
+## nullIfBlank
+
+Cast JavaScript falsy/null-like values (null, undefined, NaN, empty strings with quote chars, whitespace-only) to null for consistent server-side validation.
+
+```php
+nullIfBlank(value: null);                       // null
+nullIfBlank(value: 'null');                     // null
+nullIfBlank(value: ' NaN ');                    // null
+nullIfBlank(value: 'undefined');                // null
+nullIfBlank(value: "nu\tll");                   // null
+nullIfBlank(value: '');                         // null
+nullIfBlank(value: 'foobar');                   // 'foobar'
+nullIfBlank(value: 0, fallback: 'foobar');      // 0
+```
+
+## nullIfBlankInput
+
+Retrieve a request input and return null if it is blank or a JS null-like value.
+
+```php
+nullIfBlankInput(key: 'title');                                     // null when 'title' is missing or blank
+nullIfBlankInput(key: 'title', fallback: 'default');                // 'default' when blank
+nullIfBlankInput(key: 'title', request: $customRequest);            // resolve from a specific request instance
+```

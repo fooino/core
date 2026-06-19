@@ -152,10 +152,16 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: '0', fallback: 'fooino'))->toBe('0');
         expect(nullIfBlank(value: '0.0', fallback: 'fooino'))->toBe('0.0');
         expect(nullIfBlank(value: 'false', fallback: 'fooino'))->toBe('false');
+        expect(nullIfBlank(value: 'true', fallback: 'fooino'))->toBe('true');
+        expect(nullIfBlank(value: 'nill', fallback: 'fooino'))->toBe('nill');
+        expect(nullIfBlank(value: 'notnull', fallback: 'fooino'))->toBe('notnull');
         expect(nullIfBlank(value: ' foobar ', fallback: 'fooino'))->toBe(' foobar ');
         expect(nullIfBlank(value: ' null"ish ', fallback: 'fooino'))->toBe(' null"ish ');
+        expect(nullIfBlank(value: " ' ` \" \n \t null nan undefined foobar", fallback: 'fooino'))->toBe(" ' ` \" \n \t null nan undefined foobar");
 
+        expect(nullIfBlank(value: [0], fallback: 'fooino'))->toBe([0]);
         expect(nullIfBlank(value: [null], fallback: 'fooino'))->toBe([null]);
+        expect(nullIfBlank(value: [true], fallback: 'fooino'))->toBe([true]);
         expect(nullIfBlank(value: [false], fallback: 'fooino'))->toBe([false]);
         expect(nullIfBlank(value: [""], fallback: 'fooino'))->toBe([""]);
         expect(nullIfBlank(value: [1, 'foobar', true], fallback: 'fooino'))->toBe([1, 'foobar', true]);
@@ -175,6 +181,8 @@ describe('Helpers unit tests', function () {
         };
 
         expect((string) nullIfBlank(value: $object, fallback: 'fooino'))->toBe('foobar');
+
+        expect(nullIfBlank(value: new stdClass, fallback: 'fooino'))->toBeInstanceOf(stdClass::class);
     });
 
     test('nullIfBlank returns null when the value is blank', function () {
@@ -189,6 +197,13 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: '" \'null ` nan undefined'))->toBeNull();
         expect(nullIfBlank(value: 'null', fallback: 'fooino'))->toEqual('fooino');
 
+        expect(nullIfBlank(value: 'nan'))->toBeNull();
+        expect(nullIfBlank(value: 'undefined'))->toBeNull();
+        expect(nullIfBlank(value: 'nullnull'))->toBeNull();
+        expect(nullIfBlank(value: 'nanundefined'))->toBeNull();
+        expect(nullIfBlank(value: "nu\tll"))->toBeNull();
+        expect(nullIfBlank(value: "nu\nll"))->toBeNull();
+
         expect(nullIfBlank(value: ''))->toBeNull();
         expect(nullIfBlank(value: '      '))->toBeNull();
         expect(nullIfBlank(value: '  "" '))->toBeNull();
@@ -198,6 +213,7 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: "  '' "))->toBeNull();
         expect(nullIfBlank(value: "  ' \" ' "))->toBeNull();
         expect(nullIfBlank(value: "  ' \" ' ", fallback: 'fooino'))->toEqual('fooino');
+        expect(nullIfBlank(value: " ' ` \" \n \t null nan undefined "))->toBeNull();
 
         expect(nullIfBlank(value: []))->toBeNull();
         expect(nullIfBlank(value: [], fallback: 'fooino'))->toEqual('fooino');

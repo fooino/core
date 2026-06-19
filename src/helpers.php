@@ -311,11 +311,11 @@ if (!function_exists('isZero')) {
 
 if (!function_exists('nullIfBlank')) {
     /**
-     * Returns a fallback value when the input is considered "blank" or a null-like string which usually produce by js.
+     * Returns a fallback value when the input is considered "blank" or a null-like string which usually produced by js.
      */
     function nullIfBlank(int|float|string|null|bool|array|object|callable $value, int|float|string|null|bool|array|object|callable $fallback = null): int|float|string|null|bool|array|object|callable
     {
-        return ((blank($value) || (is_string($value) && trim(str_replace(["'", "`", '"', "null", "undefined", "nan"], '', strtolower($value))) === '')) ? null : $value) ?? $fallback;
+        return ((blank($value) || (is_string($value) && trim(str_replace([" ", "\n", "\t", "'", "`", '"', "null", "undefined", "nan"], '', strtolower($value))) === '')) ? null : $value) ?? $fallback;
     }
 }
 
