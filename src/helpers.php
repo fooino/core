@@ -413,14 +413,14 @@ if (!function_exists('removeComma')) {
     }
 }
 
-if (!function_exists('removeSpace')) {
+if (!function_exists('removeWhitespace')) {
     /**
-     * Strip all whitespace characters from strings, for cleaning user input and formatted text
+     * Strip all whitespace characters (spaces, newlines, tabs) from strings, for cleaning user input and formatted text
      */
-    function removeSpace(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
+    function removeWhitespace(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
         if (is_string($value)) {
-            return str_replace(' ', $replace, $value);
+            return str_replace([' ', "\n", "\t"], $replace, $value);
         }
 
         if (is_array($value)) {
@@ -428,7 +428,7 @@ if (!function_exists('removeSpace')) {
             $result = [];
 
             foreach ($value as $key => $item) {
-                $result[$key] = is_string($item) ? str_replace(' ', $replace, $item) : $item;
+                $result[$key] = is_string($item) ? str_replace([' ', "\n", "\t"], $replace, $item) : $item;
             }
 
             return $result;
@@ -444,7 +444,7 @@ if (!function_exists('sanitizeNumber')) {
      */
     function sanitizeNumber(int|float|string|null|bool|array $value): int|float|string|null|bool|array
     {
-        return removeSpace(value: removeComma(value: $value));
+        return removeWhitespace(value: removeComma(value: $value));
     }
 }
 

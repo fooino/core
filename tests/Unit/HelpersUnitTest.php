@@ -397,28 +397,32 @@ describe('Helpers unit tests', function () {
         expect(removeComma(value: ','))->toBe('');
     });
 
-    test('removeSpace helper', function () {
+    test('removeWhitespace helper', function () {
 
-        expect(removeSpace(value: 12))->toBe(12);
-        expect(removeSpace(value: 12.12))->toBe(12.12);
+        expect(removeWhitespace(value: 12))->toBe(12);
+        expect(removeWhitespace(value: 12.12))->toBe(12.12);
 
-        expect(removeSpace(value: ''))->toBe('');
-        expect(removeSpace(value: '  '))->toBe('');
-        expect(removeSpace(value: 'foobar'))->toBe('foobar');
-        expect(removeSpace(value: ' foobar'))->toBe('foobar');
-        expect(removeSpace(value: 'foobar '))->toBe('foobar');
-        expect(removeSpace(value: ' foobar '))->toBe('foobar');
-        expect(removeSpace(value: ' 0912 123 1234 '))->toBe('09121231234');
-        expect(removeSpace(value: ' 0912 123 1234 ', replace: "_"))->toBe('_0912_123_1234_');
+        expect(removeWhitespace(value: ''))->toBe('');
+        expect(removeWhitespace(value: '  '))->toBe('');
+        expect(removeWhitespace(value: 'foobar'))->toBe('foobar');
+        expect(removeWhitespace(value: ' foobar'))->toBe('foobar');
+        expect(removeWhitespace(value: 'foobar '))->toBe('foobar');
+        expect(removeWhitespace(value: ' foobar '))->toBe('foobar');
+        expect(removeWhitespace(value: ' 0912 123 1234 '))->toBe('09121231234');
+        expect(removeWhitespace(value: ' 0912 123 1234 ', replace: "_"))->toBe('_0912_123_1234_');
 
-        expect(removeSpace(value: null))->toBe(null);
-        expect(removeSpace(value: true))->toBe(true);
-        expect(removeSpace(value: false))->toBe(false);
+        expect(removeWhitespace(value: null))->toBe(null);
+        expect(removeWhitespace(value: true))->toBe(true);
+        expect(removeWhitespace(value: false))->toBe(false);
 
-        expect(removeSpace(value: [1, ' 0912 123 1234 ']))->toBe([1, '09121231234']);
-        expect(removeSpace(value: [1, ' 0912 123 1234 '], replace: "_"))->toBe([1, '_0912_123_1234_']);
+        expect(removeWhitespace(value: [1, ' 0912 123 1234 ']))->toBe([1, '09121231234']);
+        expect(removeWhitespace(value: [1, ' 0912 123 1234 '], replace: "_"))->toBe([1, '_0912_123_1234_']);
 
-        expect(removeSpace(value: [0, 1, 11.11, null, true, false, ' 123 123 ']))->toBe([0, 1, 11.11, null, true, false, '123123']);
+        expect(removeWhitespace(value: [0, 1, 11.11, null, true, false, ' 123 123 ']))->toBe([0, 1, 11.11, null, true, false, '123123']);
+
+        expect(removeWhitespace(value: "foo\nbar"))->toBe('foobar');
+        expect(removeWhitespace(value: "foo\tbar"))->toBe('foobar');
+        expect(removeWhitespace(value: ["foo\nbar", "baz\tqux"]))->toBe(['foobar', 'bazqux']);
     });
 
     test('sanitizeNumber helper',  function () {

@@ -27,13 +27,14 @@ removeComma(value: '12,345,678');           // '12345678'
 removeComma(value: '1,2,3', replace: '.');  // '1.2.3'
 ```
 
-## removeSpace
+## removeWhitespace
 
 Strip all whitespace characters from strings, for cleaning user input and formatted text.
 
 ```php
-removeSpace(value: ' 0912 123 1234 ');                  // '09121231234'
-removeSpace(value: ' 0912 123 1234 ', replace: '_');    // '_0912_123_1234_'
+removeWhitespace(value: ' 0912 123 1234 ');                  // '09121231234'
+removeWhitespace(value: ' 0912 123 1234 ', replace: '_');    // '_0912_123_1234_'
+removeWhitespace(value: "foo\nbar\tbaz");                     // 'foobarbaz'
 ```
 
 ## sanitizeNumber

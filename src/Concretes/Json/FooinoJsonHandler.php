@@ -19,7 +19,7 @@ class FooinoJsonHandler implements Jsonable
 
     public function encodePretty(string|array $value): string
     {
-        if (is_null(nullIfBlank($value))) {
+        if (is_null(nullIfBlank(value: $value))) {
             return '';
         }
 
