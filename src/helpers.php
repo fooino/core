@@ -353,22 +353,31 @@ if (!function_exists('unwrapBackedEnum')) {
 
 if (!function_exists('mergeArraysByKey')) {
     /**
-     * Merge multiple arrays by grouping values under shared keys into sub-arrays
+     * Aggregate values from multiple arrays into grouped sub-arrays keyed by their original keys
      */
     function mergeArraysByKey(array ...$arrays): array
     {
         $merged = [];
 
         foreach ($arrays as $array) {
+
             foreach ($array as $key => $value) {
-                if (!isset($merged[$key])) {
+
+                if (!array_key_exists(key: $key, array: $merged)) {
+
                     $merged[$key] = [];
                 }
 
-                if (is_array($value)) {
+                if (is_array(value: $value)) {
+
                     $merged[$key] = array_merge($merged[$key], $value);
+
+                    // 
                 } else {
+
                     $merged[$key][] = $value;
+
+                    // 
                 }
             }
         }

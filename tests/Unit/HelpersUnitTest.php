@@ -352,6 +352,12 @@ describe('Helpers unit tests', function () {
 
         expect(mergeArraysByKey(['foo' => ['a']]))->toBe(['foo' => ['a']]);
 
+        expect(mergeArraysByKey(['key' => null]))->toBe(['key' => [null]]);
+
+        expect(mergeArraysByKey(['key' => []]))->toBe(['key' => []]);
+
+        expect(mergeArraysByKey(['x' => ['a' => 1]], ['x' => ['a' => 2]]))->toBe(['x' => ['a' => 2]]);
+
         $a = ['created' => ['aa', 'bb']];
         $b = ['created' => 'cc', 'updated' => 'gg'];
         $c = ['created' => ['dd', 'ee']];
