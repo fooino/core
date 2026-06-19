@@ -463,28 +463,32 @@ describe('Helpers unit tests', function () {
 
         expect(config('user-timezone'))->toBeNull();
 
-        setUserTimezone('Asia/Tehran');
+        setUserTimezone(timezone: 'Asia/Tehran');
         expect(config('user-timezone'))->toBe('Asia/Tehran');
         expect(getUserTimezone())->toBe('Asia/Tehran');
 
         config(['user-timezone' => null]);
         expect(getUserTimezone())->toBe('UTC');
+
+        setUserTimezone(timezone: '');
+        expect(config('user-timezone'))->toBe('');
+        expect(getUserTimezone())->toBe('UTC');
     });
 
-    test('setDefaultLocale change app.locale config', function () {
+    test('setDefaultLocale and getDefaultLocale helper', function () {
 
         expect(config('app.locale'))->toBe('en');
+        expect(getDefaultLocale())->toBe('en');
 
         setDefaultLocale(locale: 'fa');
         expect(config('app.locale'))->toBe('fa');
         expect(getDefaultLocale())->toBe('fa');
-    });
-
-    test('getDefaultLocale get default locale from config', function () {
-
-        expect(getDefaultLocale())->toBe('en');
 
         config(['app.locale' => null]);
+        expect(getDefaultLocale())->toBe('fa');
+
+        setDefaultLocale(locale: '');
+        expect(config('app.locale'))->toBe('');
         expect(getDefaultLocale())->toBe('fa');
     });
 
@@ -511,13 +515,9 @@ describe('Helpers unit tests', function () {
         expect(perPage(key: 'limit', maxPerPage: 100))->toBe(FOOINO_PER_PAGE);
     });
 
-    test('currentDate returns current date in Y-m-d format', function () {
+    test('currentDate and currentDateTime helper', function () {
 
         expect(currentDate())->toBe(date('Y-m-d'));
-    });
-
-    test('currentDateTime returns current date in Y-m-d H:i:s format', function () {
-
         expect(currentDateTime())->toBe(date('Y-m-d H:i:s'));
     });
 

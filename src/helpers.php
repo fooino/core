@@ -487,7 +487,7 @@ if (!function_exists('getUserTimezone')) {
      */
     function getUserTimezone(): string
     {
-        return (config('user-timezone', 'UTC')) ?: 'UTC';
+        return (config(key: 'user-timezone', default: 'UTC')) ?: 'UTC';
     }
 }
 
@@ -507,7 +507,7 @@ if (!function_exists('getDefaultLocale')) {
      */
     function getDefaultLocale(): string
     {
-        return (config('app.locale', 'fa')) ?: 'fa';
+        return (config(key: 'app.locale', default: 'fa')) ?: 'fa';
     }
 }
 
@@ -531,7 +531,7 @@ if (!function_exists('currentDate')) {
      */
     function currentDate(): string
     {
-        return \date('Y-m-d');
+        return date('Y-m-d');
     }
 }
 
@@ -541,7 +541,7 @@ if (!function_exists('currentDateTime')) {
      */
     function currentDateTime(): string
     {
-        return \date('Y-m-d H:i:s');
+        return date('Y-m-d H:i:s');
     }
 }
 

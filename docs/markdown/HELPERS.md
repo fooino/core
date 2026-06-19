@@ -54,3 +54,43 @@ replaceSlashWithDash(value: '2023/01/02');                  // '2023-01-02'
 replaceSlashWithDash(value: 'a//b');                        // 'a--b'
 replaceSlashWithDash(value: ['2023/01/02', 'hi/hello']);    // ['2023-01-02', 'hi-hello']
 ```
+
+## setUserTimezone / getUserTimezone
+
+Store and retrieve the user timezone in the config, falling back to UTC.
+
+```php
+setUserTimezone(timezone: 'Asia/Tehran');
+getUserTimezone(); // 'Asia/Tehran'
+
+config(['user-timezone' => null]);
+getUserTimezone(); // 'UTC'
+```
+
+## setDefaultLocale / getDefaultLocale
+
+Override and retrieve the application locale for the current request, falling back to 'fa'.
+
+```php
+setDefaultLocale(locale: 'fa');
+getDefaultLocale(); // 'fa'
+
+config(['app.locale' => null]);
+getDefaultLocale(); // 'fa'
+```
+
+## currentDate
+
+Get today's date in ISO date format for consistent date storage.
+
+```php
+currentDate(); // '2026-06-19'
+```
+
+## currentDateTime
+
+Get the current timestamp in MySQL-compatible datetime format.
+
+```php
+currentDateTime(); // '2026-06-19 16:33:58'
+```
