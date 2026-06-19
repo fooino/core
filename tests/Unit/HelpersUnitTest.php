@@ -371,7 +371,7 @@ describe('Helpers unit tests', function () {
         ]);
     });
 
-    test('removeComma returns string and array value without comma', function () {
+    test('removeComma helper', function () {
 
         expect(removeComma(value: 123))->toBe(123);
         expect(removeComma(value: 123.11))->toBe(123.11);
@@ -387,13 +387,20 @@ describe('Helpers unit tests', function () {
 
         expect(removeComma(value: ['123,123', '123,foobar, ']))->toBe(['123123', '123foobar ']);
         expect(removeComma(value: ['5,000,000', '123,foobar, '], replace: '_'))->toBe(['5_000_000', '123_foobar_ ']);
+
+        expect(removeComma(value: [123, 'abc,def']))->toBe([123, 'abcdef']);
+
+        expect(removeComma(value: [0, 1, 11.11, null, true, false, '123,123']))->toBe([0, 1, 11.11, null, true, false, '123123']);
+
+        expect(removeComma(value: ','))->toBe('');
     });
 
-    test('removeSpace returns string and array value without space', function () {
+    test('removeSpace helper', function () {
 
         expect(removeSpace(value: 12))->toBe(12);
         expect(removeSpace(value: 12.12))->toBe(12.12);
 
+        expect(removeSpace(value: ''))->toBe('');
         expect(removeSpace(value: '  '))->toBe('');
         expect(removeSpace(value: 'foobar'))->toBe('foobar');
         expect(removeSpace(value: ' foobar'))->toBe('foobar');
@@ -406,11 +413,13 @@ describe('Helpers unit tests', function () {
         expect(removeSpace(value: true))->toBe(true);
         expect(removeSpace(value: false))->toBe(false);
 
-        expect(removeSpace(value: [1, ' 0912 123 1234 ']))->toBe(['1', '09121231234']);
-        expect(removeSpace(value: [1, ' 0912 123 1234 '], replace: "_"))->toBe(['1', '_0912_123_1234_']);
+        expect(removeSpace(value: [1, ' 0912 123 1234 ']))->toBe([1, '09121231234']);
+        expect(removeSpace(value: [1, ' 0912 123 1234 '], replace: "_"))->toBe([1, '_0912_123_1234_']);
+
+        expect(removeSpace(value: [0, 1, 11.11, null, true, false, ' 123 123 ']))->toBe([0, 1, 11.11, null, true, false, '123123']);
     });
 
-    test('sanitizeNumber remove space and comma from value',  function () {
+    test('sanitizeNumber helper',  function () {
 
         expect(sanitizeNumber(123))->toBe(123);
         expect(sanitizeNumber(123.123))->toBe(123.123);
@@ -423,7 +432,9 @@ describe('Helpers unit tests', function () {
         expect(sanitizeNumber(true))->toBe(true);
         expect(sanitizeNumber(false))->toBe(false);
 
-        expect(sanitizeNumber([1, '123,123 ', ' 0912 123 1234 ']))->toBe(['1', '123123', '09121231234']);
+        expect(sanitizeNumber([1, '123,123 ', ' 0912 123 1234 ']))->toBe([1, '123123', '09121231234']);
+
+        expect(sanitizeNumber([0, 1, 11.11, null, true, false, ' 1,234 ']))->toBe([0, 1, 11.11, null, true, false, '1234']);
     });
 
     test('replaceSlashToDash does the replacement when the value is string or array', function () {

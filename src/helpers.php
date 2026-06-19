@@ -386,30 +386,59 @@ if (!function_exists('mergeArraysByKey')) {
     }
 }
 
-
 if (!function_exists('removeComma')) {
     /**
-     * Remove comma between letters when the value is string or array
+     * Normalize strings by stripping commas, for sanitizing numeric input and text from external sources
      */
     function removeComma(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
-        return (\is_string($value) || \is_array($value)) ? \str_replace(',', $replace, $value) : $value;
+        if (is_string($value)) {
+            return str_replace(',', $replace, $value);
+        }
+
+        if (is_array($value)) {
+
+            $result = [];
+
+            foreach ($value as $key => $item) {
+                $result[$key] = is_string($item) ? str_replace(',', $replace, $item) : $item;
+            }
+
+            return $result;
+        }
+
+        return $value;
     }
 }
 
 if (!function_exists('removeSpace')) {
     /**
-     * Remove space between letters when the value is string or array
+     * Strip all whitespace characters from strings, for cleaning user input and formatted text
      */
     function removeSpace(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
-        return (\is_string($value) || \is_array($value)) ? \str_replace(' ', $replace, $value) : $value;
+        if (is_string($value)) {
+            return str_replace(' ', $replace, $value);
+        }
+
+        if (is_array($value)) {
+            
+            $result = [];
+
+            foreach ($value as $key => $item) {
+                $result[$key] = is_string($item) ? str_replace(' ', $replace, $item) : $item;
+            }
+
+            return $result;
+        }
+
+        return $value;
     }
 }
 
 if (!function_exists('sanitizeNumber')) {
     /**
-     * Remove space and comma from value
+     * Remove spaces and commas from strings, for sanitizing phone numbers and numeric input
      */
     function sanitizeNumber(int|float|string|null|bool|array $value): int|float|string|null|bool|array
     {
