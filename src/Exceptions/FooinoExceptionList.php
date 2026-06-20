@@ -15,32 +15,10 @@ trait FooinoExceptionList
     }
 
     // CanNotConvertDateException (range 10050-10099)
-    public function _10051(): static
-    {
-        return $this
-            ->setMessage('msg.canNotConvertDateExceptionInvalidTimezone')
-            ->setCode(10051)
-            ->error()
-            ->shouldReport();
-    }
 
-    public function _10052(): static
-    {
-        return $this
-            ->setMessage('msg.canNotConvertDateExceptionTheDateIsEmpty')
-            ->setCode(10052)
-            ->warning()
-            ->dontReport();
-    }
 
-    public function _10053(): static
-    {
-        return $this
-            ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
-            ->setCode(10053)
-            ->error()
-            ->shouldReport();
-    }
+
+
 
     // MathCalculationException (range 10100-10199)
     public function _10101(): static

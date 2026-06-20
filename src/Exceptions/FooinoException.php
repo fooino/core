@@ -193,6 +193,21 @@ class FooinoException extends Exception
         return $log;
     }
 
+    public function from(Exception $e, array $with = []): static
+    {
+        return $this
+            ->cause($e)
+            ->setMessage($e->getMessage())
+            ->setCode($e->getCode())
+            ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))
+            ->setHttpStatusCode(callMethodIfExists(object: $e, method: 'getHttpStatusCode', fallback: 500))
+            ->report(callMethodIfExists(object: $e, method: 'reportable', fallback: true))
+            ->with(array_merge(
+                callMethodIfExists(object: $e, method: 'getWith', fallback: []),
+                $with
+            ));
+    }
+
     /**
      * Set the exception level to the highest severity: system is unusable
      */

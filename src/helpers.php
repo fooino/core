@@ -24,6 +24,9 @@ if (!defined('CONSTANTS_DEFINED')) {
 
     define('FOOINO_PRIORITY_STEP', 1000);
 
+    define('STANDARD_DATE_TIME_FORMAT', 'Y-m-d H:i:s');
+    define('STANDARD_DATE_FORMAT', 'Y-m-d');
+
     define('FOOINO_IMAGE_EXTENSION', ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp']);
     define('FOOINO_VIDEO_EXTENSION', ['mp4']);
     define('FOOINO_EXCEL_EXTENSION', ['xlsx', 'xls']);
@@ -107,11 +110,11 @@ if (!function_exists('jsonRespond')) {
 
 if (!function_exists('dateConvert')) {
     /**
-     * Convert date base on timezone and the format you desire.
+     * Convert a date between timezones and calendar systems (Gregorian, Jalali, Hijri)
      * 
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
      */
-    function dateConvert(string|int|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
+    function dateConvert(string|int|null $date, string $format = STANDARD_DATE_TIME_FORMAT, DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
     {
         return Date::convert(date: $date, format: $format, from: $from, to: $to, fallback: $fallback, throwException: $throwException);
     }
@@ -537,7 +540,7 @@ if (!function_exists('currentDate')) {
      */
     function currentDate(): string
     {
-        return date('Y-m-d');
+        return date(STANDARD_DATE_FORMAT);
     }
 }
 
@@ -547,7 +550,7 @@ if (!function_exists('currentDateTime')) {
      */
     function currentDateTime(): string
     {
-        return date('Y-m-d H:i:s');
+        return date(STANDARD_DATE_TIME_FORMAT);
     }
 }
 
@@ -648,7 +651,7 @@ if (!function_exists('datesBetween')) {
     function datesBetween(
         string|int $from,
         string|int $to,
-        string $format = 'Y-m-d',
+        string $format = STANDARD_DATE_FORMAT,
         string $interval = 'P1D'
     ): array {
 

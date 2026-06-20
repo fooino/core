@@ -680,7 +680,7 @@ describe('Helpers unit tests', function () {
             '2024/01/03',
         ]);
 
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-02 00:00:00', format: 'Y-m-d H:i:s', interval: 'PT4H'))->toBe([
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-02 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'PT4H'))->toBe([
             '2024-01-01 00:00:00',
             '2024-01-01 04:00:00',
             '2024-01-01 08:00:00',
@@ -690,13 +690,13 @@ describe('Helpers unit tests', function () {
             '2024-01-02 00:00:00',
         ]);
 
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P2DT4H'))->toBe([
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'P2DT4H'))->toBe([
             '2024-01-01 00:00:00',
             '2024-01-03 04:00:00',
             '2024-01-05 08:00:00',
         ]);
 
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P1W'))->toBe(['2024-01-01 00:00:00']);
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'P1W'))->toBe(['2024-01-01 00:00:00']);
 
         expect(datesBetween(from: strtotime('2024-01-01'), to: strtotime('2024-01-03')))->toBe([
             '2024-01-01',
@@ -723,7 +723,7 @@ describe('Helpers unit tests', function () {
             expect($e->getWith())->toBe([
                 'from'      => '2024-06-01',
                 'to'        => '2024-01-01',
-                'format'    => 'Y-m-d',
+                'format'    => STANDARD_DATE_FORMAT,
                 'interval'  => 'P1D',
             ]);
         }

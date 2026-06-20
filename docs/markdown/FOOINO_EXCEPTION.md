@@ -61,20 +61,21 @@ In the Laravel exception handler:
 public function report(Throwable $e): void
 {
     if ($e instanceof FooinoException) {
+
+        $e = $e->getCause() === null ? $e : $e->getCause();
         
-        if($e->getCause() === null || $e->getCause() instanceof FooinoException){
+        if($e instanceof FooinoException){
             /**
              *  the caues root is FooinoException
              *  so you can easily call log(), getLevel(), getHttpStatusCode()... to handle better
              *  exception reporting and responsing
              */
-        }else{
-            // Reassign $e with original exception
-            $e = $e->getCause();
         }
     }
 
-    // handle the laravel or non-fooino exceptions here
+    if(!($e instanceof FooinoException)){
+        // handle the laravel or non-fooino exceptions here
+    }
 }
 ```
 

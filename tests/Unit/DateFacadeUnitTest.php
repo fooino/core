@@ -17,6 +17,8 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '', fallback: 'fooino'))->toBe('fooino');
         expect(Date::convert(date: 'null', fallback: 'fooino'))->toBe('fooino');
 
+        expect(fn() => Date::convert(date: '2026-01-01', from: 'Asia/Fooino', throwException: true))->toThrow(CanNotConvertDateException::class);
+
         try {
 
             Date::convert(date: '2026-01-01', from: 'Asia/Fooino', throwException: true);
@@ -25,7 +27,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toBe('msg.canNotConvertDateExceptionInvalidTimezone');
-            expect($e->getCode())->toBe(10051);
+            expect($e->getCode())->toBe(1001);
 
             expect($e->getLevel())->toBe('error');
             expect($e->getHttpStatusCode())->toBe(500);
@@ -36,12 +38,14 @@ describe('Date facade using FooinoDateHandler', function () {
                     "invalid_timezone"          => "Asia/Fooino",
                     "original_date"             => "2026-01-01",
                     "date"                      => "2026-01-01",
-                    "format"                    => "Y-m-d H:i:s",
+                    "format"                    => STANDARD_DATE_TIME_FORMAT,
                     "from"                      => "Asia/Fooino",
                     "to"                        => "UTC",
                 ]
             );
         };
+
+        expect(fn() => Date::convert(date: '2026-01-01', to: 'Asia/Fooino', throwException: true))->toThrow(CanNotConvertDateException::class);
 
         try {
 
@@ -51,7 +55,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toBe('msg.canNotConvertDateExceptionInvalidTimezone');
-            expect($e->getCode())->toBe(10051);
+            expect($e->getCode())->toBe(1001);
 
             expect($e->getLevel())->toBe('error');
             expect($e->getHttpStatusCode())->toBe(500);
@@ -62,12 +66,14 @@ describe('Date facade using FooinoDateHandler', function () {
                     "invalid_timezone"          => "Asia/Fooino",
                     "original_date"             => "2026-01-01",
                     "date"                      => "2026-01-01",
-                    "format"                    => "Y-m-d H:i:s",
+                    "format"                    => STANDARD_DATE_TIME_FORMAT,
                     "from"                      => "UTC",
                     "to"                        => "Asia/Fooino",
                 ]
             );
         };
+
+        expect(fn() => Date::convert(date: '', throwException: true))->toThrow(CanNotConvertDateException::class);
 
         try {
 
@@ -76,8 +82,8 @@ describe('Date facade using FooinoDateHandler', function () {
             // 
         } catch (CanNotConvertDateException | Exception $e) {
 
-            expect($e->getMessage())->toBe('msg.canNotConvertDateExceptionTheDateIsEmpty');
-            expect($e->getCode())->toBe(10052);
+            expect($e->getMessage())->toBe('msg.canNotConvertDateExceptionDateIsEmpty');
+            expect($e->getCode())->toBe(1002);
 
             expect($e->getLevel())->toBe('warning');
             expect($e->getHttpStatusCode())->toBe(500);
@@ -87,7 +93,7 @@ describe('Date facade using FooinoDateHandler', function () {
                 [
                     "original_date"             => "",
                     "date"                      => null,
-                    "format"                    => "Y-m-d H:i:s",
+                    "format"                    => STANDARD_DATE_TIME_FORMAT,
                     "from"                      => "UTC",
                     "to"                        => "UTC",
                 ]
@@ -118,41 +124,44 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '2022/03/20', format: 'Y/m/d', to: $afghanistanTz))->toBe('1400/12/29'); // not leap year
         expect(Date::convert(date: '2021/03/20', format: 'Y/m/d', to: $afghanistanTz))->toBe('1399/12/30'); // leap year
 
-        expect(Date::convert(date: '2022-12-24 19:27:08',                           format: 'Y-m-d H:i:s',      to: $iranTz))->toBe('1401-10-03 22:57:08');
-        expect(Date::convert(date: '2022-12-24 20:30',                              format: 'Y-m-d H:i:s',      to: $iranTz))->toBe('1401-10-04 00:00:00');
-        expect(Date::convert(date: '2022-12-24 19',                                 format: 'Y-m-d H:i:s',      to: $iranTz))->toBe('1401-10-03 03:30:00'); // it will parse to 2022-12-24 00:00:00
-        expect(Date::convert(date: '2022-12-24T19:00:00',                           format: 'Y-m-d H:i:s e',    to: $iranTz))->toBe('1401-10-03 22:30:00 Asia/Tehran');
-        expect(Date::convert(date: '2022-12-24 10:27:00 PM',                        format: 'Y-m-d h:i:s A',    to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
-        expect(Date::officialCalendar()->convert(date: '2022-12-24 10:27:00 PM',    format: 'Y-m-d h:i:s A',    to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
-        expect(Date::unofficialCalendar()->convert(date: '2022-12-24 10:27:00 PM',  format: 'Y-m-d h:i:s A',    to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
-        expect(Date::convert(date: strtotime('2022-12-24 10:27:00 PM'),             format: 'Y-m-d h:i:s A',    to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
+        expect(Date::convert(date: '2022-12-24 19:27:08',                           format: STANDARD_DATE_TIME_FORMAT,      to: $iranTz))->toBe('1401-10-03 22:57:08');
+        expect(Date::convert(date: '2022-12-24 20:30',                              format: STANDARD_DATE_TIME_FORMAT,      to: $iranTz))->toBe('1401-10-04 00:00:00');
+        expect(Date::convert(date: '2022-12-24 19',                                 format: STANDARD_DATE_TIME_FORMAT,      to: $iranTz))->toBe('1401-10-03 03:30:00'); // it will parse to 2022-12-24 00:00:00
+        expect(Date::convert(date: '2022-12-24T19:00:00',                           format: 'Y-m-d H:i:s e',                to: $iranTz))->toBe('1401-10-03 22:30:00 Asia/Tehran');
+        expect(Date::convert(date: '2022-12-24 10:27:00 PM',                        format: 'Y-m-d h:i:s A',                to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
+        expect(Date::officialCalendar()->convert(date: '2022-12-24 10:27:00 PM',    format: 'Y-m-d h:i:s A',                to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
+        expect(Date::unofficialCalendar()->convert(date: '2022-12-24 10:27:00 PM',  format: 'Y-m-d h:i:s A',                to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
+        expect(Date::convert(date: strtotime('2022-12-24 10:27:00 PM'),             format: 'Y-m-d h:i:s A',                to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر'); // it goes to the next day
 
-        expect(Date::convert(date: '2022-12-24 19:27:08',                           format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe('1401-10-03 23:57:08');
-        expect(Date::convert(date: '2022-12-24 19:30',                              format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe('1401-10-04 00:00:00');
-        expect(Date::convert(date: '2022-12-24 19',                                 format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe('1401-10-03 04:30:00'); // it will parse to 2022-12-24 00:00:00
-        expect(Date::convert(date: '2022-12-24T19:00:00',                           format: 'Y-m-d H:i:s e',    to: $afghanistanTz))->toBe('1401-10-03 23:30:00 Asia/Kabul');
-        expect(Date::convert(date: '2022-12-24 10:27:00 PM',                        format: 'Y-m-d h:i:s A',    to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
-        expect(Date::officialCalendar()->convert(date: '2022-12-24 10:27:00 PM',    format: 'Y-m-d h:i:s A',    to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
-        expect(Date::unofficialCalendar()->convert(date: '2022-12-24 10:27:00 PM',  format: 'Y-m-d h:i:s A',    to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
-        expect(Date::convert(date: strtotime('2022-12-24 10:27:00 PM'),             format: 'Y-m-d h:i:s A',    to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
+        expect(Date::convert(date: '2022-12-24 19:27:08',                           format: STANDARD_DATE_TIME_FORMAT,      to: $afghanistanTz))->toBe('1401-10-03 23:57:08');
+        expect(Date::convert(date: '2022-12-24 19:30',                              format: STANDARD_DATE_TIME_FORMAT,      to: $afghanistanTz))->toBe('1401-10-04 00:00:00');
+        expect(Date::convert(date: '2022-12-24 19',                                 format: STANDARD_DATE_TIME_FORMAT,      to: $afghanistanTz))->toBe('1401-10-03 04:30:00'); // it will parse to 2022-12-24 00:00:00
+        expect(Date::convert(date: '2022-12-24T19:00:00',                           format: 'Y-m-d H:i:s e',                to: $afghanistanTz))->toBe('1401-10-03 23:30:00 Asia/Kabul');
+        expect(Date::convert(date: '2022-12-24 10:27:00 PM',                        format: 'Y-m-d h:i:s A',                to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
+        expect(Date::officialCalendar()->convert(date: '2022-12-24 10:27:00 PM',    format: 'Y-m-d h:i:s A',                to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
+        expect(Date::unofficialCalendar()->convert(date: '2022-12-24 10:27:00 PM',  format: 'Y-m-d h:i:s A',                to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
+        expect(Date::convert(date: strtotime('2022-12-24 10:27:00 PM'),             format: 'Y-m-d h:i:s A',                to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر'); // it goes to the next day
 
-        expect(Date::convert(date: '00:00:00',  format: 'H:i:s',            to: $iranTz))->toBe('03:30:00');
-        expect(Date::convert(date: '21:27:09',  format: 'h:i:s A',          to: $iranTz))->toBe('12:57:09 قبل از ظهر');
-        expect(Date::convert(date: '19:27:00',  format: 'H:i:s',            to: $iranTz))->toBe('22:57:00');
-        expect(Date::convert(date: '21:10',     format: 'Y-m-d H:i:s',      to: $iranTz))->toBe(Date::convert(date: strtotime('tomorrow'), format: 'Y-m-d', to: $iranTz) . ' 00:40:00'); // it goes to the next day by +3:30 iran timezone
-        expect(Date::convert(date: '19',        format: 'H:i:s',            to: $iranTz))->toBe('03:30:19'); // it will parse to 1970-00-00 00:00:19
+        expect(Date::convert(date: '00:00:00',  format: 'H:i:s',                        to: $iranTz))->toBe('03:30:00');
+        expect(Date::convert(date: '21:27:09',  format: 'h:i:s A',                      to: $iranTz))->toBe('12:57:09 قبل از ظهر');
+        expect(Date::convert(date: '19:27:00',  format: 'H:i:s',                        to: $iranTz))->toBe('22:57:00');
+        expect(Date::convert(date: '21:10',     format: STANDARD_DATE_TIME_FORMAT,      to: $iranTz))->toBe(Date::convert(date: strtotime('tomorrow'), format: STANDARD_DATE_FORMAT, to: $iranTz) . ' 00:40:00'); // it goes to the next day by +3:30 iran timezone
+        expect(Date::convert(date: '19',        format: 'H:i:s',                        to: $iranTz))->toBe('03:30:19'); // it will parse to 1970-00-00 00:00:19
 
-        expect(Date::convert(date: '00:00:00',  format: 'H:i:s',            to: $afghanistanTz))->toBe('04:30:00');
-        expect(Date::convert(date: '21:27:09',  format: 'h:i:s A',          to: $afghanistanTz))->toBe('01:57:09 قبل از ظهر');
-        expect(Date::convert(date: '19:27:00',  format: 'H:i:s',            to: $afghanistanTz))->toBe('23:57:00');
-        expect(Date::convert(date: '19:10',     format: 'Y-m-d H:i:s',      to: $afghanistanTz))->toBe(Date::convert(date: date('Y-m-d'), format: 'Y-m-d', to: $afghanistanTz) . ' 23:40:00');
-        expect(Date::convert(date: '19',        format: 'H:i:s',            to: $afghanistanTz))->toBe('04:30:19'); // it will parse to 1970-00-00 00:00:19
+        expect(Date::convert(date: '00:00:00',  format: 'H:i:s',                        to: $afghanistanTz))->toBe('04:30:00');
+        expect(Date::convert(date: '21:27:09',  format: 'h:i:s A',                      to: $afghanistanTz))->toBe('01:57:09 قبل از ظهر');
+        expect(Date::convert(date: '19:27:00',  format: 'H:i:s',                        to: $afghanistanTz))->toBe('23:57:00');
+        expect(Date::convert(date: '19:10',     format: STANDARD_DATE_TIME_FORMAT,      to: $afghanistanTz))->toBe(Date::convert(date: date(STANDARD_DATE_FORMAT), format: STANDARD_DATE_FORMAT, to: $afghanistanTz) . ' 23:40:00');
+        expect(Date::convert(date: '19',        format: 'H:i:s',                        to: $afghanistanTz))->toBe('04:30:19'); // it will parse to 1970-00-00 00:00:19
 
         expect(Date::convert(date: '2022-12-24 19:27:00',   format: 'j F Y ساعت H:i:s', to: $iranTz))->toBe('3 دی 1401 ساعت 22:57:00');
         expect(dateConvert(date: '2022-12-24 19:27:00',     format: 'j F Y ساعت H:i:s', to: $iranTz))->toBe('3 دی 1401 ساعت 22:57:00');
 
         expect(Date::convert(date: '2022-12-24 19:27:00',   format: 'j F Y ساعت H:i:s', to: $afghanistanTz))->toBe('3 دی 1401 ساعت 23:57:00');
         expect(dateConvert(date: '2022-12-24 19:27:00',     format: 'j F Y ساعت H:i:s', to: $afghanistanTz))->toBe('3 دی 1401 ساعت 23:57:00');
+
+
+        expect(fn() => Date::convert(date: 'test', to: $iranTz, throwException: true))->toThrow(CanNotConvertDateException::class);
 
         try {
 
@@ -162,7 +171,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(10053);
+            expect($e->getCode())->toEqual(1003);
 
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
@@ -172,7 +181,7 @@ describe('Date facade using FooinoDateHandler', function () {
                 [
                     "original_date"     => "test",
                     "date"              => "test",
-                    "format"            => "Y-m-d H:i:s",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
                     "from"              => "UTC",
                     "to"                => "Asia/Tehran",
                 ]
@@ -199,18 +208,18 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '1400/12/29',    format: 'Y/m/d',    from: $afghanistanTz))->toBe('2022/03/20'); // not leap year
         expect(Date::convert(date: '1399/12/30',    format: 'Y/m/d',    from: $afghanistanTz))->toBe('2021/03/20'); // leap year
 
-        expect(Date::convert(date: '1401-10-03 22:57:09',                       format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-24 19:27:09');
-        expect(Date::convert(date: '1401-10-03 02:40',                          format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-23 23:10:00');
-        expect(Date::convert(date: '1401-10-03 04',                             format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-24 00:00:00'); // it will parse to 1401-10-03 00:00:00
+        expect(Date::convert(date: '1401-10-03 22:57:09',                       format: STANDARD_DATE_TIME_FORMAT,      from: $iranTz))->toBe('2022-12-24 19:27:09');
+        expect(Date::convert(date: '1401-10-03 02:40',                          format: STANDARD_DATE_TIME_FORMAT,      from: $iranTz))->toBe('2022-12-23 23:10:00');
+        expect(Date::convert(date: '1401-10-03 04',                             format: STANDARD_DATE_TIME_FORMAT,      from: $iranTz))->toBe('2022-12-24 00:00:00'); // it will parse to 1401-10-03 00:00:00
         expect(Date::convert(date: '1401-10-03T22:30:00',                       format: 'Y-m-d H:i:s e',    from: $iranTz))->toBe('2022-12-24 19:00:00 UTC');
         expect(Date::officialCalendar()->convert(date: '1401-10-03T22:30:00',   format: 'Y-m-d H:i:s e',    from: $iranTz))->toBe('2022-12-24 19:00:00 UTC');
         expect(Date::unofficialCalendar()->convert(date: '1401-10-03T22:30:00', format: 'Y-m-d H:i:s e',    from: $iranTz))->toBe('2022-12-24 19:00:00 UTC');
         expect(Date::convert(date: '1401-10-04 01:57:00 AM',                    format: 'Y-m-d h:i:s A',    from: $iranTz))->toBe('2022-12-24 10:27:00 PM'); // it goes to the last day
-        expect(dateConvert(date: '1401-10-03 22:57:00',                         format: 'Y-m-d H:i:s',      from: $iranTz))->toBe('2022-12-24 19:27:00');
+        expect(dateConvert(date: '1401-10-03 22:57:00',                         format: STANDARD_DATE_TIME_FORMAT,      from: $iranTz))->toBe('2022-12-24 19:27:00');
 
-        expect(Date::convert(date: '1401-10-03 22:57:09',                       format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe('2022-12-24 18:27:09');
-        expect(Date::convert(date: '1401-10-03 02:40',                          format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe('2022-12-23 22:10:00');
-        expect(Date::convert(date: '1401-10-03 04',                             format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe('2022-12-24 00:00:00'); // it will parse to 1401-10-03 00:00:00
+        expect(Date::convert(date: '1401-10-03 22:57:09',                       format: STANDARD_DATE_TIME_FORMAT,      from: $afghanistanTz))->toBe('2022-12-24 18:27:09');
+        expect(Date::convert(date: '1401-10-03 02:40',                          format: STANDARD_DATE_TIME_FORMAT,      from: $afghanistanTz))->toBe('2022-12-23 22:10:00');
+        expect(Date::convert(date: '1401-10-03 04',                             format: STANDARD_DATE_TIME_FORMAT,      from: $afghanistanTz))->toBe('2022-12-24 00:00:00'); // it will parse to 1401-10-03 00:00:00
         expect(Date::officialCalendar()->convert(date: '1401-10-03T22:30:00',   format: 'Y-m-d H:i:s e',    from: $afghanistanTz))->toBe('2022-12-24 18:00:00 UTC');
         expect(Date::unofficialCalendar()->convert(date: '1401-10-03T22:30:00',   format: 'Y-m-d H:i:s e',  from: $afghanistanTz))->toBe('2022-12-24 18:00:00 UTC');
         expect(Date::convert(date: '1401-10-03T22:30:00',                       format: 'Y-m-d H:i:s e',    from: $afghanistanTz))->toBe('2022-12-24 18:00:00 UTC');
@@ -218,12 +227,15 @@ describe('Date facade using FooinoDateHandler', function () {
 
         expect(Date::convert(date: '00:00:00',      format: 'H:i:s',            from: $iranTz))->toBe('20:30:00');
         expect(Date::convert(date: '22:57:09',      format: 'h:i:s A',          from: $iranTz))->toBe('07:27:09 PM');
-        // expect(Date::convert(date: '02:40',         format: 'Y-m-d H:i:s',      from: $iranTz))->toBe(Date::convert(date: explode(" ", Date::convert(date: date('Y-m-d H:i:s', strtotime('yesterday')), to: $iranTz))[0], format: 'Y-m-d', from: $iranTz) . ' 23:10:00');
+        expect(Date::convert(date: '02:40',         format: STANDARD_DATE_TIME_FORMAT,      from: $iranTz))->toBeIn([
+            Date::convert(date: explode(" ", Date::convert(date: date(STANDARD_DATE_TIME_FORMAT), to: $iranTz))[0], format: STANDARD_DATE_FORMAT, from: $iranTz) . ' 23:10:00',
+            Date::convert(date: explode(" ", Date::convert(date: date(STANDARD_DATE_TIME_FORMAT, strtotime('yesterday')), to: $iranTz))[0], format: STANDARD_DATE_FORMAT, from: $iranTz) . ' 23:10:00',
+        ]);
         expect(Date::convert(date: '19',            format: 'H:i:s',            from: $iranTz))->toBe('20:30:19'); // it will parse to 1970-00-00 00:00:19
 
         expect(Date::convert(date: '00:00:00',      format: 'H:i:s',            from: $afghanistanTz))->toBe('19:30:00');
         expect(Date::convert(date: '22:57:09',      format: 'h:i:s A',          from: $afghanistanTz))->toBe('06:27:09 PM');
-        expect(Date::convert(date: '15:40',         format: 'Y-m-d H:i:s',      from: $afghanistanTz))->toBe(Date::convert(date: explode(" ", Date::convert(date: date('Y-m-d H:i:s'), to: $afghanistanTz))[0], format: 'Y-m-d', from: $afghanistanTz) . ' 11:10:00');
+        expect(Date::convert(date: '15:40',         format: STANDARD_DATE_TIME_FORMAT,      from: $afghanistanTz))->toBe(Date::convert(date: explode(" ", Date::convert(date: date(STANDARD_DATE_TIME_FORMAT), to: $afghanistanTz))[0], format: STANDARD_DATE_FORMAT, from: $afghanistanTz) . ' 11:10:00');
         expect(Date::convert(date: '19',            format: 'H:i:s',            from: $afghanistanTz))->toBe('19:30:19'); // it will parse to 1970-00-00 00:00:19
 
         try {
@@ -234,7 +246,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(10053);
+            expect($e->getCode())->toEqual(1003);
 
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
@@ -244,7 +256,7 @@ describe('Date facade using FooinoDateHandler', function () {
                 [
                     "original_date"     => "test",
                     "date"              => "test",
-                    "format"            => "Y-m-d H:i:s",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
                     "from"              => "Asia/Tehran",
                     "to"                => "UTC",
                 ]
@@ -277,7 +289,12 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '15:30:00',  format: 'H:i:s',        from: $newYorkTz))->toBeIn(['19:30:00', '20:30:00']);
         expect(Date::convert(date: '15:30',     format: 'H:i:s',        from: $newYorkTz))->toBeIn(['19:30:00', '20:30:00']);
         expect(Date::convert(date: '15',        format: 'H:i:s',        from: $newYorkTz))->toBeIn(['04:00:15', '05:00:15']);
-        // expect(Date::convert(date: '21:00:10',  format: 'Y-m-d H:i:s',  from: $newYorkTz))->toBeIn([date('Y-m-d', strtotime('tomorrow')) . ' 01:00:10', date('Y-m-d', strtotime('tomorrow')) . ' 02:00:10']);
+        expect(Date::convert(date: '21:00:10',  format: STANDARD_DATE_TIME_FORMAT,  from: $newYorkTz))->toBeIn([
+            date(STANDARD_DATE_FORMAT, strtotime('tomorrow')) . ' 01:00:10',
+            date(STANDARD_DATE_FORMAT, strtotime('tomorrow')) . ' 02:00:10',
+            date(STANDARD_DATE_FORMAT, strtotime('+2 days')) . ' 01:00:10',
+            date(STANDARD_DATE_FORMAT, strtotime('+2 days')) . ' 02:00:10',
+        ]);
         expect(Date::convert(date: '15:30',     format: 'H:i:s',        from: $newYorkTz, to: $iranTz))->toBeIn(['23:00:00', '00:00:00']);
 
         try {
@@ -288,7 +305,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(10053);
+            expect($e->getCode())->toEqual(1003);
 
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
@@ -298,7 +315,7 @@ describe('Date facade using FooinoDateHandler', function () {
                 [
                     "original_date"     => "test",
                     "date"              => "test",
-                    "format"            => "Y-m-d H:i:s",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
                     "from"              => "Asia/Tokyo",
                     "to"                => "Asia/Tehran",
                 ]
@@ -330,7 +347,7 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '15:30:00',  format: 'H:i:s',        to: $newYorkTz))->toBeIn(['11:30:00', '10:30:00']);
         expect(Date::convert(date: '15:30',     format: 'H:i:s',        to: $newYorkTz))->toBeIn(['11:30:00', '10:30:00']);
         expect(Date::convert(date: '15',        format: 'H:i:s',        to: $newYorkTz))->toBeIn(['20:00:15', '19:00:15']);
-        expect(Date::convert(date: '02:00:10',  format: 'Y-m-d H:i:s',  to: $newYorkTz))->toBeIn([date('Y-m-d', strtotime('yesterday')) . ' 22:00:10', date('Y-m-d', strtotime('yesterday')) . ' 21:00:10']);
+        expect(Date::convert(date: '02:00:10',  format: STANDARD_DATE_TIME_FORMAT,  to: $newYorkTz))->toBeIn([date(STANDARD_DATE_FORMAT, strtotime('yesterday')) . ' 22:00:10', date(STANDARD_DATE_FORMAT, strtotime('yesterday')) . ' 21:00:10']);
         expect(Date::convert(date: '15:30',     format: 'H:i:s',        from: $iranTz, to: $newYorkTz))->toBeIn(['08:00:00', '07:00:00']);
 
         try {
@@ -341,7 +358,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(10053);
+            expect($e->getCode())->toEqual(1003);
 
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
@@ -351,7 +368,7 @@ describe('Date facade using FooinoDateHandler', function () {
                 [
                     "original_date"     => "test",
                     "date"              => "test",
-                    "format"            => "Y-m-d H:i:s",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
                     "from"              => "Asia/Tehran",
                     "to"                => "Asia/Tokyo",
                 ]
@@ -373,7 +390,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(10053);
+            expect($e->getCode())->toEqual(1003);
 
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
@@ -383,7 +400,7 @@ describe('Date facade using FooinoDateHandler', function () {
                 [
                     "original_date"     => "test",
                     "date"              => "test",
-                    "format"            => "Y-m-d H:i:s",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
                     "from"              => "UTC",
                     "to"                => "UTC",
                 ]
@@ -398,12 +415,12 @@ describe('Date facade using FooinoDateHandler', function () {
 
         expect(Date::unofficialCalendar()->convert(date: 'test', to: $UAE, fallback: 'fooino'))->toBe('fooino');
 
-        expect(Date::unofficialCalendar()->convert(date: '2026-06-02',              format: 'Y-m-d',            to: $UAE))->toBe('1447-12-16');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02',              format: STANDARD_DATE_FORMAT,            to: $UAE))->toBe('1447-12-16');
         expect(Date::unofficialCalendar()->convert(date: '2026-06-02',              format: 'Y/m/d',            to: $riyadh))->toBe('1447/12/16');
         expect(Date::unofficialCalendar()->convert(date: strtotime('2026-06-02'),   format: 'Y/m/d H:i:s',      to: $riyadh))->toBe('1447/12/16 03:00:00');
 
-        expect(Date::officialCalendar()->convert(date: '2026-06-02 12:30:08',       format: 'Y-m-d H:i:s',      to: $UAE))->toBe('2026-06-02 16:30:08');
-        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: 'Y-m-d H:i:s',      to: $UAE))->toBe('1447-12-16 16:30:08');
+        expect(Date::officialCalendar()->convert(date: '2026-06-02 12:30:08',       format: STANDARD_DATE_TIME_FORMAT,      to: $UAE))->toBe('2026-06-02 16:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $UAE))->toBe('1447-12-16 16:30:08');
         expect(Date::unofficialCalendar()->convert(date: '2026-06-02 10:30:08 PM',  format: 'Y-m-d h:i:s A',    to: $UAE))->toBe('1447-12-17 02:30:08 AM');
         expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: 'Y/m/d H:i:s',      to: $riyadh))->toBe('1447/12/16 15:30:08');
         expect(Date::unofficialCalendar()->convert(date: '2026-06-02 21:00:00',     format: 'Y/m/d h:i:s A e',  to: $riyadh))->toBe('1447/12/17 12:00:00 AM Asia/Riyadh');
@@ -422,7 +439,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(10053);
+            expect($e->getCode())->toEqual(1003);
 
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
@@ -432,7 +449,7 @@ describe('Date facade using FooinoDateHandler', function () {
                 [
                     "original_date"     => "test",
                     "date"              => "test",
-                    "format"            => "Y-m-d H:i:s",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
                     "from"              => "UTC",
                     "to"                => "Asia/Dubai",
                 ]
@@ -447,11 +464,11 @@ describe('Date facade using FooinoDateHandler', function () {
 
         expect(Date::unofficialCalendar()->convert(date: 'test', from: $UAE, fallback: 'fooino'))->toBe('fooino');
 
-        expect(Date::unofficialCalendar()->convert(date: '1447-12-16',              format: 'Y-m-d',            from: $UAE))->toBe('2026-06-01');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16',              format: STANDARD_DATE_FORMAT,            from: $UAE))->toBe('2026-06-01');
         expect(Date::unofficialCalendar()->convert(date: '1447/12/16',              format: 'Y/m/d',            from: $riyadh))->toBe('2026/06/01');
 
-        expect(Date::officialCalendar()->convert(date: '2026-06-02 16:30:08',       format: 'Y-m-d H:i:s',      from: $UAE))->toBe('2026-06-02 12:30:08');
-        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 16:30:08',     format: 'Y-m-d H:i:s',      from: $UAE))->toBe('2026-06-02 12:30:08');
+        expect(Date::officialCalendar()->convert(date: '2026-06-02 16:30:08',       format: STANDARD_DATE_TIME_FORMAT,      from: $UAE))->toBe('2026-06-02 12:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 16:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $UAE))->toBe('2026-06-02 12:30:08');
         expect(Date::unofficialCalendar()->convert(date: '1447-12-17 02:30:08 AM',  format: 'Y-m-d h:i:s A',    from: $UAE))->toBe('2026-06-02 10:30:08 PM');
         expect(Date::unofficialCalendar()->convert(date: '1447/12/16 15:30:08',     format: 'Y/m/d H:i:s',      from: $riyadh))->toBe('2026/06/02 12:30:08');
         expect(Date::unofficialCalendar()->convert(date: '1447/12/17 12:00:00 AM',  format: 'Y/m/d h:i:s A e',  from: $riyadh))->toBe('2026/06/02 09:00:00 PM UTC');
@@ -470,7 +487,7 @@ describe('Date facade using FooinoDateHandler', function () {
         } catch (CanNotConvertDateException | Exception $e) {
 
             expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(10053);
+            expect($e->getCode())->toEqual(1003);
 
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
@@ -480,7 +497,7 @@ describe('Date facade using FooinoDateHandler', function () {
                 [
                     "original_date"     => "test",
                     "date"              => "test",
-                    "format"            => "Y-m-d H:i:s",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
                     "from"              => "Asia/Dubai",
                     "to"                => "UTC",
                 ]
@@ -492,9 +509,9 @@ describe('Date facade using FooinoDateHandler', function () {
 
         expect(Date::getTimezones())->toEqual(DateTimeZone::listIdentifiers());
 
-        expect(Date::validateTimezone('Asia/Tehran'))->toBeTrue();
-        expect(Date::validateTimezone('Asia/Fooino'))->toBeFalse();
-        expect(Date::validateTimezone('asia/tehran'))->toBeFalse();
-        expect(Date::validateTimezone('Asia/Tehran'))->toBeTrue();
+        expect(Date::validateTimezone(timezone: 'Asia/Tehran'))->toBeTrue();
+        expect(Date::validateTimezone(timezone: 'Asia/Fooino'))->toBeFalse();
+        expect(Date::validateTimezone(timezone: 'asia/tehran'))->toBeFalse();
+        expect(Date::validateTimezone(timezone: 'Asia/Tehran'))->toBeTrue();
     });
 });
