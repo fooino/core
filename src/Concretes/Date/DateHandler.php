@@ -88,10 +88,11 @@ abstract class DateHandler
     ): string {
 
         $from = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from
+        $to = $this->resolveTimezone(timezone: $to);
 
         return Jalalian::forge(
             timestamp: strtotime($this->normalize(date: $date, timezone: $from)),
-            timeZone: $this->resolveTimezone(timezone: $to)
+            timeZone: $to
         )
             ->format(format: $format);
     }
@@ -106,9 +107,10 @@ abstract class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
+        $from = $this->resolveTimezone(timezone: $from);
         $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed to
 
-        $date = $this->normalize(date: $date, timezone: $this->resolveTimezone(timezone: $from));
+        $date = $this->normalize(date: $date, timezone: $from);
 
         $hasTimePart = $this->hasTimePart(date: $date);
 
@@ -131,7 +133,7 @@ abstract class DateHandler
 
             $converted = (new DateTime(
                 datetime: $converted,
-                timezone: $this->resolveTimezone(timezone: $from)
+                timezone: $from
             ))
                 ->setTimezone(timezone: $to)
                 ->format(format: $format);
@@ -371,6 +373,9 @@ abstract class DateHandler
         return strtr($format, $map);
     }
 
+    /**
+     * Pick the correct Islamic calendar locale: Umm al-Qura for Saudi Arabia, Islamic civil for all other regions
+     */
     protected function getIntlDateFormatterLocaleByTimezone(DateTimeZone $timezone): string
     {
         return $timezone->getName() === 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
@@ -459,6 +464,9 @@ abstract class DateHandler
         return $value;
     }
 
+    /**
+     * Fetch the current datetime in the calendar system that applies to the given timezone
+     */
     protected function nowByTimezone(DateTimeZone $timezone): string
     {
         $calendarType = $this->getCalendarTypeByTimezone(timezone: $timezone);
@@ -466,6 +474,9 @@ abstract class DateHandler
         return $this->{'nowIn' . ucfirst($calendarType)}(timezone: $timezone);
     }
 
+    /**
+     * Return the current UTC datetime converted into the Jalali calendar at the given timezone
+     */
     protected function nowInJalali(DateTimeZone $timezone): string
     {
         return Jalalian::forge(
@@ -475,6 +486,9 @@ abstract class DateHandler
             ->format(format: STANDARD_DATE_TIME_FORMAT);
     }
 
+    /**
+     * Return the current UTC datetime converted into the Hijri calendar at the given timezone
+     */
     protected function nowInHijri(DateTimeZone $timezone): string
     {
         $date = $this->nowInUTC();
@@ -497,11 +511,17 @@ abstract class DateHandler
         return $formatter->format(datetime: $islamicCal);
     }
 
+    /**
+     * Return the current datetime in UTC, delegating to the Gregorian calendar for the actual timestamp
+     */
     protected function nowInUTC(DateTimeZone|string $timezone = 'UTC'): string
     {
         return $this->nowInGregorian(timezone: $this->resolveTimezone(timezone: 'UTC'));
     }
 
+    /**
+     * Build the current Gregorian datetime string shifted into the requested timezone
+     */
     protected function nowInGregorian(DateTimeZone $timezone): string
     {
         return (new DateTime(
@@ -587,6 +607,9 @@ abstract class DateHandler
         };
     }
 
+    /**
+     * Halt execution when a user-supplied timezone is not a valid PHP timezone identifier
+     */
     protected function throwInvalidTimezoneException(string $timezone): never
     {
         app(CanNotConvertDateException::class)
@@ -597,6 +620,9 @@ abstract class DateHandler
             ->throw();
     }
 
+    /**
+     * Halt execution when the date argument is empty but the caller requires a valid date
+     */
     protected function throwDateIsEmptyException(): never
     {
         app(CanNotConvertDateException::class)
@@ -604,6 +630,9 @@ abstract class DateHandler
             ->throw();
     }
 
+    /**
+     * Halt execution when no component of the date string could be parsed into a valid value
+     */
     protected function throwInvalidDateException(): never
     {
         app(CanNotConvertDateException::class)
@@ -611,6 +640,9 @@ abstract class DateHandler
             ->throw();
     }
 
+    /**
+     * Halt execution when the system default timezone is not UTC, which is required for correct conversions
+     */
     protected function throwInvalidDefaultTimezoneException(): never
     {
         app(CanNotConvertDateException::class)

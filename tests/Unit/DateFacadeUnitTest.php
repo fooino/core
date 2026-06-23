@@ -498,7 +498,7 @@ describe('Date facade using FooinoDateHandler', function () {
 
 
         expect(fn() => Date::unofficialCalendar()->convert(date: 'test', from: $UAE, throwException: true))->toThrow(CanNotConvertDateException::class);
-        
+
         try {
 
             Date::unofficialCalendar()->convert(date: 'test', from: $UAE, throwException: true);
@@ -523,6 +523,76 @@ describe('Date facade using FooinoDateHandler', function () {
                 ]
             );
         };
+    });
+
+    test('from Jalali to hijri and vice versa', function () {
+
+        $iranTz = 'Asia/Tehran'; // +3:30
+        $afghanistanTz = 'Asia/Kabul'; // +4:30
+        $UAE = 'Asia/Dubai'; // +4:00
+        $riyadh = 'Asia/Riyadh'; // +3:00
+
+        expect(Date::unofficialCalendar()->convert(date: 'test', format: 'Y/m/d H:i:s', from: $iranTz, to: $riyadh, fallback: 'fooino'))->toBe('fooino');
+
+        expect(Date::unofficialCalendar()->convert(date: '1401-10-03',              format: STANDARD_DATE_FORMAT,           from: $iranTz,      to: $riyadh))->toBe('1444-05-30');
+        expect(Date::unofficialCalendar()->convert(date: '1401/10/03',              format: 'Y/m/d',                        from: $iranTz,      to: $riyadh))->toBe('1444/05/30');
+        expect(Date::unofficialCalendar()->convert(date: '1401-10-03 22:57:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $iranTz,      to: $riyadh))->toBe('1444-05-30 22:27:08');
+        expect(Date::unofficialCalendar()->convert(date: '1401-10-03T22:57:08',     format: 'Y-m-d H:i:s e',                from: $iranTz,      to: $riyadh))->toBe('1444-05-30 22:27:08 Asia/Riyadh');
+        expect(Date::unofficialCalendar()->convert(date: '1401-10-04 01:57:00 AM',  format: 'Y-m-d h:i:s A',                from: $iranTz,      to: $riyadh))->toBe('1444-06-01 01:27:00 AM');
+
+        expect(Date::unofficialCalendar()->convert(date: '1401-10-03',              format: STANDARD_DATE_FORMAT,           from: $afghanistanTz,   to: $UAE))->toBe('1444-05-30');
+        expect(Date::unofficialCalendar()->convert(date: '1401/10/03',              format: 'Y/m/d',                        from: $afghanistanTz,   to: $UAE))->toBe('1444/05/30');
+        expect(Date::unofficialCalendar()->convert(date: '1401-10-03 22:57:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $afghanistanTz,   to: $UAE))->toBe('1444-05-30 22:27:08');
+        expect(Date::unofficialCalendar()->convert(date: '1401-10-03T22:57:08',     format: 'Y-m-d H:i:s e',                from: $afghanistanTz,   to: $UAE))->toBe('1444-05-30 22:27:08 Asia/Dubai');
+        expect(Date::unofficialCalendar()->convert(date: '1401-10-04 02:57:00 AM',  format: 'Y-m-d h:i:s A',                from: $afghanistanTz,   to: $UAE))->toBe('1444-06-01 02:27:00 AM');
+
+        expect(Date::officialCalendar()->convert(date: '1401-10-03 22:57:08',       format: STANDARD_DATE_TIME_FORMAT,      from: $iranTz,      to: $riyadh))->toBe('2022-12-24 22:27:08');
+        expect(Date::officialCalendar()->convert(date: '1401-10-03',                format: STANDARD_DATE_FORMAT,           from: $iranTz,      to: $riyadh))->toBe('2022-12-24');
+
+        expect(Date::officialCalendar()->convert(date: '1401-10-03 22:57:08',       format: STANDARD_DATE_TIME_FORMAT,      from: $afghanistanTz,   to: $UAE))->toBe('2022-12-24 22:27:08');
+        expect(Date::officialCalendar()->convert(date: '1401-10-03',                format: STANDARD_DATE_FORMAT,           from: $afghanistanTz,   to: $UAE))->toBe('2022-12-24');
+
+        expect(Date::unofficialCalendar()->convert(date: '00:00:00',                format: 'H:i:s',                        from: $iranTz,      to: $riyadh))->toBe('23:30:00');
+        expect(Date::unofficialCalendar()->convert(date: '22:57:09',                format: 'h:i:s A',                      from: $iranTz,      to: $riyadh))->toBe('10:27:09 PM');
+        expect(Date::unofficialCalendar()->convert(date: '22:57',                   format: 'H:i:s',                        from: $iranTz,      to: $riyadh))->toBe('22:27:00');
+
+        expect(Date::unofficialCalendar()->convert(date: '00:00:00',                format: 'H:i:s',                        from: $afghanistanTz,   to: $UAE))->toBe('23:30:00');
+        expect(Date::unofficialCalendar()->convert(date: '22:57:09',                format: 'h:i:s A',                      from: $afghanistanTz,   to: $UAE))->toBe('10:27:09 PM');
+        expect(Date::unofficialCalendar()->convert(date: '22:57',                   format: 'H:i:s',                        from: $afghanistanTz,   to: $UAE))->toBe('22:27:00');
+
+
+        expect(fn() => Date::unofficialCalendar()->convert(date: 'test', from: $iranTz, to: $riyadh, throwException: true))->toThrow(CanNotConvertDateException::class);
+
+        try {
+
+            Date::unofficialCalendar()->convert(date: 'test', from: $iranTz, to: $riyadh, throwException: true);
+
+            // 
+        } catch (CanNotConvertDateException | Exception $e) {
+
+            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCode())->toEqual(1003);
+
+            expect($e->getLevel())->toEqual('error');
+            expect($e->getHttpStatusCode())->toEqual(500);
+            expect($e->reportable())->toBeTrue();
+
+            expect($e->getWith())->toEqual(
+                [
+                    "original_date"     => "test",
+                    "date"              => "test",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
+                    "from"              => "Asia/Tehran",
+                    "to"                => "Asia/Riyadh",
+                ]
+            );
+        };
+
+        $hijriDatetime = Date::unofficialCalendar()->convert(date: '1401-10-03 22:57:08', format: STANDARD_DATE_TIME_FORMAT, from: $iranTz, to: $riyadh);
+        $hijriDatetimeAm = Date::unofficialCalendar()->convert(date: '1401-10-04 01:57:00 AM', format: 'Y-m-d h:i:s A', from: $iranTz, to: $riyadh);
+
+        expect(Date::unofficialCalendar()->convert(date: $hijriDatetime, format: STANDARD_DATE_TIME_FORMAT, from: $riyadh, to: $iranTz))->toBe('1401-10-03 22:57:08');
+        expect(Date::unofficialCalendar()->convert(date: $hijriDatetimeAm, format: 'Y-m-d h:i:s A', from: $riyadh, to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر');
     });
 
     test('validateTimezone method', function () {
@@ -565,5 +635,130 @@ describe('Date facade using FooinoDateHandler', function () {
         date_default_timezone_set('UTC');
 
         expect(Date::convert(date: '2026-06-22', format: STANDARD_DATE_FORMAT))->toBe('2026-06-22');
+    });
+
+    test('getCalendarUsage, officialCalendar and unofficialCalendar', function () {
+
+        expect(Date::getCalendarUsage())->toBe('OFFICIAL');
+
+        $official = Date::officialCalendar();
+
+        expect(Date::getCalendarUsage())->toBe('OFFICIAL');
+        expect($official->getCalendarUsage())->toBe('OFFICIAL');
+
+        $unofficial = Date::unofficialCalendar();
+
+        expect(Date::getCalendarUsage())->toBe('OFFICIAL');
+        expect($unofficial->getCalendarUsage())->toBe('UNOFFICIAL');
+
+        expect($official)->not->toBe($unofficial);
+    });
+
+    test('convert method accepts DateTimeZone objects', function () {
+
+        $iranTz = new DateTimeZone(timezone: 'Asia/Tehran');
+        $riyadh = new DateTimeZone(timezone: 'Asia/Riyadh');
+
+        expect(Date::convert(date: '2022-12-24', format: STANDARD_DATE_FORMAT, to: $iranTz))->toBe('1401-10-03');
+
+        expect(Date::unofficialCalendar()->convert(date: '1444-05-30', format: STANDARD_DATE_FORMAT, from: $riyadh, to: $iranTz))->toBe('1401-10-02');
+    });
+
+    test('from hijri to Jalali', function () {
+
+        $iranTz = 'Asia/Tehran'; // +3:30
+        $afghanistanTz = 'Asia/Kabul'; // +4:30
+        $UAE = 'Asia/Dubai'; // +4:00
+        $riyadh = 'Asia/Riyadh'; // +3:00
+
+        expect(Date::unofficialCalendar()->convert(date: 'test', format: 'Y/m/d H:i:s', from: $riyadh, to: $iranTz, fallback: 'fooino'))->toBe('fooino');
+
+        expect(Date::unofficialCalendar()->convert(date: '1444-05-30',              format: STANDARD_DATE_FORMAT,           from: $riyadh,      to: $iranTz))->toBe('1401-10-02');
+        expect(Date::unofficialCalendar()->convert(date: '1444/05/30',              format: 'Y/m/d',                        from: $riyadh,      to: $iranTz))->toBe('1401/10/02');
+        expect(Date::unofficialCalendar()->convert(date: '1444-06-01 01:27:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $riyadh,      to: $iranTz))->toBe('1401-10-04 01:57:08');
+        expect(Date::unofficialCalendar()->convert(date: '1444-06-01 01:27:08',     format: 'Y-m-d H:i:s e',                from: $riyadh,      to: $iranTz))->toBe('1401-10-04 01:57:08 Asia/Tehran');
+        expect(Date::unofficialCalendar()->convert(date: '1444-06-01 01:27:00 AM',  format: 'Y-m-d h:i:s A',                from: $riyadh,      to: $iranTz))->toBe('1401-10-04 01:57:00 قبل از ظهر');
+
+        expect(Date::unofficialCalendar()->convert(date: '1444-05-30',              format: STANDARD_DATE_FORMAT,           from: $UAE,         to: $afghanistanTz))->toBe('1401-10-02');
+        expect(Date::unofficialCalendar()->convert(date: '1444/05/30',              format: 'Y/m/d',                        from: $UAE,         to: $afghanistanTz))->toBe('1401/10/02');
+        expect(Date::unofficialCalendar()->convert(date: '1444-06-01 02:27:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $UAE,         to: $afghanistanTz))->toBe('1401-10-04 02:57:08');
+        expect(Date::unofficialCalendar()->convert(date: '1444-06-01T02:27:08',     format: 'Y-m-d H:i:s e',                from: $UAE,         to: $afghanistanTz))->toBe('1401-10-04 02:57:08 Asia/Kabul');
+        expect(Date::unofficialCalendar()->convert(date: '1444-06-01 02:27:00 AM',  format: 'Y-m-d h:i:s A',                from: $UAE,         to: $afghanistanTz))->toBe('1401-10-04 02:57:00 قبل از ظهر');
+
+        expect(Date::unofficialCalendar()->convert(date: '00:00:00',                format: 'H:i:s',                        from: $riyadh,      to: $iranTz))->toBe('00:30:00');
+        expect(Date::unofficialCalendar()->convert(date: '01:27:09',                format: 'h:i:s A',                      from: $riyadh,      to: $iranTz))->toBe('01:57:09 قبل از ظهر');
+        expect(Date::unofficialCalendar()->convert(date: '01:27',                   format: 'H:i:s',                        from: $riyadh,      to: $iranTz))->toBe('01:57:00');
+
+        expect(Date::unofficialCalendar()->convert(date: '00:00:00',                format: 'H:i:s',                        from: $UAE,         to: $afghanistanTz))->toBe('00:30:00');
+        expect(Date::unofficialCalendar()->convert(date: '02:27:09',                format: 'h:i:s A',                      from: $UAE,         to: $afghanistanTz))->toBe('02:57:09 قبل از ظهر');
+        expect(Date::unofficialCalendar()->convert(date: '02:27',                   format: 'H:i:s',                        from: $UAE,         to: $afghanistanTz))->toBe('02:57:00');
+
+
+        expect(fn() => Date::unofficialCalendar()->convert(date: 'test', from: $riyadh, to: $iranTz, throwException: true))->toThrow(CanNotConvertDateException::class);
+
+        try {
+
+            Date::unofficialCalendar()->convert(date: 'test', from: $riyadh, to: $iranTz, throwException: true);
+
+            // 
+        } catch (CanNotConvertDateException | Exception $e) {
+
+            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCode())->toEqual(1003);
+
+            expect($e->getLevel())->toEqual('error');
+            expect($e->getHttpStatusCode())->toEqual(500);
+            expect($e->reportable())->toBeTrue();
+
+            expect($e->getWith())->toEqual(
+                [
+                    "original_date"     => "test",
+                    "date"              => "test",
+                    "format"            => STANDARD_DATE_TIME_FORMAT,
+                    "from"              => "Asia/Riyadh",
+                    "to"                => "Asia/Tehran",
+                ]
+            );
+        };
+    });
+
+    test('from UTC to remaining hijri timezones', function () {
+
+        $qatar = 'Asia/Qatar'; // +3:00
+        $muscat = 'Asia/Muscat'; // +4:00
+        $baghdad = 'Asia/Baghdad'; // +3:00
+        $bahrain = 'Asia/Bahrain'; // +3:00
+        $kuwait = 'Asia/Kuwait';
+        $beriut = 'Asia/Beirut';
+        $damascus = 'Asia/Damascus';
+        $aden = 'Asia/Aden';
+        $amman = 'Asia/Amman';
+
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02',              format: STANDARD_DATE_FORMAT,           to: $qatar))->toBe('1447-12-16');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $qatar))->toBe('1447-12-16 15:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '00:00:00',                format: 'H:i:s',                        to: $qatar))->toBe('03:00:00');
+        expect(Date::unofficialCalendar()->convert(date: '19:38',                   format: 'H:i:s',                        from: $qatar))->toBe('16:38:00');
+
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02',              format: STANDARD_DATE_FORMAT,           to: $muscat))->toBe('1447-12-16');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $muscat))->toBe('1447-12-16 16:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '19:38',                   format: 'H:i:s',                        to: $muscat))->toBe('23:38:00');
+        expect(Date::officialCalendar()->convert(date: '2026-06-02 12:30:08',       format: STANDARD_DATE_TIME_FORMAT,      to: $muscat))->toBe('2026-06-02 16:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 16:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $muscat))->toBe('2026-06-02 12:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '19:38',                   format: 'H:i:s',                        from: $muscat))->toBe('15:38:00');
+
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $baghdad))->toBe('1447-12-16 15:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $bahrain))->toBe('2026-06-02 12:30:08');
+
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $kuwait))->toBe('1447-12-16 15:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $kuwait))->toBe('2026-06-02 12:30:08');
+
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $beriut))->toBe('1447-12-16 15:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $beriut))->toBe('2026-06-02 12:30:08');
+
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $damascus))->toBe('1447-12-16 15:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $damascus))->toBe('2026-06-02 12:30:08');
+
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $aden))->toBe('1447-12-16 15:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $amman))->toBe('2026-06-02 12:30:08');
     });
 });
