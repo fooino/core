@@ -42,4 +42,14 @@ class CanNotConvertDateException extends FooinoException
             ->setHttpStatusCode(500)
             ->shouldReport();
     }
+
+    final public function _1004(): static
+    {
+        return $this
+            ->setMessage('msg.canNotConvertDateExceptionInvalidDefaultTimezone')
+            ->setCode(1004)
+            ->emergency()
+            ->setHttpStatusCode(500)
+            ->shouldReport();
+    }
 }

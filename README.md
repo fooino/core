@@ -44,6 +44,8 @@ exit
 
 9. [Exceptions](./docs/markdown/EXCEPTIONS.md)
 
+10. [Configuration](./docs/markdown/CONFIGURATION.md)
+
 
 ## 🚀 Change log
 

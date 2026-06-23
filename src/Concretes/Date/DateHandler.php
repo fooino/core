@@ -25,7 +25,12 @@ abstract class DateHandler
 
     protected array $dateTimeZones = [];
 
-    public function __construct(protected string $calendarUsage = self::OFFICIAL) {}
+    public function __construct(protected string $calendarUsage = self::OFFICIAL)
+    {
+        if (date_default_timezone_get() !== 'UTC') {
+            $this->throwInvalidDefaultTimezoneException();
+        }
+    }
 
     /**
      * Get the current calendar mode: official (government-set) or unofficial (religious/cultural)
@@ -82,9 +87,11 @@ abstract class DateHandler
         DateTimeZone|string $to = 'Asia/Tehran'
     ): string {
 
+        $from = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from
+
         return Jalalian::forge(
-            timestamp: strtotime($this->normalize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'))),
-            timeZone: $this->getDateTimeZone(timezone: $to)
+            timestamp: strtotime($this->normalize(date: $date, timezone: $from)),
+            timeZone: $this->resolveTimezone(timezone: $to)
         )
             ->format(format: $format);
     }
@@ -99,7 +106,9 @@ abstract class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        $date = $this->normalize(date: $date, timezone: $this->getDateTimeZone(timezone: $from));
+        $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed to
+
+        $date = $this->normalize(date: $date, timezone: $this->resolveTimezone(timezone: $from));
 
         $hasTimePart = $this->hasTimePart(date: $date);
 
@@ -111,14 +120,20 @@ abstract class DateHandler
         )
             ->format(format: $hasTimePart ? $baseFormat : $format);
 
-        // since Morilog package does not convert the time we change the timezone to UTC if the user asks for time part
-        if ($hasTimePart) {
+        /** 
+         * The Morilog package converts the Jalali date to Gregorian but leaves it in the source timezone.
+         * Shift to UTC whenever the input has time OR the output format requests time fields.
+         */
+        if (
+            $hasTimePart ||
+            preg_match('/[HisahgAeOPTZcr]/', $format)
+        ) {
 
             $converted = (new DateTime(
                 datetime: $converted,
-                timezone: $this->getDateTimeZone(timezone: $from)
+                timezone: $this->resolveTimezone(timezone: $from)
             ))
-                ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
+                ->setTimezone(timezone: $to)
                 ->format(format: $format);
         }
 
@@ -135,14 +150,14 @@ abstract class DateHandler
         DateTimeZone|string $to = 'Asia/Riyadh'
     ): string {
 
-        $date = $this->normalize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'));
+        $from = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from
+        $to = $this->resolveTimezone(timezone: $to);
 
-        $locale = $this->getDateTimeZone(timezone: $to)->getName() == 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
+        $date = $this->normalize(date: $date, timezone: $from);
 
-        $islamicCal = IntlCalendar::createInstance(
-            timezone: $this->getDateTimeZone(timezone: $to),
-            locale: $locale
-        );
+        $locale = $this->getIntlDateFormatterLocaleByTimezone(timezone: $to);
+
+        $islamicCal = IntlCalendar::createInstance(timezone: $to, locale: $locale);
 
         $islamicCal->setTime(timestamp: strtotime($date) * 1000);
 
@@ -150,7 +165,7 @@ abstract class DateHandler
             locale: $locale,
             dateType: IntlDateFormatter::FULL,
             timeType: IntlDateFormatter::FULL,
-            timezone: $this->getDateTimeZone(timezone: $to),
+            timezone: $to,
             calendar: IntlDateFormatter::TRADITIONAL,
             pattern: $this->convertPhpDateFormatToICU(format: $format)
         );
@@ -168,16 +183,16 @@ abstract class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        $date = $this->normalize(date: $date, timezone: $this->getDateTimeZone(timezone: $from));
+        $from = $this->resolveTimezone(timezone: $from);
+        $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite passed to
+
+        $date = $this->normalize(date: $date, timezone: $from);
 
         list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
 
-        $locale = $this->getDateTimeZone(timezone: $from)->getName() == 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
+        $locale = $this->getIntlDateFormatterLocaleByTimezone(timezone: $from);
 
-        $hijriCalendar = IntlCalendar::createInstance(
-            $this->getDateTimeZone(timezone: $from),
-            $locale
-        );
+        $hijriCalendar = IntlCalendar::createInstance(timezone: $from, locale: $locale);
 
         $hijriCalendar->set(
             year: $year,
@@ -191,7 +206,7 @@ abstract class DateHandler
         $timestamp = (int)($hijriCalendar->getTime() / 1000);
 
         return (new DateTime(datetime: date($format, $timestamp)))
-            ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
+            ->setTimezone(timezone: $to)
             ->format(format: $format);
     }
 
@@ -205,11 +220,14 @@ abstract class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
+        $from = $this->resolveTimezone(timezone: $from);
+        $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed to
+
         return (new DateTime(
-            datetime: $this->normalize(date: $date, timezone: $this->getDateTimeZone(timezone: $from)),
-            timezone: $this->getDateTimeZone(timezone: $from)
+            datetime: $this->normalize(date: $date, timezone: $from),
+            timezone: $from
         ))
-            ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
+            ->setTimezone(timezone: $to)
             ->format(format: $format);
     }
 
@@ -223,11 +241,14 @@ abstract class DateHandler
         DateTimeZone|string $to = 'America/New_York',
     ): string {
 
+        $from = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from
+        $to = $this->resolveTimezone(timezone: $to);
+
         return (new DateTime(
-            datetime: $this->normalize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC')),
-            timezone: $this->getDateTimeZone(timezone: 'UTC')
+            datetime: $this->normalize(date: $date, timezone: $from),
+            timezone: $from
         ))
-            ->setTimezone(timezone: $this->getDateTimeZone(timezone: $to))
+            ->setTimezone(timezone: $to)
             ->format(format: $format);
     }
 
@@ -241,7 +262,9 @@ abstract class DateHandler
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        return date($format, \strtotime($this->normalize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'))));
+        $from = $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from and to
+
+        return date($format, strtotime($this->normalize(date: $date, timezone: $from)));
     }
 
     /**
@@ -348,12 +371,17 @@ abstract class DateHandler
         return strtr($format, $map);
     }
 
+    protected function getIntlDateFormatterLocaleByTimezone(DateTimeZone $timezone): string
+    {
+        return $timezone->getName() === 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
+    }
+
     /**
      * Split a date string into date and time parts separated by a space
      */
     protected function dateParts(string $date): array
     {
-        $parts = \explode(" ", $date);
+        $parts = explode(" ", $date);
 
         return [
             $parts[0] ?? null,
@@ -376,7 +404,7 @@ abstract class DateHandler
     {
         list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
 
-        $datePart = $this->addZeroToBeginning($year) . '-' . $this->addZeroToBeginning($month) . '-' . $this->addZeroToBeginning($day);
+        $datePart = $this->padZero($year) . '-' . $this->padZero($month) . '-' . $this->padZero($day);
         $timePart = '';
 
         if (
@@ -384,36 +412,12 @@ abstract class DateHandler
             $minute !== false ||
             $second !== false // since the timezone can change the day, add timePart when exists
         ) {
-            $timePart = $this->addZeroToBeginning($hour) . ':' . $this->addZeroToBeginning($minute) . ':' . $this->addZeroToBeginning($second);
+            $timePart = $this->padZero($hour) . ':' . $this->padZero($minute) . ':' . $this->padZero($second);
         }
 
-        if (
-            $datePart === '00-00-00' // the user want to just convert time part, so we make the datePart from now to have Y-m-d H:i:s
-        ) {
+        $datePart = $datePart === '00-00-00' ? $this->dateParts(date: $this->nowByTimezone(timezone: $timezone))[0] : $datePart; // the user want to just convert time part, so we make the datePart from now to have Y-m-d H:i:s
 
-            if ($this->getCalendarTypeByTimezone(timezone: $timezone) == 'jalali') {
-
-                $datePart = Jalalian::forge(
-                    timestamp: \strtotime(date(STANDARD_DATE_TIME_FORMAT)),
-                    timeZone: $timezone
-                )
-                    ->format(format: STANDARD_DATE_FORMAT);
-
-                // 
-            } else {
-
-                $datePart = (new DateTime(
-                    datetime: date(STANDARD_DATE_TIME_FORMAT),
-                    timezone: $this->getDateTimeZone(timezone: 'UTC')
-                ))
-                    ->setTimezone(timezone: $timezone)
-                    ->format(format: STANDARD_DATE_FORMAT);
-            }
-        }
-
-        $date = trim($datePart . ' ' . $timePart);
-
-        return $date;
+        return trim($datePart . ' ' . $timePart);
     }
 
     /**
@@ -446,13 +450,66 @@ abstract class DateHandler
     /**
      * Pad single-digit values with a leading zero for consistent date string formatting
      */
-    protected function addZeroToBeginning(string|false|int|null $value): string
+    protected function padZero(string|false|int|null $value): string
     {
         $value = (int) $value;
 
-        if (strlen($value) == 1) $value = '0' . $value;
+        if (strlen($value) === 1) $value = '0' . $value;
 
         return $value;
+    }
+
+    protected function nowByTimezone(DateTimeZone $timezone): string
+    {
+        $calendarType = $this->getCalendarTypeByTimezone(timezone: $timezone);
+
+        return $this->{'nowIn' . ucfirst($calendarType)}(timezone: $timezone);
+    }
+
+    protected function nowInJalali(DateTimeZone $timezone): string
+    {
+        return Jalalian::forge(
+            timestamp: strtotime($this->nowInUTC()),
+            timeZone: $timezone
+        )
+            ->format(format: STANDARD_DATE_TIME_FORMAT);
+    }
+
+    protected function nowInHijri(DateTimeZone $timezone): string
+    {
+        $date = $this->nowInUTC();
+
+        $locale = $this->getIntlDateFormatterLocaleByTimezone(timezone: $timezone);
+
+        $islamicCal = IntlCalendar::createInstance(timezone: $timezone, locale: $locale);
+
+        $islamicCal->setTime(timestamp: strtotime($date) * 1000);
+
+        $formatter = new IntlDateFormatter(
+            locale: $locale,
+            dateType: IntlDateFormatter::FULL,
+            timeType: IntlDateFormatter::FULL,
+            timezone: $timezone,
+            calendar: IntlDateFormatter::TRADITIONAL,
+            pattern: $this->convertPhpDateFormatToICU(format: STANDARD_DATE_TIME_FORMAT)
+        );
+
+        return $formatter->format(datetime: $islamicCal);
+    }
+
+    protected function nowInUTC(DateTimeZone|string $timezone = 'UTC'): string
+    {
+        return $this->nowInGregorian(timezone: $this->resolveTimezone(timezone: 'UTC'));
+    }
+
+    protected function nowInGregorian(DateTimeZone $timezone): string
+    {
+        return (new DateTime(
+            datetime: date(STANDARD_DATE_TIME_FORMAT),
+            timezone: $this->resolveTimezone(timezone: 'UTC')
+        ))
+            ->setTimezone(timezone: $timezone)
+            ->format(format: STANDARD_DATE_TIME_FORMAT);
     }
 
     /**
@@ -460,7 +517,7 @@ abstract class DateHandler
      *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException with 1001 code
      */
-    protected function getDateTimeZone(DateTimeZone|string $timezone): DateTimeZone
+    protected function resolveTimezone(DateTimeZone|string $timezone): DateTimeZone
     {
         if (is_string($timezone)) {
 
@@ -474,7 +531,7 @@ abstract class DateHandler
                 $this->throwInvalidTimezoneException(timezone: $timezone);
             }
 
-            return $this->dateTimeZones[$timezone] ??= new DateTimeZone($timezone);
+            return $this->dateTimeZones[$timezone] ??= new DateTimeZone(timezone: $timezone);
         }
 
         return $timezone;
@@ -551,6 +608,16 @@ abstract class DateHandler
     {
         app(CanNotConvertDateException::class)
             ->_1003()
+            ->throw();
+    }
+
+    protected function throwInvalidDefaultTimezoneException(): never
+    {
+        app(CanNotConvertDateException::class)
+            ->_1004()
+            ->with([
+                'invalid_timezone'  => date_default_timezone_get()
+            ])
             ->throw();
     }
 }

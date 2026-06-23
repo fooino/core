@@ -38,8 +38,8 @@ class FooinoDateHandler extends DateHandler implements Dateable
 
         try {
 
-            $from = $this->getDateTimeZone(timezone: $from);
-            $to = $this->getDateTimeZone(timezone: $to);
+            $from = $this->resolveTimezone(timezone: $from);
+            $to = $this->resolveTimezone(timezone: $to);
 
             if (
                 $throwException &&
@@ -88,24 +88,10 @@ class FooinoDateHandler extends DateHandler implements Dateable
      */
     private function chainMethods(DateTimeZone $from, DateTimeZone $to): array
     {
-        $methods = [];
         $fromMethod = $this->getCalendarTypeByTimezone(timezone: $from);
+
         $toMethod   = $this->getCalendarTypeByTimezone(timezone: $to);
 
-        if (
-            $fromMethod != 'UTC' &&
-            $toMethod != 'UTC'
-        ) {
-
-
-            $methods[] = $fromMethod . 'ToUTC';
-            $methods[] = 'UTCTo' .  \ucfirst($toMethod);
-
-            // 
-        } else {
-            $methods[] = $fromMethod . 'To' . \ucfirst($toMethod);
-        }
-
-        return $methods;
+        return ($fromMethod !== 'UTC' && $toMethod !== 'UTC') ? [$fromMethod . 'ToUTC', 'UTCTo' .  ucfirst($toMethod)] : [$fromMethod . 'To' . ucfirst($toMethod)];
     }
 }

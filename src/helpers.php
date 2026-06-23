@@ -19,13 +19,14 @@ use Illuminate\Support\Facades\DB;
 
 if (!defined('CONSTANTS_DEFINED')) {
 
+    define('STANDARD_DATE_TIME_FORMAT', 'Y-m-d H:i:s');
+    define('STANDARD_DATE_FORMAT', 'Y-m-d');
+
     define('FOOINO_PER_PAGE', 30);
     define('FOOINO_MAX_PER_PAGE', 300);
 
     define('FOOINO_PRIORITY_STEP', 1000);
 
-    define('STANDARD_DATE_TIME_FORMAT', 'Y-m-d H:i:s');
-    define('STANDARD_DATE_FORMAT', 'Y-m-d');
 
     define('FOOINO_IMAGE_EXTENSION', ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp']);
     define('FOOINO_VIDEO_EXTENSION', ['mp4']);
