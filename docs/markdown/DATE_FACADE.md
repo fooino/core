@@ -94,6 +94,81 @@ Date::validateTimezone('Asia/Fooino'); // false
 Date::getTimezones(); // all PHP-supported timezone identifiers
 ```
 
+### Generate a range of dates
+
+```php
+Date::datesBetween(from: '2024-01-01', to: '2024-01-05');
+// ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04', '2024-01-05']
+
+datesBetween(from: '2024-01-01', to: '2024-01-05');
+// ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04', '2024-01-05'] — global helper
+```
+
+Same start and end date returns a single-element array:
+
+```php
+Date::datesBetween(from: '2024-06-01', to: '2024-06-01');
+// ['2024-06-01']
+```
+
+### Custom interval
+
+Use any [DateInterval](https://www.php.net/manual/en/class.dateinterval.php) duration string. Every 4 hours:
+
+```php
+Date::datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-02 00:00:00', format: 'Y-m-d H:i:s', interval: 'PT4H');
+// ['2024-01-01 00:00:00', '2024-01-01 04:00:00', '2024-01-01 08:00:00', ..., '2024-01-02 00:00:00']
+```
+
+Compound intervals — every 2 days and 4 hours:
+
+```php
+Date::datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P2DT4H');
+// ['2024-01-01 00:00:00', '2024-01-03 04:00:00', '2024-01-05 08:00:00']
+```
+
+Weekly interval:
+
+```php
+Date::datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P1W');
+// ['2024-01-01 00:00:00']
+```
+
+### Custom output format
+
+```php
+Date::datesBetween(from: '2024-01-01', to: '2024-01-03', format: 'Y/m/d');
+// ['2024/01/01', '2024/01/02', '2024/01/03']
+```
+
+### Integer (Unix timestamp) input
+
+```php
+Date::datesBetween(from: strtotime('2024-01-01'), to: strtotime('2024-01-03'), format: 'Y/m/d');
+// ['2024/01/01', '2024/01/02', '2024/01/03']
+```
+
+### Error handling
+
+Invalid dates throw `CanNotConvertDateException`:
+
+```php
+Date::datesBetween(from: 'foobar', to: '2024-01-05'); // throws CanNotConvertDateException
+Date::datesBetween(from: '2024-01-05', to: 'foobar'); // throws CanNotConvertDateException
+```
+
+From date after to date throws `FooinoRuntimeException` (code `2`, level `warning`):
+
+```php
+Date::datesBetween(from: '2024-06-01', to: '2024-01-01'); // throws FooinoRuntimeException
+```
+
+Zero or null interval throws `InfiniteLoopException` (code `251`, level `critical`):
+
+```php
+Date::datesBetween(from: '2024-06-01', to: '2024-12-01', interval: 'P0D'); // throws InfiniteLoopException
+```
+
 ## Calendars and Timezone Mappings
 
 | Calendar | Official Regions | Unofficial Regions |

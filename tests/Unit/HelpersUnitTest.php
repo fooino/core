@@ -2,8 +2,6 @@
 
 namespace Fooino\Core\Tests\Unit;
 
-use Fooino\Core\Exceptions\CanNotConvertDateException;
-use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Exceptions\TransactionRollBackedException;
 use Fooino\Core\Tests\Data\Datasets;
 
@@ -558,6 +556,15 @@ describe('Helpers unit tests', function () {
         expect(currentDateTime())->toBe(date('Y-m-d H:i:s'));
     });
 
+    test('currentDateTs and currentDateTimeTs helper', function () {
+
+        expect(currentDateTs())->toBe(strtotime(currentDate()));
+        expect(currentDateTimeTs())->toBe(strtotime(currentDateTime()));
+
+        expect(currentDateTs())->toBeInt();
+        expect(currentDateTimeTs())->toBeInt();
+    });
+
     test('callMethodIfExists helper', function () {
 
         expect(callMethodIfExists(object: new CustomClass, method: 'pi', fallback: 'fooino'))->toBe(3.14);
@@ -660,73 +667,6 @@ describe('Helpers unit tests', function () {
 
         expect(unitSizeFormat(bytes: 1234567))->toBe('1.177 MB');
         expect(unitSizeFormat(bytes: 1234567, precision: 5))->toBe('1.17737 MB');
-    });
-
-    test('datesBetween method', function () {
-
-        expect(datesBetween(from: '2024-01-01', to: '2024-01-05'))->toBe([
-            '2024-01-01',
-            '2024-01-02',
-            '2024-01-03',
-            '2024-01-04',
-            '2024-01-05',
-        ]);
-
-        expect(datesBetween(from: '2024-06-01', to: '2024-06-01'))->toBe(['2024-06-01']);
-
-        expect(datesBetween(from: '2024-01-01', to: '2024-01-03', format: 'Y/m/d'))->toBe([
-            '2024/01/01',
-            '2024/01/02',
-            '2024/01/03',
-        ]);
-
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-02 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'PT4H'))->toBe([
-            '2024-01-01 00:00:00',
-            '2024-01-01 04:00:00',
-            '2024-01-01 08:00:00',
-            '2024-01-01 12:00:00',
-            '2024-01-01 16:00:00',
-            '2024-01-01 20:00:00',
-            '2024-01-02 00:00:00',
-        ]);
-
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'P2DT4H'))->toBe([
-            '2024-01-01 00:00:00',
-            '2024-01-03 04:00:00',
-            '2024-01-05 08:00:00',
-        ]);
-
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'P1W'))->toBe(['2024-01-01 00:00:00']);
-
-        expect(datesBetween(from: strtotime('2024-01-01'), to: strtotime('2024-01-03')))->toBe([
-            '2024-01-01',
-            '2024-01-02',
-            '2024-01-03',
-        ]);
-
-        expect(fn() => datesBetween(from: 'foobar', to: '2024-01-05'))->toThrow(CanNotConvertDateException::class);
-        expect(fn() => datesBetween(from: '2024-01-05', to: 'foobar'))->toThrow(CanNotConvertDateException::class);
-
-        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoException::class);
-
-        try {
-
-            datesBetween(from: '2024-06-01', to: '2024-01-01');
-
-            // 
-        } catch (FooinoException $e) {
-
-            expect($e->getMessage())->toBe('msg.invalidPeriodForDateRange');
-            expect($e->getCode())->toBe(1001);
-            expect($e->reportable())->toBeTrue();
-            expect($e->getLevel())->toBe('warning');
-            expect($e->getWith())->toBe([
-                'from'      => '2024-06-01',
-                'to'        => '2024-01-01',
-                'format'    => STANDARD_DATE_FORMAT,
-                'interval'  => 'P1D',
-            ]);
-        }
     });
 
     test('sanitizeUrl and sanitizeSlug method', function () {

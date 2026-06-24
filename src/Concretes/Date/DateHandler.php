@@ -4,12 +4,19 @@
 namespace Fooino\Core\Concretes\Date;
 
 use Fooino\Core\Exceptions\CanNotConvertDateException;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
+use Fooino\Core\Exceptions\InfiniteLoopException;
+use Fooino\Core\Facades\Date;
+
 use Morilog\Jalali\Jalalian;
 use Morilog\Jalali\CalendarUtils;
+
 use DateTime;
 use DateTimeZone;
-use IntlDateFormatter;
 use IntlCalendar;
+use IntlDateFormatter;
+use DateInterval;
+use DatePeriod;
 
 abstract class DateHandler
 {
@@ -608,6 +615,71 @@ abstract class DateHandler
     }
 
     /**
+     * Generate an array of dates within a given period(from, to) at specified intervals and format.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * 
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
+     * 
+     * @throws \Fooino\Core\Exceptions\InfiniteLoopException
+     */
+    public function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array
+    {
+        $with = [
+            'from'      => $from,
+            'to'        => $to,
+            'format'    => $format,
+            'interval'  => $interval,
+        ];
+
+        $from = Date::convert(date: $from, format: STANDARD_DATE_FORMAT, from: 'UTC', to: 'UTC', throwException: true);
+        $to = Date::convert(date: $to, format: STANDARD_DATE_FORMAT, from: 'UTC', to: 'UTC', throwException: true);
+
+        if ($to < $from) {
+
+            $this->throwInvalidPeriodForDatesBetweenException(with: $with);
+        }
+
+        $dateInterval = new DateInterval(duration: $interval);
+
+        $dateIntervalProps = [
+            $dateInterval->y,
+            $dateInterval->m,
+            $dateInterval->d,
+            $dateInterval->h,
+            $dateInterval->i,
+            $dateInterval->s,
+            $dateInterval->f
+        ];
+
+        if (count(array_filter($dateIntervalProps, fn($p) => ((float) $p) !== 0.0)) === 0) {
+
+            $this->throwInvalidIntervalForDatesBetweenException(with: $with);
+        }
+
+        $utc = $this->resolveTimezone(timezone: 'UTC');
+
+        $start = new DateTime(datetime: $from, timezone: $utc);
+        
+        $end = new DateTime(datetime: $to, timezone: $utc);
+
+        $period = new DatePeriod(
+            start: $start,
+            interval: $dateInterval,
+            end: $end,
+            options: DatePeriod::INCLUDE_END_DATE
+        );
+
+        $output = [];
+
+        foreach ($period as $value) {
+            $output[] = $value->format($format);
+        }
+
+        return $output;
+    }
+
+    /**
      * Halt execution when a user-supplied timezone is not a valid PHP timezone identifier
      */
     protected function throwInvalidTimezoneException(string $timezone): never
@@ -650,6 +722,28 @@ abstract class DateHandler
             ->with([
                 'invalid_timezone'  => date_default_timezone_get()
             ])
+            ->throw();
+    }
+
+    /**
+     * Halt execution when the period is invalid for dates between method
+     */
+    protected function throwInvalidPeriodForDatesBetweenException(array $with): never
+    {
+        app(FooinoRuntimeException::class)
+            ->_2()
+            ->with($with)
+            ->throw();
+    }
+
+    /**
+     * Halt execution when the interval is going to make infinite loop
+     */
+    protected function throwInvalidIntervalForDatesBetweenException(array $with): never
+    {
+        app(InfiniteLoopException::class)
+            ->_251()
+            ->with($with)
             ->throw();
     }
 }

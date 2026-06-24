@@ -80,6 +80,16 @@ config(['app.locale' => null]);
 getDefaultLocale(); // 'fa'
 ```
 
+## perPage
+
+Resolve and validate the per-page value from the request, falling back to the `FOOINO_PER_PAGE` constant.
+
+```php
+perPage();                                      // FOOINO_PER_PAGE (when no 'per_page' in request)
+perPage(key: 'per_page', maxPerPage: 100);      // less than 100 or 100 if exceeded
+perPage(request: $customRequest);               // resolve from a specific request instance
+```
+
 ## currentDate
 
 Get today's date in ISO date format for consistent date storage.
@@ -96,14 +106,20 @@ Get the current timestamp in MySQL-compatible datetime format.
 currentDateTime(); // '2026-06-19 16:33:58'
 ```
 
-## perPage
+## currentDateTs
 
-Resolve and validate the per-page value from the request, falling back to the `FOOINO_PER_PAGE` constant.
+Get the current date as a Unix timestamp.
 
 ```php
-perPage();                                      // FOOINO_PER_PAGE (when no 'per_page' in request)
-perPage(key: 'per_page', maxPerPage: 100);      // less than 100 or 100 if exceeded
-perPage(request: $customRequest);               // resolve from a specific request instance
+currentDateTs(); // 1768262400
+```
+
+## currentDateTimeTs
+
+Get the current datetime as a Unix timestamp.
+
+```php
+currentDateTimeTs(); // 1768262400
 ```
 
 ## callMethodIfExists

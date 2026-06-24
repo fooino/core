@@ -3,6 +3,9 @@
 namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Exceptions\CanNotConvertDateException;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
+use Fooino\Core\Exceptions\InfiniteLoopException;
+
 use Fooino\Core\Facades\Date;
 use DateTimeZone;
 use Exception;
@@ -760,5 +763,103 @@ describe('Date facade using FooinoDateHandler', function () {
 
         expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $aden))->toBe('1447-12-16 15:30:08');
         expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $amman))->toBe('2026-06-02 12:30:08');
+    });
+
+    test('datesBetween method', function () {
+
+        expect(datesBetween(from: '2024-01-01', to: '2024-01-05'))->toBe([
+            '2024-01-01',
+            '2024-01-02',
+            '2024-01-03',
+            '2024-01-04',
+            '2024-01-05',
+        ]);
+
+        expect(Date::datesBetween(from: '2024-06-01', to: '2024-06-01'))->toBe([
+            '2024-06-01'
+        ]);
+
+        expect(datesBetween(from: '2024-01-01', to: '2024-01-03', format: 'Y/m/d'))->toBe([
+            '2024/01/01',
+            '2024/01/02',
+            '2024/01/03',
+        ]);
+
+        expect(Date::datesBetween(from: strtotime('2024-01-01'), to: strtotime('2024-01-03'), format: 'Y/m/d'))->toBe([
+            '2024/01/01',
+            '2024/01/02',
+            '2024/01/03',
+        ]);
+
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-02 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'PT4H'))->toBe([
+            '2024-01-01 00:00:00',
+            '2024-01-01 04:00:00',
+            '2024-01-01 08:00:00',
+            '2024-01-01 12:00:00',
+            '2024-01-01 16:00:00',
+            '2024-01-01 20:00:00',
+            '2024-01-02 00:00:00',
+        ]);
+
+        expect(Date::datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'P2DT4H'))->toBe([
+            '2024-01-01 00:00:00',
+            '2024-01-03 04:00:00',
+            '2024-01-05 08:00:00',
+        ]);
+
+        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: STANDARD_DATE_TIME_FORMAT, interval: 'P1W'))->toBe([
+            '2024-01-01 00:00:00'
+        ]);
+
+        expect(Date::datesBetween(from: strtotime('2024-01-01'), to: strtotime('2024-01-03')))->toBe([
+            '2024-01-01',
+            '2024-01-02',
+            '2024-01-03',
+        ]);
+
+        expect(fn() => datesBetween(from: 'foobar', to: '2024-01-05'))->toThrow(CanNotConvertDateException::class);
+        expect(fn() => datesBetween(from: '2024-01-05', to: 'foobar'))->toThrow(CanNotConvertDateException::class);
+
+        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoRuntimeException::class);
+
+        try {
+
+            Date::datesBetween(from: '2024-06-01', to: '2024-01-01');
+
+            // 
+        } catch (FooinoRuntimeException $e) {
+
+            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween');
+            expect($e->getCode())->toBe(2);
+            expect($e->reportable())->toBeTrue();
+            expect($e->getLevel())->toBe('warning');
+            expect($e->getWith())->toBe([
+                'from'      => '2024-06-01',
+                'to'        => '2024-01-01',
+                'format'    => STANDARD_DATE_FORMAT,
+                'interval'  => 'P1D',
+            ]);
+        }
+
+        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-12-01', interval: 'P0D'))->toThrow(InfiniteLoopException::class);
+
+        try {
+
+            Date::datesBetween(from: '2024-06-01', to: '2024-12-01', interval: 'P0D');
+
+            // 
+        } catch (InfiniteLoopException $e) {
+
+            expect($e->getMessage())->toBe('msg.infiniteLoopExceptionInvalidIntervalForDatesBetween');
+            expect($e->getCode())->toBe(251);
+            expect($e->reportable())->toBeTrue();
+            expect($e->getLevel())->toBe('critical');
+            expect($e->getWith())->toBe([
+                'from'      => '2024-06-01',
+                'to'        => '2024-12-01',
+                'format'    => STANDARD_DATE_FORMAT,
+                'interval'  => 'P0D',
+            ]);
+        }
     });
 });

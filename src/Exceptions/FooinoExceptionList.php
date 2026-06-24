@@ -5,14 +5,6 @@ namespace Fooino\Core\Exceptions;
 trait FooinoExceptionList
 {
     // FooinoException codes
-    public function _1001(): static
-    {
-        return $this
-            ->setMessage('msg.invalidPeriodForDateRange')
-            ->setCode(1001)
-            ->warning()
-            ->shouldReport();
-    }
 
     // CanNotConvertDateException (range 10050-10099)
 

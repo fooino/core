@@ -13,9 +13,12 @@ use Illuminate\Support\Facades\Facade;
  * 
  * @method static array getTimezones()
  * @method static bool validateTimezone(string $timezone)
+ * 
+ * @method static array datesBetween(string|int $from, string|int $to, string $format = 'Y-m-d', string $interval = 'P1D')
  *
  * @see \Fooino\Core\Concretes\Date\DateManager
  * @see \Fooino\Core\Concretes\Date\FooinoDateHandler
+ * @see \Fooino\Core\Concretes\Date\DateHandler
  * @see \Fooino\Core\Interfaces\Dateable
  */
 class Date extends Facade

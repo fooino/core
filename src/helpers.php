@@ -2,6 +2,7 @@
 
 use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Exceptions\TransactionRollBackedException;
+
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
@@ -118,6 +119,22 @@ if (!function_exists('dateConvert')) {
     function dateConvert(string|int|null $date, string $format = STANDARD_DATE_TIME_FORMAT, DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
     {
         return Date::convert(date: $date, format: $format, from: $from, to: $to, fallback: $fallback, throwException: $throwException);
+    }
+}
+
+if (!function_exists('datesBetween')) {
+    /**
+     * Generate an array of dates within a given period(from, to) at specified intervals and format.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * 
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
+     * 
+     * @throws \Fooino\Core\Exceptions\InfiniteLoopException
+     */
+    function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array
+    {
+        return Date::datesBetween(from: $from, to: $to, format: $format, interval: $interval);
     }
 }
 
@@ -555,6 +572,26 @@ if (!function_exists('currentDateTime')) {
     }
 }
 
+if (!function_exists('currentDateTs')) {
+    /**
+     * Get the current date as a Unix timestamp
+     */
+    function currentDateTs(): int
+    {
+        return strtotime(currentDate());
+    }
+}
+
+if (!function_exists('currentDateTimeTs')) {
+    /**
+     * Get the current datetime as a Unix timestamp
+     */
+    function currentDateTimeTs(): int
+    {
+        return strtotime(currentDateTime());
+    }
+}
+
 if (!function_exists('callMethodIfExists')) {
     /**
      * Safely call a method on an object or class if it exists, otherwise return a fallback value.
@@ -641,57 +678,7 @@ if (!function_exists('unitSizeFormat')) {
     }
 }
 
-if (!function_exists('datesBetween')) {
-    /**
-     * Generate an array of dates within a given range at specified intervals and format.
-     * 
-     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
-     * 
-     * @throws \Fooino\Core\Exceptions\FooinoException
-     */
-    function datesBetween(
-        string|int $from,
-        string|int $to,
-        string $format = STANDARD_DATE_FORMAT,
-        string $interval = 'P1D'
-    ): array {
 
-        $originalFrom = $from;
-        $originalTo = $to;
-
-        $from = dateConvert(date: $from, throwException: true);
-        $to = dateConvert(date: $to, throwException: true);
-
-        if ($to < $from) {
-
-            app(FooinoException::class)
-                ->_1001()
-                ->with([
-                    'from'      => $originalFrom,
-                    'to'        => $originalTo,
-                    'format'    => $format,
-                    'interval'  => $interval,
-                ])
-                ->throw();
-        }
-
-        $output = [];
-        $utc = new DateTimeZone(timezone: 'UTC');
-
-        $period = new DatePeriod(
-            start: new DateTime(datetime: $from, timezone: $utc),
-            interval: new DateInterval(duration: $interval),
-            end: new DateTime(datetime: $to, timezone: $utc),
-            options: DatePeriod::INCLUDE_END_DATE
-        );
-
-        foreach ($period as $value) {
-            $output[] = $value->format($format);
-        }
-
-        return $output;
-    }
-}
 
 if (!function_exists('sanitizer')) {
     /**

@@ -37,4 +37,15 @@ interface Dateable
      * Check whether a timezone string is a valid PHP timezone identifier
      */
     public function validateTimezone(string $timezone): bool;
+
+    /**
+     * Generate an array of dates within a given period(from, to) at specified intervals and format.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * 
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
+     * 
+     * @throws \Fooino\Core\Exceptions\InfiniteLoopException
+     */
+    public function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array;
 }
