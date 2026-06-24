@@ -8,6 +8,7 @@ Normalize a value to its primitive form by extracting the scalar value from Back
 unwrapBackedEnum(value: WrappedBackedEnum::ACTIVE);     // 'ACTIVE'
 unwrapBackedEnum(value: 'some string');                 // 'some string'
 ```
+
 ## mergeArraysByKey
 
 Aggregate values from multiple arrays into grouped sub-arrays keyed by their original keys.
@@ -132,6 +133,21 @@ callMethodIfExists(object: CustomClass::class, method: 'getPrecision', construct
 callMethodIfExists(object: new CustomClass, method: 'nonexistent', fallback: 'default');                        // 'default'
 ```
 
+## isZero
+
+Check whether a value is numerically zero, supporting numeric strings and Stringable objects.
+
+```php
+isZero(value: 0);           // true
+isZero(value: 0.0);         // true
+isZero(value: '0');         // true
+isZero(value: '0.0E+10');   // true
+isZero(value: 'foobar');    // false
+isZero(value: null);        // false
+isZero(value: []);          // false
+isZero(value: new stdClass);// false
+```
+
 ## nullIfBlank
 
 Cast JavaScript falsy/null-like values (null, undefined, NaN, empty strings with quote chars, whitespace-only) to null for consistent server-side validation.
@@ -147,6 +163,24 @@ nullIfBlank(value: 'foobar');                   // 'foobar'
 nullIfBlank(value: 0, fallback: 'foobar');      // 0
 ```
 
+## nullIfBlankOrZero
+
+Return null (or a fallback) when the value is blank or numerically zero. Combines `nullIfBlank` and `isZero`.
+
+```php
+nullIfBlankOrZero(value: 0);                         // null
+nullIfBlankOrZero(value: '0');                       // null
+nullIfBlankOrZero(value: 0.0);                       // null
+nullIfBlankOrZero(value: '-0.0');                    // null
+nullIfBlankOrZero(value: 5);                         // 5
+nullIfBlankOrZero(value: 0.0000001);                 // 0.0000001
+nullIfBlankOrZero(value: '');                        // null
+nullIfBlankOrZero(value: 'null');                    // null
+nullIfBlankOrZero(value: 'foobar');                  // 'foobar'
+nullIfBlankOrZero(value: 0, fallback: 'fooino');     // 'fooino'
+nullIfBlankOrZero(value: '', fallback: 'fooino');    // 'fooino'
+```
+
 ## nullIfBlankInput
 
 Retrieve a request input and return null if it is blank or a JS null-like value.
@@ -155,4 +189,14 @@ Retrieve a request input and return null if it is blank or a JS null-like value.
 nullIfBlankInput(key: 'title');                                     // null when 'title' is missing or blank
 nullIfBlankInput(key: 'title', fallback: 'default');                // 'default' when blank
 nullIfBlankInput(key: 'title', request: $customRequest);            // resolve from a specific request instance
+```
+
+## nullIfBlankOrZeroInput
+
+Retrieve a request input and return null if it is blank or zero. The request-aware variant of `nullIfBlankOrZero`.
+
+```php
+nullIfBlankOrZeroInput(key: 'title');                                      // null when missing, blank, or '0'
+nullIfBlankOrZeroInput(key: 'title', fallback: 'fallback');                // 'fallback' when blank or zero
+nullIfBlankOrZeroInput(key: 'title', request: $customRequest);             // resolve from a specific request instance
 ```

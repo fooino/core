@@ -84,18 +84,19 @@ describe('Helpers unit tests', function () {
     test('isZero returns true', function () {
 
         foreach (
-            Datasets::merge(
-                'zeros',
+            [
+                ...Datasets::zeros(),
                 new class implements Stringable {
+
                     public function __toString()
                     {
-                        return '0';
+                        return '0.0E+10';
                     }
                 },
-            ) as $zero
+            ] as $zero
         ) {
 
-            expect(isZero($zero))->toBeTrue();
+            expect(isZero(value: $zero))->toBeTrue();
 
             // 
         }
@@ -103,28 +104,31 @@ describe('Helpers unit tests', function () {
         // 
     });
 
-
     test('isZero returns false', function () {
 
         foreach (
-            Datasets::merge(
-                'nonZero',
+            [
+                ...Datasets::nonZero(),
                 true,
                 false,
-                fn() => [],
-                fn() => [0],
-                fn() => fn() => 0,
+                null,
+                ['foo' => 'bar'],
+                [],
+                [0],
+                fn() => 0,
                 new stdClass,
                 new class implements Stringable {
+
                     public function __toString()
                     {
-                        return 'foobar';
+                        return '.e+10';
                     }
-                }
-            ) as $nonZero
+                },
+            ]
+            as $nonZero
         ) {
 
-            expect(isZero($nonZero))->toBeFalse();
+            expect(isZero(value: $nonZero))->toBeFalse();
 
             // 
         }
@@ -330,6 +334,33 @@ describe('Helpers unit tests', function () {
         $customRequest = new Request();
         $customRequest->merge(['custom' => 'value']);
         expect(nullIfBlankInput(key: 'custom', request: $customRequest))->toBe('value');
+    });
+
+    test('nullIfBlankOrZeroInput helper', function () {
+
+        expect(nullIfBlankOrZeroInput(key: 'missing_key'))->toBeNull();
+
+        request()->merge(['title' => '']);
+        expect(nullIfBlankOrZeroInput(key: 'title'))->toBeNull();
+
+        request()->merge(['title' => '0.0E-10']);
+        expect(nullIfBlankOrZeroInput(key: 'title'))->toBeNull();
+
+        request()->merge(['title' => 'foobar']);
+        expect(nullIfBlankOrZeroInput(key: 'title'))->toBe('foobar');
+
+        request()->merge(['title' => '']);
+        expect(nullIfBlankOrZeroInput(key: 'title', fallback: 'fallback'))->toBe('fallback');
+
+        request()->merge(['title' => '-.0']);
+        expect(nullIfBlankOrZeroInput(key: 'title', fallback: 'fallback'))->toBe('fallback');
+
+        request()->merge(['title' => 'null']);
+        expect(nullIfBlankOrZeroInput(key: 'title'))->toBeNull();
+
+        $customRequest = new Request();
+        $customRequest->merge(['custom' => '0']);
+        expect(nullIfBlankOrZeroInput(key: 'custom', request: $customRequest))->toBeNull();
     });
 
     test('unwrapBackedEnum helper', function () {

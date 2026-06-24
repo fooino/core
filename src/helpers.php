@@ -316,17 +316,7 @@ if (!function_exists('isZero')) {
     {
         $value = (is_object($value) && $value instanceof Stringable) ? $value->__toString() : $value;
 
-        if (
-            is_null($value) ||
-            is_bool($value) ||
-            is_array($value) ||
-            is_object($value) ||
-            $value instanceof Closure
-        ) {
-            return false;
-        }
-
-        return preg_match(pattern: '/^[+-]?(?:0+\.?0*|\.0+|(?:0+\.?0*|\.0*)[Ee][+-]?\d+)$/', subject: trim((string) $value)) === 1;
+        return is_numeric($value) && ((float) $value) === 0.0;
     }
 }
 
@@ -361,6 +351,18 @@ if (!function_exists('nullIfBlankInput')) {
         $request ??= request();
 
         return nullIfBlank(value: $request->input($key), fallback: $fallback);
+    }
+}
+
+if (!function_exists('nullIfBlankOrZeroInput')) {
+    /**
+     * Retrieve an input value from the request and return null if it is blank or zero
+     */
+    function nullIfBlankOrZeroInput(string $key, int|float|string|null|bool|array|object|callable $fallback = null, Request|null $request = null): int|float|string|null|bool|array|object|callable
+    {
+        $request ??= request();
+
+        return nullIfBlankOrZero(value: $request->input($key), fallback: $fallback);
     }
 }
 
