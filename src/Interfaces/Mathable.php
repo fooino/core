@@ -19,7 +19,7 @@ interface Mathable
     /**
      * Expand a number expressed in scientific notation (e.g. 1.5E+4) into its full numeric string representation
      */
-    public function convertScientificNumber(string|int|float $number): string;
+    public function convertScientificNumber(string|int|float|array $number): string|array;
 
     /**
      * Remove all trailing zeros after the decimal point from a number, returning a clean numeric string
@@ -34,7 +34,7 @@ interface Mathable
     /**
      * Format one or more numbers by truncating them to the configured precision, removing trailing zeros, and returning clean numeric strings
      */
-    public function number(mixed ...$number): string|array;
+    public function number(string|int|float|array ...$number): string|array;
 
     /**
      * Format a number with thousands separators and apply precision truncation, returning a locale-friendly currency-style string
@@ -44,27 +44,27 @@ interface Mathable
     /**
      * Add a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
-    public function sum(mixed ...$operand): string;
+    public function sum(string|int|float|array ...$operand): string;
 
     /**
      * Subtract a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    public function subtract(mixed ...$operand): string;
+    public function subtract(string|int|float|array ...$operand): string;
 
     /**
      * Multiply a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
-    public function multiply(mixed ...$operand): string;
+    public function multiply(string|int|float|array ...$operand): string;
 
     /**
      * Divide a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    public function divide(mixed ...$operand): string;
+    public function divide(string|int|float|array ...$operand): string;
 
     /**
      * Compute the modulus (remainder) of a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    public function remainder(mixed ...$operand): string;
+    public function remainder(string|int|float|array ...$operand): string;
 
     /**
      * Raise an arbitrary precision number to a given exponent

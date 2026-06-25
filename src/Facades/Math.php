@@ -8,18 +8,20 @@ use Illuminate\Support\Facades\Facade;
  * @method static int getPrecision()
  * @method static \Fooino\Core\Interfaces\Mathable setPrecision(int $precision)
  * 
- * @method static string convertScientificNumber(string|int|float $number)
+ * @method static string|array convertScientificNumber(string|int|float|array $number)
  * @method static string trimTrailingZeros(string|int|float $number)
  * @method static int countDecimalPlaces(string|int|float $number)
  * 
- * @method static string|array number(mixed ...$number) 
+ * @method static string|array number(string|int|float|array ...$number) 
  * @method static string numberFormat(string|int|float $number, string $thousandsSeparator = ',')
  * 
- * @method static string sum(mixed ...$operand)
- * @method static string subtract(mixed ...$operand)
- * @method static string multiply(mixed ...$operand)
- * @method static string divide(mixed ...$operand)
- * @method static string remainder(mixed ...$operand)
+ * @method static string sum(string|int|float|array ...$operand)
+ * @method static string subtract(string|int|float|array ...$operand)
+ * 
+ * @method static string multiply(string|int|float|array ...$operand)
+ * @method static string divide(string|int|float|array ...$operand)
+ * 
+ * @method static string remainder(string|int|float|array ...$operand)
  * 
  * @method static string|array power(string|int|float|array $number, int $exponent = 2)
  * @method static string|array sqrt(string|int|float|array $number)

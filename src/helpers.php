@@ -152,7 +152,7 @@ if (!function_exists('number')) {
     /**
      * Format one or more numbers by truncating them to the configured precision, removing trailing zeros, and returning clean numeric strings
      */
-    function number(mixed ...$number): string|array
+    function number(string|int|float|array ...$number): string|array
     {
         return Math::number(...$number);
     }
@@ -164,7 +164,7 @@ if (!function_exists('numberFormat')) {
      */
     function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string
     {
-        return Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator,);
+        return Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator);
     }
 }
 
@@ -172,7 +172,7 @@ if (!function_exists('sum')) {
     /**
      * Add a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
-    function sum(mixed ...$operand): string
+    function sum(string|int|float|array ...$operand): string
     {
         return Math::sum(...$operand);
     }
@@ -182,7 +182,7 @@ if (!function_exists('subtract')) {
     /**
      * Subtract a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    function subtract(mixed ...$operand): string
+    function subtract(string|int|float|array ...$operand): string
     {
         return Math::subtract(...$operand);
     }
@@ -192,7 +192,7 @@ if (!function_exists('multiply')) {
     /**
      * Multiply a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
-    function multiply(mixed ...$operand): string
+    function multiply(string|int|float|array ...$operand): string
     {
         return Math::multiply(...$operand);
     }
@@ -202,7 +202,7 @@ if (!function_exists('divide')) {
     /**
      * Divide a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    function divide(mixed ...$operand): string
+    function divide(string|int|float|array ...$operand): string
     {
         return Math::divide(...$operand);
     }
@@ -212,7 +212,7 @@ if (!function_exists('remainder')) {
     /**
      * Compute the modulus (remainder) of a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    function remainder(mixed ...$operand): string
+    function remainder(string|int|float|array ...$operand): string
     {
         return Math::remainder(...$operand);
     }

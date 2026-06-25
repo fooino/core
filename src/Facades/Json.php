@@ -22,6 +22,9 @@ use Illuminate\Support\Facades\Facade;
  */
 class Json extends Facade
 {
+    /**
+     * Get the registered name of the component.
+     */
     protected static function getFacadeAccessor(): string
     {
         return 'fooino-json-facade';

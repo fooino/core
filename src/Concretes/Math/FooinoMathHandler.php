@@ -10,26 +10,31 @@ class FooinoMathHandler implements Mathable
 {
     private const int BC_SCALE = 12;
 
+    private const array TWO_OPERAND_FUNCTIONS = ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod'];
+
+    private const array ONE_OPERAND_FUNCTIONS = ['bcpow', 'bcsqrt', 'bcceil', 'bcfloor', 'bcround'];
+
     private array $instances = [];
 
+    /**
+     *  Difference Between BC_SCALE and $precision
+     * 
+     *  All bc functions must use BC_SCALE for calculations
+     *  The $precision is just for returning truncated number(not rounded) and It will not used in calculations
+     * 
+     *  Truncated number is good for each country policy for example 1000.01 is not valid in Iran since 0.01 is worthless
+     *  but in other countries like America it means cent.
+     *  So we use $precision = 0 For Iran and $precision = 2 for America
+     * 
+     *  Example: Math::setPrecision(precision: 0)->number(Math::sum(5.599, 5.499)));
+     * 
+     *  Base on BC_SCALE the result is 11.098. if we assumed BC_SCALE = $precision = 0 the result was 10 which is wrong
+     *  To output number we use $precision = 0 and the result is 11
+     * 
+     *  All calculations use BC_SCALE which is a high number to not loss precision
+     */
     public function __construct(private int $precision = 12)
     {
-        /**
-         *  Difference Between BC_SCALE and $precision
-         * 
-         *  All bc functions must use BC_SCALE for calculations
-         *  The $precision is just for returning truncated number(not rounded) and It will not used in calculations
-         * 
-         *  Truncate number is good for each country policy for example 1000.01 is not valid in Iran since 0.01 is worthless but in other countries like America it means cent.
-         *  So we use $precision = 0 For Iran and $precision = 2 for America
-         * 
-         *  Example: Math::setPrecision(precision: 0)->number(Math::sum(5.599, 5.499)));
-         * 
-         *  Base on BC_SCALE the result is 11.098. if we assumed BC_SCALE = $precision = 0 the result was 10 which is wrong
-         *  To output number we use $precision = 0 and the result is 11
-         * 
-         *  All calculations use BC_SCALE which is a high number to not loss precision
-         */
         if (
             $this->getPrecision() > self::BC_SCALE ||
             $this->getPrecision() < 0
@@ -53,17 +58,14 @@ class FooinoMathHandler implements Mathable
         return $this->instances[$precision] ??= new static(precision: $precision);
     }
 
-    public function convertScientificNumber(string|int|float $number): string
+    public function convertScientificNumber(string|int|float|array $number): string|array
     {
         if ($number === INF || $number === -INF) {
             // Very Big or small number is not allowed. 1.1E999 in float format will cast to INF. the INF is numeric so check it before is_numeric()
             $this->throwInvalidValueErrorException(method: 'convertScientificNumber', operand: $number);
         }
 
-        if (
-            !is_numeric($number) &&
-            !isZero($number) // the scientific numbers like .e+8 is not numeric but it is zero
-        ) {
+        if (!is_numeric($number)) {
             return $number;
         }
 
@@ -71,12 +73,12 @@ class FooinoMathHandler implements Mathable
 
         $regex = [
             '/',
-            '^',                    // start with
-            '([+-]?)',              // the sign can be '+' or '-' or '' ---> first group: sign
-            '(\d*\.?\d*)',          // zero or more digits before dot  optional decimal dot  zero or more digits after decimal dot ---> second group: mantissa. it can be 123 or .5 or 5. or 1.23
-            '[Ee]',                 // the letter E or e: the exponent separator
-            '([+-]?\d+)',           // optional '+' or '-' sign   one or more digits ---> third group: exponent. it can be 3 or +3 or -3
-            '$',                    // end with
+            '^',                            // start with
+            '([+-]?)',                      // the sign can be '+' or '-' or '' ---> first group: sign
+            '(\d+\.\d*|\.\d+|\d+)',         // zero or more digits before dot  optional decimal dot  zero or more digits after decimal dot ---> second group: mantissa. it can be 123 | 123. | 123.45 | .45  (never empty, never just ".")
+            '[Ee]',                         // the letter E or e: the exponent separator
+            '([+-]?\d+)',                   // optional '+' or '-' sign   one or more digits ---> third group: exponent. it can be 3 or +3 or -3
+            '$',                            // end with
             '/'
         ];
 
@@ -99,7 +101,7 @@ class FooinoMathHandler implements Mathable
         // All significant digits, without decimal point
         $digits = ltrim($integerPart . $decimalPart, '0');
 
-        // If mantissa is zero, the whole number is zero like 0.1E+8
+        // If mantissa is zero, the whole number is zero like 0.0E+8
         if ($digits === '') {
             return '0';
         }
@@ -161,14 +163,16 @@ class FooinoMathHandler implements Mathable
         return (!is_numeric($number) || $dotPos === false) ? 0 : strlen(substr($number, $dotPos + 1));
     }
 
-    public function number(mixed ...$number): string|array
+    public function number(string|int|float|array ...$number): string|array
     {
         return $this->_number(true, ...$number);
     }
 
-    private function _number(bool $expandScientific = false, mixed ...$number): string|array
+    private function _number(bool $expandScientific = false, string|int|float|array ...$number): string|array
     {
-        $numbers = count($number) === 1 && is_array($number[0]) ? $number[0] : $number;
+        $wasArray = count($number) === 1 && is_array($number[0]);
+
+        $numbers = $wasArray ? $number[0] : $number;
 
         if (count($numbers) === 0) {
             $this->throwInvalidArgumentsCountException(method: 'number', operand: $numbers);
@@ -187,7 +191,7 @@ class FooinoMathHandler implements Mathable
             $numbers[$key] = $this->_trimTrailingZeros(number: $this->assembleNumber(number: $value, precision: $this->getPrecision()));
         }
 
-        return count($numbers) === 1 ? $numbers[0] : $numbers;
+        return $wasArray || count($numbers) !== 1 ? $numbers : $numbers[0];
     }
 
     public function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string
@@ -202,7 +206,7 @@ class FooinoMathHandler implements Mathable
             $sanitized = substr($sanitized, 1);
         }
 
-        $sanitized = str_replace([$thousandsSeparator, ','], '',  (string) $sanitized);
+        $sanitized = str_replace(array_unique([$thousandsSeparator, ',']), '', $sanitized);
 
         $sanitized = $this->convertScientificNumber(number: $sanitized);
 
@@ -214,36 +218,32 @@ class FooinoMathHandler implements Mathable
 
         list($sign, $integer, $decimal) = $this->numberParts(number: ($sign . $sanitized));
 
-        $integerWithSeparators = (string) preg_replace(
-            '/\B(?=(\d{3})+(?!\d))/',
-            $thousandsSeparator,
-            $integer
-        );
+        $integerWithSeparators = preg_replace(pattern: '/\B(?=(\d{3})+(?!\d))/', replacement: $thousandsSeparator, subject: $integer);
 
-        return trim($sign . $integerWithSeparators . ((isZero($decimal) || blank($decimal)) ? '' : '.' . $decimal));
+        return trim($sign . $integerWithSeparators . ((isZero($decimal) || trim($decimal) === '') ? '' : '.' . $decimal));
     }
 
-    public function sum(mixed ...$operand): string
+    public function sum(string|int|float|array ...$operand): string
     {
         return $this->calc(method: 'bcadd', operand: $operand);
     }
 
-    public function subtract(mixed ...$operand): string
+    public function subtract(string|int|float|array ...$operand): string
     {
         return $this->calc(method: 'bcsub', operand: $operand);
     }
 
-    public function multiply(mixed ...$operand): string
+    public function multiply(string|int|float|array ...$operand): string
     {
         return $this->calc(method: 'bcmul', operand: $operand);
     }
 
-    public function divide(mixed ...$operand): string
+    public function divide(string|int|float|array ...$operand): string
     {
         return $this->calc(method: 'bcdiv', operand: $operand);
     }
 
-    public function remainder(mixed ...$operand): string
+    public function remainder(string|int|float|array ...$operand): string
     {
         return $this->calc(method: 'bcmod', operand: $operand);
     }
@@ -338,8 +338,8 @@ class FooinoMathHandler implements Mathable
             ]
         };
 
-        $integer = (string) ((isZero($integer) || blank($integer)) ? '0' : $integer);
-        $decimal = (string) ((isZero($decimal) || blank($decimal)) ? '0' : $decimal);
+        $integer = (string) ((isZero($integer) || trim($integer) === '') ? '0' : $integer);
+        $decimal = (string) ((isZero($decimal) || trim($decimal) === '') ? '0' : $decimal);
 
         $integer = ltrim($integer, '0') ?: '0'; // to handle '000123.1'
 
@@ -368,14 +368,17 @@ class FooinoMathHandler implements Mathable
 
     private function calc(string $method, array $operand, array $args = []): string|array
     {
+        $wasArray = count($operand) === 1 && is_array($operand[0]);
+
         $numbers = $this->validateAndNormalizeNumbers(method: $method, operand: $operand, args: $args);
 
-        $twoOperand = ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod'];
-        $oneOperand = ['bcpow', 'bcsqrt', 'bcceil', 'bcfloor', 'bcround'];
+        if (in_array($method, self::TWO_OPERAND_FUNCTIONS)) {
 
-        if (in_array($method, $twoOperand)) {
-
-            $defaultTwoOperandTemplate = ['num1' => 'result', 'num2' => 'number', 'scale' => self::BC_SCALE];
+            $defaultTwoOperandTemplate = [
+                'num1' => 'result',
+                'num2' => 'number',
+                'scale' => self::BC_SCALE
+            ];
 
             list($result, $start, $template) = match ($method) {
 
@@ -417,7 +420,7 @@ class FooinoMathHandler implements Mathable
             return $this->_trimTrailingZeros(number: $result);
         }
 
-        if (in_array($method, $oneOperand)) {
+        if (in_array($method, self::ONE_OPERAND_FUNCTIONS)) {
 
             $template = match ($method) {
 
@@ -458,7 +461,7 @@ class FooinoMathHandler implements Mathable
                 $numbers[$key] = $this->_trimTrailingZeros(number: call_user_func($method, ...$mapped));
             }
 
-            return count($numbers) === 1 ? $numbers[0] : $numbers;
+            return $wasArray || count($numbers) !== 1 ? $numbers : $numbers[0];
         }
 
         $this->throwUnsupportedFunctionException(method: $method, operand: $operand, args: $args);
@@ -470,7 +473,7 @@ class FooinoMathHandler implements Mathable
 
         if (
             count($numbers) === 0 ||
-            (count($numbers) < 2 && in_array($method, ['bcadd', 'bcsub', 'bcmul', 'bcdiv', 'bcmod']))
+            (count($numbers) < 2 && in_array($method, self::TWO_OPERAND_FUNCTIONS))
         ) {
             $this->throwInvalidArgumentsCountException(method: $method, operand: $operand, args: $args);
         }
@@ -494,14 +497,14 @@ class FooinoMathHandler implements Mathable
             if (
                 $method === 'bcpow' &&
                 isZero($number) &&
-                (count($args) !== 1 || !is_int($args['exponent'] ?? null) || $args['exponent'] < 0)
+                $args['exponent'] < 0
             ) {
                 $this->throwDivisionByZeroException(method: $method, operand: $operand, args: $args);
             }
 
             if (
                 $method === 'bcsqrt' &&
-                bccomp(num1: $number, num2: '0', scale: self::BC_SCALE) === -1
+                lessThan($number, 0)
             ) {
                 $this->throwInvalidValueErrorException(method: $method, operand: $operand);
             }
@@ -513,7 +516,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidPrecisionException(): never
     {
         app(MathCalculationException::class)
-            ->_10101()
+            ->_1101()
             ->with([
                 'precision' => $this->getPrecision(),
                 'bc_scale'  => self::BC_SCALE
@@ -524,7 +527,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidArgumentsCountException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->_10102()
+            ->_1102()
             ->with([
                 'method'    => $method,
                 'operand'   => $operand,
@@ -536,7 +539,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->_10103()
+            ->_1103()
             ->with([
                 'method'    => $method,
                 'operand'   => $operand,
@@ -548,7 +551,7 @@ class FooinoMathHandler implements Mathable
     private function throwDivisionByZeroException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->_10104()
+            ->_1104()
             ->with([
                 'method'      => $method,
                 'operand'     => $operand,
@@ -560,7 +563,7 @@ class FooinoMathHandler implements Mathable
     private function throwInvalidValueErrorException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->_10105()
+            ->_1105()
             ->with([
                 'method'          => $method,
                 'operand'         => $operand,
@@ -572,7 +575,7 @@ class FooinoMathHandler implements Mathable
     private function throwUnsupportedFunctionException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
-            ->_10106()
+            ->_1106()
             ->with([
                 'method'        => $method,
                 'operand'       => $operand,

@@ -3,6 +3,7 @@
 namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Exceptions\FooinoException;
+use Fooino\Core\Exceptions\MathCalculationException;
 use Fooino\Core\Facades\Math;
 use Fooino\Core\Tests\Data\Datasets;
 use RoundingMode;
@@ -81,6 +82,7 @@ describe('Math facade using FooinoMathHandler', function () {
                 }
 
                 expect(Math::number($number))->toBe($expected);
+                continue;
             }
 
             if (!is_null($precision)) {
@@ -94,7 +96,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
         // 
     });
-
 
     test('numberFormat method', function () {
 
@@ -114,6 +115,7 @@ describe('Math facade using FooinoMathHandler', function () {
                 }
 
                 expect(Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+                continue;
             }
 
             if (!is_null($precision)) {
@@ -127,7 +129,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
         // 
     });
-
 
     test('sum method', function () {
 
@@ -154,7 +155,6 @@ describe('Math facade using FooinoMathHandler', function () {
         // 
     });
 
-
     test('subtract method', function () {
 
         foreach (Datasets::mathSubtract() as $dataset) {
@@ -180,7 +180,6 @@ describe('Math facade using FooinoMathHandler', function () {
         // 
     });
 
-
     test('multiply method', function () {
 
         foreach (Datasets::mathMultiply() as $dataset) {
@@ -205,7 +204,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
         // 
     });
-
 
     test('divide method', function () {
 
@@ -299,9 +297,6 @@ describe('Math facade using FooinoMathHandler', function () {
             }
 
             expect(roundUp(number: $number))->toBe($expected);
-
-            continue;
-
             // 
         }
 
@@ -323,8 +318,6 @@ describe('Math facade using FooinoMathHandler', function () {
             }
 
             expect(roundDown(number: $number))->toBe($expected);
-
-            continue;
 
             // 
         }
@@ -350,8 +343,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
 
-            continue;
-
             // 
         }
 
@@ -374,8 +365,6 @@ describe('Math facade using FooinoMathHandler', function () {
             }
 
             expect(greaterThan($a, $b))->toBe($expected);
-
-            continue;
 
             // 
         }
@@ -400,8 +389,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(greaterThanOrEqual($a, $b))->toBe($expected);
 
-            continue;
-
             // 
         }
 
@@ -425,8 +412,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(lessThan($a, $b))->toBe($expected);
 
-            continue;
-
             // 
         }
 
@@ -449,9 +434,6 @@ describe('Math facade using FooinoMathHandler', function () {
             }
 
             expect(lessThanOrEqual($a, $b))->toBe($expected);
-
-            continue;
-
             // 
         }
 
@@ -474,8 +456,6 @@ describe('Math facade using FooinoMathHandler', function () {
             }
 
             expect(equal($a, $b))->toBe($expected);
-
-            continue;
 
             // 
         }
@@ -500,8 +480,6 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(notEqual($a, $b))->toBe($expected);
 
-            continue;
-
             // 
         }
 
@@ -513,18 +491,19 @@ describe('Math facade using FooinoMathHandler', function () {
 
         test('invalid precision', function () {
 
-            expect(fn() => math(20))->toThrow('msg.mathCalculationExceptionInvalidPrecision');
+            expect(fn() => math(20))->toThrow(MathCalculationException::class);
 
             try {
 
                 Math::setPrecision(precision: 20);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidPrecision');
-                expect($e->getCode())->toBe(10101);
+                expect($e->getCode())->toBe(1101);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'precision' => 20,
@@ -532,18 +511,19 @@ describe('Math facade using FooinoMathHandler', function () {
                 ]);
             }
 
-            expect(fn() => math(-1))->toThrow('msg.mathCalculationExceptionInvalidPrecision');
+            expect(fn() => math(-1))->toThrow(MathCalculationException::class);
 
             try {
 
                 Math::setPrecision(precision: -1);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidPrecision');
-                expect($e->getCode())->toBe(10101);
+                expect($e->getCode())->toBe(1101);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'precision' => -1,
@@ -554,19 +534,26 @@ describe('Math facade using FooinoMathHandler', function () {
 
         test('very big and small number for convertScientificNumber', function () {
 
-            expect(fn() => Math::convertScientificNumber(1.1E+9999))->toThrow('msg.mathCalculationExceptionInvalidValueError');
-            expect(fn() => Math::convertScientificNumber(-1.1E+9999))->toThrow('msg.mathCalculationExceptionInvalidValueError');
+            expect(fn() => Math::convertScientificNumber(1.1E+9999))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::convertScientificNumber(-1.1E+9999))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::convertScientificNumber(1.1E-322))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::convertScientificNumber(-1.1E-322))->toThrow(MathCalculationException::class);
+
+            // very small number when it cast to string it will be zero. the max exponent php handle CAN BE 324
+            expect(Math::convertScientificNumber(1.1E-324))->toBe('0');
+            expect(Math::convertScientificNumber(-1.1E-324))->toBe('0');
 
             try {
 
                 Math::convertScientificNumber(1.1E+9999);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
-                expect($e->getCode())->toBe(10105);
+                expect($e->getCode())->toBe(1105);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'convertScientificNumber',
@@ -580,11 +567,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::convertScientificNumber(-1.1E+9999);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
-                expect($e->getCode())->toBe(10105);
+                expect($e->getCode())->toBe(1105);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'convertScientificNumber',
@@ -593,19 +581,24 @@ describe('Math facade using FooinoMathHandler', function () {
                 ]);
             }
 
-            expect(fn() => Math::convertScientificNumber('1.1E+9999'))->toThrow('msg.mathCalculationExceptionInvalidValueError');
-            expect(fn() => Math::convertScientificNumber('1.1E-9999'))->toThrow('msg.mathCalculationExceptionInvalidValueError');
+            expect(fn() => Math::convertScientificNumber('1.1E+9999'))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::convertScientificNumber('-1.1E+9999'))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::convertScientificNumber('1.1E-324'))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::convertScientificNumber('-1.1E-324'))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::convertScientificNumber('1.1E-322'))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::convertScientificNumber('-1.1E-322'))->toThrow(MathCalculationException::class);
 
             try {
 
                 Math::convertScientificNumber('1.1E+9999');
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
-                expect($e->getCode())->toBe(10105);
+                expect($e->getCode())->toBe(1105);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'convertScientificNumber',
@@ -616,18 +609,19 @@ describe('Math facade using FooinoMathHandler', function () {
 
             try {
 
-                Math::convertScientificNumber('1.1E-9999');
+                Math::convertScientificNumber('-1.1E+9999');
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
-                expect($e->getCode())->toBe(10105);
+                expect($e->getCode())->toBe(1105);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'convertScientificNumber',
-                    'operand'       => '1.1E-9999',
+                    'operand'       => '-1.1E+9999',
                     'args'          => []
                 ]);
             }
@@ -635,21 +629,24 @@ describe('Math facade using FooinoMathHandler', function () {
 
         test('number check the input is numeric', function () {
 
-            expect(fn() => number())->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => number('test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => number(1, 'test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => number([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
+            expect(fn() => number())->toThrow(MathCalculationException::class);
+            expect(fn() => number('test'))->toThrow(MathCalculationException::class);
+            expect(fn() => number(1, 'test'))->toThrow(MathCalculationException::class);
+            expect(fn() => number([1, 'test']))->toThrow(MathCalculationException::class);
+            expect(fn() => number([[1, 2], 2]))->toThrow(MathCalculationException::class);
+            expect(fn() => number([[1, 2]], 2))->toThrow(MathCalculationException::class);
 
             try {
 
                 Math::number();
 
                 //
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'number',
@@ -663,11 +660,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::number('test');
 
                 //
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'number',
@@ -681,11 +679,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::number(1, 'test');
 
                 //
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'number',
@@ -699,11 +698,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::number([1, 'test']);
 
                 //
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'number',
@@ -711,22 +711,43 @@ describe('Math facade using FooinoMathHandler', function () {
                     'args'          => []
                 ]);
             }
+
+            try {
+
+                Math::number([[1, 2], 2]);
+
+                //
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+                expect($e->getCode())->toBe(1103);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'number',
+                    'operand'       => [[1, 2], 2],
+                    'args'          => []
+                ]);
+            }
         });
 
         test('numberFormat check the input is numeric', function () {
 
-            expect(fn() => numberFormat('test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
+            expect(fn() => numberFormat('test'))->toThrow(MathCalculationException::class);
+            expect(fn() => numberFormat('2,000,000.12T'))->toThrow(MathCalculationException::class);
 
             try {
 
                 Math::numberFormat('2,000,000.12T');
 
                 //
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'numberFormat',
@@ -738,28 +759,29 @@ describe('Math facade using FooinoMathHandler', function () {
 
         test('methods with two operands check the operands count', function () {
 
-            expect(fn() => sum())->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => subtract(1))->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => multiply([1]))->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => divide(1))->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => remainder())->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
+            expect(fn() => sum())->toThrow(MathCalculationException::class);
+            expect(fn() => subtract(1))->toThrow(MathCalculationException::class);
+            expect(fn() => multiply([1]))->toThrow(MathCalculationException::class);
+            expect(fn() => divide(1))->toThrow(MathCalculationException::class);
+            expect(fn() => remainder())->toThrow(MathCalculationException::class);
 
-            expect(fn() => Math::power([]))->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => Math::sqrt([]))->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => roundUp([]))->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => roundDown([]))->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
-            expect(fn() => roundClose([]))->toThrow('msg.mathCalculationExceptionInvalidArgumentsCount');
+            expect(fn() => Math::power([]))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::sqrt([]))->toThrow(MathCalculationException::class);
+            expect(fn() => roundUp([]))->toThrow(MathCalculationException::class);
+            expect(fn() => roundDown([]))->toThrow(MathCalculationException::class);
+            expect(fn() => roundClose([]))->toThrow(MathCalculationException::class);
 
             try {
 
                 Math::sum(1);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcadd',
@@ -773,11 +795,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::subtract();
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcsub',
@@ -791,11 +814,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::multiply(1);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcmul',
@@ -809,11 +833,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::divide([1]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcdiv',
@@ -827,11 +852,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::remainder([1]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcmod',
@@ -845,11 +871,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::power([]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcpow',
@@ -863,11 +890,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::sqrt([]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcsqrt',
@@ -881,11 +909,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::roundUp([]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcceil',
@@ -899,11 +928,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::roundDown([]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcfloor',
@@ -917,12 +947,13 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::roundClose([]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
-                expect($e->getCode())->toBe(10102);
+                expect($e->getCode())->toBe(1102);
                 expect($e->getLevel())->toBe('error');
                 expect($e->reportable())->toBeTrue();
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->getWith())->toBe([
                     'method'        => 'bcround',
                     'operand'       => [],
@@ -933,17 +964,20 @@ describe('Math facade using FooinoMathHandler', function () {
 
         test('methods check the operands are numeric', function () {
 
-            expect(fn() => sum(1, 'test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => subtract([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => multiply([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => divide(1, 2, 'test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => remainder([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
+            expect(fn() => sum(1, 'test'))->toThrow(MathCalculationException::class);
+            expect(fn() => subtract([1, 'test']))->toThrow(MathCalculationException::class);
 
-            expect(fn() => Math::power('test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => Math::sqrt('test'))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => roundUp([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => roundDown([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
-            expect(fn() => roundClose([1, 'test']))->toThrow('msg.mathCalculationExceptionInvalidArgumentType');
+            expect(fn() => multiply([1], [2]))->toThrow(MathCalculationException::class);
+            expect(fn() => divide([[1], [2]]))->toThrow(MathCalculationException::class);
+
+            expect(fn() => remainder([1, 'test']))->toThrow(MathCalculationException::class);
+
+            expect(fn() => Math::power('test'))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::sqrt([[[1, 2]]]))->toThrow(MathCalculationException::class);
+
+            expect(fn() => roundUp('test'))->toThrow(MathCalculationException::class);
+            expect(fn() => roundDown([1, 'test']))->toThrow(MathCalculationException::class);
+            expect(fn() => roundClose([[[1, 2]]]))->toThrow(MathCalculationException::class);
 
 
             try {
@@ -951,11 +985,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::sum(1, 'test');
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcadd',
@@ -964,17 +999,17 @@ describe('Math facade using FooinoMathHandler', function () {
                 ]);
             }
 
-
             try {
 
                 Math::subtract([1, 'test']);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcsub',
@@ -983,55 +1018,55 @@ describe('Math facade using FooinoMathHandler', function () {
                 ]);
             }
 
-
             try {
 
-                Math::multiply([1, 2, 'test']);
+                Math::multiply([1], [2]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcmul',
-                    'operand'       => [[1, 2, 'test']],
+                    'operand'       => [[1], [2]],
                     'args'          => []
                 ]);
             }
-
 
             try {
 
-                Math::divide(1, 2, 'test');
+                Math::divide([[1], [2]]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcdiv',
-                    'operand'       => [1, 2, 'test'],
+                    'operand'       => [[[1], [2]]],
                     'args'          => []
                 ]);
             }
-
 
             try {
 
                 Math::remainder(1, 'test', 0);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcmod',
@@ -1045,11 +1080,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::power('test');
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcpow',
@@ -1060,18 +1096,18 @@ describe('Math facade using FooinoMathHandler', function () {
 
             try {
 
-                Math::sqrt([1, 'test']);
+                Math::sqrt([[[1, 2]]]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcsqrt',
-                    'operand'       => [1, 'test'],
+                    'operand'       => [[[1, 2]]],
                     'args'          => []
                 ]);
             }
@@ -1081,11 +1117,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::roundUp('test');
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcceil',
@@ -1099,11 +1136,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::roundDown([1, 'test']);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcfloor',
@@ -1114,18 +1152,19 @@ describe('Math facade using FooinoMathHandler', function () {
 
             try {
 
-                Math::roundClose('test');
+                Math::roundClose([[1, 2]]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
-                expect($e->getCode())->toBe(10103);
+                expect($e->getCode())->toBe(1103);
                 expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcround',
-                    'operand'       => ['test'],
+                    'operand'       => [[[1, 2]]],
                     'args'          => ['precision' => 0, 'mode' => RoundingMode::HalfAwayFromZero]
                 ]);
             }
@@ -1133,21 +1172,22 @@ describe('Math facade using FooinoMathHandler', function () {
 
         test('divide and remainder check the operands are not zero', function () {
 
-            expect(fn() => divide(1, 0))->toThrow('msg.mathCalculationExceptionDivisionByZero');
-            expect(fn() => remainder(1, 0))->toThrow('msg.mathCalculationExceptionDivisionByZero');
-            expect(fn() => divide([1, 2, 0]))->toThrow('msg.mathCalculationExceptionDivisionByZero');
-            expect(fn() => remainder([1, 3, 0]))->toThrow('msg.mathCalculationExceptionDivisionByZero');
+            expect(fn() => divide(1, 0))->toThrow(MathCalculationException::class);
+            expect(fn() => remainder(1, 0))->toThrow(MathCalculationException::class);
+            expect(fn() => divide([1, 2, 0]))->toThrow(MathCalculationException::class);
+            expect(fn() => remainder([1, 3, 0]))->toThrow(MathCalculationException::class);
 
             try {
 
                 Math::divide(1, 2, 0);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
-                expect($e->getCode())->toBe(10104);
+                expect($e->getCode())->toBe(1104);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcdiv',
@@ -1161,11 +1201,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::remainder([1, 2, 0]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
-                expect($e->getCode())->toBe(10104);
+                expect($e->getCode())->toBe(1104);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcmod',
@@ -1179,19 +1220,20 @@ describe('Math facade using FooinoMathHandler', function () {
 
         test('power and sqrt check the value and args type', function () {
 
-            expect(fn() => Math::power(0, -1))->toThrow('mathCalculationExceptionDivisionByZero');
-            expect(fn() => Math::sqrt(-1))->toThrow('msg.mathCalculationExceptionInvalidValueError');
+            expect(fn() => Math::power(0, -1))->toThrow(MathCalculationException::class);
+            expect(fn() => Math::sqrt(-1))->toThrow(MathCalculationException::class);
 
             try {
 
                 Math::power([1, 0], -1);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
-                expect($e->getCode())->toBe(10104);
+                expect($e->getCode())->toBe(1104);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcpow',
@@ -1205,11 +1247,12 @@ describe('Math facade using FooinoMathHandler', function () {
                 Math::sqrt([1, -1]);
 
                 // 
-            } catch (FooinoException $e) {
+            } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
-                expect($e->getCode())->toBe(10105);
+                expect($e->getCode())->toBe(1105);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'bcsqrt',
