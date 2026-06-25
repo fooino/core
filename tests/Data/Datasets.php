@@ -3,13 +3,10 @@
 namespace Fooino\Core\Tests\Data;
 
 use Fooino\Core\Facades\Math;
-use Fooino\Core\Tests\Data\Traits\Datasetable;
 use RoundingMode;
 
 class Datasets
 {
-    use Datasetable;
-
     public static function zeros(): array
     {
         return [
@@ -958,110 +955,222 @@ class Datasets
     public static function mathGreaterThan(): array
     {
         return [
-            [0, 0, false],
-            [-1, 0, false],
+            ['0', '0', false],
 
-            [0, 5, false],
-            [0, -1, true],
+            ['0', '-0', false],
+            ['-0', '0', false],
+            ['-0', '-0', false],
+
+            ['0', '+0', false],
+            ['+0', '0', false],
+            ['+0', '+0', false],
+
+            ['0', '5', false],
+            ['5', '0', true],
+
+            ['0', '-5', true],
+            ['-5', '0', false],
+
+            ['+5', '+5', false],
+            ['-5', '-5', false],
+
+            ['+5', '-5', true],
+            ['-5', '+5', false],
 
             [1.11, 1.112, false],
+            [1.112, 1.11, true],
+            [1.112, 1.112, false],
 
             [1.1e+8, 1.1e-8, true],
+            [1.1e-8, 1.1e+8, false],
+
             [1.1e+8, 1.1e+8, false],
-            [1.1e-8, 1.1e+8, false],
-            [1.1e-8, 1.1e+8, false],
+            [1.1e-8, 1.1e-8, false],
         ];
     }
 
     public static function mathGreaterThanOrEqual(): array
     {
         return [
-            [0, 0, true],
+            ['0', '0', true],
 
-            [-1, 0, false],
-            [0, 5, false],
-            [0, -1, true],
+            ['0', '-0', true],
+            ['-0', '0', true],
+            ['-0', '-0', true],
 
+            ['0', '+0', true],
+            ['+0', '0', true],
+            ['+0', '+0', true],
+
+            ['0', '5', false],
+            ['5', '0', true],
+
+            ['0', '-5', true],
+            ['-5', '0', false],
+
+            ['+5', '+5', true],
+            ['-5', '-5', true],
+
+            ['+5', '-5', true],
+            ['-5', '+5', false],
+
+            [1.11, 1.112, false],
+            [1.112, 1.11, true],
             [1.112, 1.112, true],
-            [1.113, 1.112, true],
 
             [1.1e+8, 1.1e-8, true],
-            [1.1e+8, 1.1e+8, true],
             [1.1e-8, 1.1e+8, false],
+
+            [1.1e+8, 1.1e+8, true],
+            [1.1e-8, 1.1e-8, true],
         ];
     }
 
     public static function mathLessThan(): array
     {
         return [
-            [0, 0, false],
+            ['0', '0', false],
 
-            [-1, 0, true],
-            [0, 5, true],
-            [0, -1, false],
+            ['0', '-0', false],
+            ['-0', '0', false],
+            ['-0', '-0', false],
 
+            ['0', '+0', false],
+            ['+0', '0', false],
+            ['+0', '+0', false],
+
+            ['0', '5', true],
+            ['5', '0', false],
+
+            ['0', '-5', false],
+            ['-5', '0', true],
+
+            ['+5', '+5', false],
+            ['-5', '-5', false],
+
+            ['+5', '-5', false],
+            ['-5', '+5', true],
+
+            [1.11, 1.112, true],
             [1.112, 1.11, false],
-            [1.112, 1.11, false],
+            [1.112, 1.112, false],
 
-            [1.1e-8, 1.1e+8, true],
-            [1.1e+8, 1.1e+8, false],
             [1.1e+8, 1.1e-8, false],
+            [1.1e-8, 1.1e+8, true],
+
+            [1.1e+8, 1.1e+8, false],
+            [1.1e-8, 1.1e-8, false],
         ];
     }
 
     public static function mathLessThanOrEqual(): array
     {
         return [
-            [0, 0, true],
+            ['0', '0', true],
 
-            [-1, 0, true],
-            [0, 5, true],
-            [0, -1, false],
+            ['0', '-0', true],
+            ['-0', '0', true],
+            ['-0', '-0', true],
 
-            [1.11, 1.11, true],
-            [1.1, 1.11, true],
+            ['0', '+0', true],
+            ['+0', '0', true],
+            ['+0', '+0', true],
 
-            [1.1e-8, 1.1e+8, true],
-            [1.1e+8, 1.1e+8, true],
+            ['0', '5', true],
+            ['5', '0', false],
+
+            ['0', '-5', false],
+            ['-5', '0', true],
+
+            ['+5', '+5', true],
+            ['-5', '-5', true],
+
+            ['+5', '-5', false],
+            ['-5', '+5', true],
+
+            [1.11, 1.112, true],
+            [1.112, 1.11, false],
+            [1.112, 1.112, true],
+
             [1.1e+8, 1.1e-8, false],
+            [1.1e-8, 1.1e+8, true],
+
+            [1.1e+8, 1.1e+8, true],
+            [1.1e-8, 1.1e-8, true],
         ];
     }
 
     public static function mathEqual(): array
     {
         return [
-            [0, 0, true],
+            ['0', '0', true],
 
-            [-1, 0, false],
-            [0, 5, false],
-            [0, -1, false],
+            ['0', '-0', true],
+            ['-0', '0', true],
+            ['-0', '-0', true],
 
-            [1.112, 1.113, false],
-            [1.112, 1.113, false],
+            ['0', '+0', true],
+            ['+0', '0', true],
+            ['+0', '+0', true],
+
+            ['0', '5', false],
+            ['5', '0', false],
+
+            ['0', '-5', false],
+            ['-5', '0', false],
+
+            ['+5', '+5', true],
+            ['-5', '-5', true],
+
+            ['+5', '-5', false],
+            ['-5', '+5', false],
+
+            [1.11, 1.112, false],
+            [1.112, 1.11, false],
             [1.112, 1.112, true],
 
-            [1.1e-8, 1.1e+8, false],
-            [1.1e+8, 1.1e+8, true],
             [1.1e+8, 1.1e-8, false],
+            [1.1e-8, 1.1e+8, false],
+
+            [1.1e+8, 1.1e+8, true],
+            [1.1e-8, 1.1e-8, true],
         ];
     }
 
     public static function mathNotEqual(): array
     {
         return [
-            [0, 0, false],
+            ['0', '0', false],
 
-            [-1, 0, true],
-            [0, 5, true],
-            [0, -1, true],
+            ['0', '-0', false],
+            ['-0', '0', false],
+            ['-0', '-0', false],
 
-            [1.112, 1.113, true],
-            [1.112, 1.113, true],
+            ['0', '+0', false],
+            ['+0', '0', false],
+            ['+0', '+0', false],
+
+            ['0', '5', true],
+            ['5', '0', true],
+
+            ['0', '-5', true],
+            ['-5', '0', true],
+
+            ['+5', '+5', false],
+            ['-5', '-5', false],
+
+            ['+5', '-5', true],
+            ['-5', '+5', true],
+
+            [1.11, 1.112, true],
+            [1.112, 1.11, true],
             [1.112, 1.112, false],
 
-            [1.1e-8, 1.1e+8, true],
-            [1.1e+8, 1.1e+8, false],
             [1.1e+8, 1.1e-8, true],
+            [1.1e-8, 1.1e+8, true],
+
+            [1.1e+8, 1.1e+8, false],
+            [1.1e-8, 1.1e-8, false],
         ];
     }
 }

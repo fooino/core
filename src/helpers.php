@@ -250,61 +250,61 @@ if (!function_exists('roundClose')) {
 
 if (!function_exists('greaterThan')) {
     /**
-     * Compare two numbers
+     * Check if the first number is strictly greater than the second using arbitrary precision comparison
      */
-    function greaterThan(string|int|float $a, string|int|float $b): bool
+    function greaterThan(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::greaterThan(a: $a, b: $b);
+        return Math::greaterThan(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('greaterThanOrEqual')) {
     /**
-     * Compare two numbers
+     * Check if the first number is greater than or equal to the second using arbitrary precision comparison
      */
-    function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
+    function greaterThanOrEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::greaterThanOrEqual(a: $a, b: $b);
+        return Math::greaterThanOrEqual(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('lessThan')) {
     /**
-     * Compare two numbers
+     * Check if the first number is strictly less than the second using arbitrary precision comparison
      */
-    function lessThan(string|int|float $a, string|int|float $b): bool
+    function lessThan(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::lessThan(a: $a, b: $b);
+        return Math::lessThan(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('lessThanOrEqual')) {
     /**
-     * Compare two numbers
+     * Check if the first number is less than or equal to the second using arbitrary precision comparison
      */
-    function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
+    function lessThanOrEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::lessThanOrEqual(a: $a, b: $b);
+        return Math::lessThanOrEqual(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('equal')) {
     /**
-     * Compare two numbers
+     * Check if two numbers are exactly equal using arbitrary precision comparison
      */
-    function equal(string|int|float $a, string|int|float $b): bool
+    function equal(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::equal(a: $a, b: $b);
+        return Math::equal(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('notEqual')) {
     /**
-     * Compare two numbers
+     * Check if two numbers differ from each other using arbitrary precision comparison
      */
-    function notEqual(string|int|float $a, string|int|float $b): bool
+    function notEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::notEqual(a: $a, b: $b);
+        return Math::notEqual(num1: $num1, num2: $num2);
     }
 }
 

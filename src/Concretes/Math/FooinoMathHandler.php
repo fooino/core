@@ -273,39 +273,41 @@ class FooinoMathHandler implements Mathable
         return $this->calc(method: 'bcround', operand: (array) $number, args: ['precision' => $precision, 'mode' => $mode]);
     }
 
-    public function greaterThan(string|int|float $a, string|int|float $b): bool
+    public function greaterThan(string|int|float $num1, string|int|float $num2): bool
     {
-        return $this->compare($a, $b) === 1;
+        return $this->compare(num1: $num1, num2: $num2) === 1;
     }
 
-    public function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
+    public function greaterThanOrEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return $this->compare($a, $b) !== -1;
+        return $this->compare(num1: $num1, num2: $num2) !== -1;
     }
 
-    public function lessThan(string|int|float $a, string|int|float $b): bool
+    public function lessThan(string|int|float $num1, string|int|float $num2): bool
     {
-        return $this->compare($a, $b) === -1;
+        return $this->compare(num1: $num1, num2: $num2) === -1;
     }
 
-    public function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
+    public function lessThanOrEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return $this->compare($a, $b) !== 1;
+        return $this->compare(num1: $num1, num2: $num2) !== 1;
     }
 
-    public function equal(string|int|float $a, string|int|float $b): bool
+    public function equal(string|int|float $num1, string|int|float $num2): bool
     {
-        return $this->compare($a, $b) === 0;
+        return $this->compare(num1: $num1, num2: $num2) === 0;
     }
 
-    public function notEqual(string|int|float $a, string|int|float $b): bool
+    public function notEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return !$this->equal($a, $b);
+        return !$this->equal(num1: $num1, num2: $num2);
     }
 
-    private function compare(string|int|float $a, string|int|float $b): int
+    private function compare(string|int|float $num1, string|int|float $num2): int
     {
-        return bccomp(num1: $this->convertScientificNumber(number: $a), num2: $this->convertScientificNumber(number: $b), scale: self::BC_SCALE);
+        list($num1, $num2) = $this->validateAndNormalizeNumbersForCompare(num1: $num1, num2: $num2);
+
+        return bccomp(num1: $num1, num2: $num2, scale: self::BC_SCALE);
     }
 
     /**
@@ -511,6 +513,25 @@ class FooinoMathHandler implements Mathable
         }
 
         return $numbers;
+    }
+
+    private function validateAndNormalizeNumbersForCompare(string|int|float $num1, string|int|float $num2): array
+    {
+        $num1 = $this->convertScientificNumber(number: $num1);
+
+        $num2 = $this->convertScientificNumber(number: $num2);
+
+        if (
+            !is_numeric($num1) ||
+            !is_numeric($num2)
+        ) {
+            $this->throwInvalidArgumentTypeException(method: 'bccomp', operand: [$num1, $num2]);
+        }
+
+        return [
+            $num1,
+            $num2
+        ];
     }
 
     private function throwInvalidPrecisionException(): never

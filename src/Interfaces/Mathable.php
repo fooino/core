@@ -92,32 +92,32 @@ interface Mathable
     public function roundClose(string|int|float|array $number, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): string|array;
 
     /**
-     * compare two numbers
+     * Check if the first number is strictly greater than the second using arbitrary precision comparison
      */
-    public function greaterThan(string|int|float $a, string|int|float $b): bool;
+    public function greaterThan(string|int|float $num1, string|int|float $num2): bool;
 
     /**
-     * compare two numbers
+     * Check if the first number is greater than or equal to the second using arbitrary precision comparison
      */
-    public function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool;
+    public function greaterThanOrEqual(string|int|float $num1, string|int|float $num2): bool;
 
     /**
-     * compare two numbers
+     * Check if the first number is strictly less than the second using arbitrary precision comparison
      */
-    public function lessThan(string|int|float $a, string|int|float $b): bool;
+    public function lessThan(string|int|float $num1, string|int|float $num2): bool;
 
     /**
-     * compare two numbers
+     * Check if the first number is less than or equal to the second using arbitrary precision comparison
      */
-    public function lessThanOrEqual(string|int|float $a, string|int|float $b): bool;
+    public function lessThanOrEqual(string|int|float $num1, string|int|float $num2): bool;
 
     /**
-     * compare two numbers
+     * Check if two numbers are exactly equal using arbitrary precision comparison
      */
-    public function equal(string|int|float $a, string|int|float $b): bool;
+    public function equal(string|int|float $num1, string|int|float $num2): bool;
 
     /**
-     * compare two numbers
+     * Check if two numbers differ from each other using arbitrary precision comparison
      */
-    public function notEqual(string|int|float $a, string|int|float $b): bool;
+    public function notEqual(string|int|float $num1, string|int|float $num2): bool;
 }

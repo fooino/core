@@ -2,7 +2,6 @@
 
 namespace Fooino\Core\Tests\Unit;
 
-use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Exceptions\MathCalculationException;
 use Fooino\Core\Facades\Math;
 use Fooino\Core\Tests\Data\Datasets;
@@ -353,18 +352,18 @@ describe('Math facade using FooinoMathHandler', function () {
 
         foreach (Datasets::mathGreaterThan() as $dataset) {
 
-            $a = $dataset[0];
-            $b = $dataset[1];
+            $num1 = $dataset[0];
+            $num2 = $dataset[1];
             $expected = $dataset[2];
 
             if (rand(0, 1)) {
 
-                expect(Math::greaterThan($a, $b))->toBe($expected);
+                expect(Math::greaterThan($num1, $num2))->toBe($expected);
 
                 continue;
             }
 
-            expect(greaterThan($a, $b))->toBe($expected);
+            expect(greaterThan($num1, $num2))->toBe($expected);
 
             // 
         }
@@ -376,18 +375,18 @@ describe('Math facade using FooinoMathHandler', function () {
 
         foreach (Datasets::mathGreaterThanOrEqual() as $dataset) {
 
-            $a = $dataset[0];
-            $b = $dataset[1];
+            $num1 = $dataset[0];
+            $num2 = $dataset[1];
             $expected = $dataset[2];
 
             if (rand(0, 1)) {
 
-                expect(Math::greaterThanOrEqual($a, $b))->toBe($expected);
+                expect(Math::greaterThanOrEqual($num1, $num2))->toBe($expected);
 
                 continue;
             }
 
-            expect(greaterThanOrEqual($a, $b))->toBe($expected);
+            expect(greaterThanOrEqual($num1, $num2))->toBe($expected);
 
             // 
         }
@@ -399,18 +398,18 @@ describe('Math facade using FooinoMathHandler', function () {
 
         foreach (Datasets::mathLessThan() as $dataset) {
 
-            $a = $dataset[0];
-            $b = $dataset[1];
+            $num1 = $dataset[0];
+            $num2 = $dataset[1];
             $expected = $dataset[2];
 
             if (rand(0, 1)) {
 
-                expect(Math::lessThan($a, $b))->toBe($expected);
+                expect(Math::lessThan($num1, $num2))->toBe($expected);
 
                 continue;
             }
 
-            expect(lessThan($a, $b))->toBe($expected);
+            expect(lessThan($num1, $num2))->toBe($expected);
 
             // 
         }
@@ -422,18 +421,18 @@ describe('Math facade using FooinoMathHandler', function () {
 
         foreach (Datasets::mathLessThanOrEqual() as $dataset) {
 
-            $a = $dataset[0];
-            $b = $dataset[1];
+            $num1 = $dataset[0];
+            $num2 = $dataset[1];
             $expected = $dataset[2];
 
             if (rand(0, 1)) {
 
-                expect(Math::lessThanOrEqual($a, $b))->toBe($expected);
+                expect(Math::lessThanOrEqual($num1, $num2))->toBe($expected);
 
                 continue;
             }
 
-            expect(lessThanOrEqual($a, $b))->toBe($expected);
+            expect(lessThanOrEqual($num1, $num2))->toBe($expected);
             // 
         }
 
@@ -444,18 +443,18 @@ describe('Math facade using FooinoMathHandler', function () {
 
         foreach (Datasets::mathEqual() as $dataset) {
 
-            $a = $dataset[0];
-            $b = $dataset[1];
+            $num1 = $dataset[0];
+            $num2 = $dataset[1];
             $expected = $dataset[2];
 
             if (rand(0, 1)) {
 
-                expect(Math::equal($a, $b))->toBe($expected);
+                expect(Math::equal($num1, $num2))->toBe($expected);
 
                 continue;
             }
 
-            expect(equal($a, $b))->toBe($expected);
+            expect(equal($num1, $num2))->toBe($expected);
 
             // 
         }
@@ -467,18 +466,18 @@ describe('Math facade using FooinoMathHandler', function () {
 
         foreach (Datasets::mathNotEqual() as $dataset) {
 
-            $a = $dataset[0];
-            $b = $dataset[1];
+            $num1 = $dataset[0];
+            $num2 = $dataset[1];
             $expected = $dataset[2];
 
             if (rand(0, 1)) {
 
-                expect(Math::notEqual($a, $b))->toBe($expected);
+                expect(Math::notEqual($num1, $num2))->toBe($expected);
 
                 continue;
             }
 
-            expect(notEqual($a, $b))->toBe($expected);
+            expect(notEqual($num1, $num2))->toBe($expected);
 
             // 
         }
@@ -1257,6 +1256,132 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getWith())->toBe([
                     'method'        => 'bcsqrt',
                     'operand'       => [1, -1],
+                    'args'          => []
+                ]);
+            }
+        });
+
+        test('operands for comparing must be numeric', function () {
+
+            expect(fn() => greaterThan(1, 'test'))->toThrow(MathCalculationException::class);
+            expect(fn() => greaterThanOrEqual('test', 1))->toThrow(MathCalculationException::class);
+
+            expect(fn() => lessThan(1, 'test'))->toThrow(MathCalculationException::class);
+            expect(fn() => lessThanOrEqual('test', 1))->toThrow(MathCalculationException::class);
+
+            expect(fn() => equal(1, 'test'))->toThrow(MathCalculationException::class);
+            expect(fn() => notEqual('test', 1))->toThrow(MathCalculationException::class);
+
+            try {
+
+                Math::greaterThan('test', 1);
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+                expect($e->getCode())->toBe(1103);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bccomp',
+                    'operand'       => ['test', '1'],
+                    'args'          => []
+                ]);
+            }
+
+            try {
+
+                Math::greaterThanOrEqual(1, 'test');
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+                expect($e->getCode())->toBe(1103);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bccomp',
+                    'operand'       => ['1', 'test'],
+                    'args'          => []
+                ]);
+            }
+
+            try {
+
+                Math::lessThan('test', 1);
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+                expect($e->getCode())->toBe(1103);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bccomp',
+                    'operand'       => ['test', '1'],
+                    'args'          => []
+                ]);
+            }
+
+            try {
+
+                Math::lessThanOrEqual(1, 'test');
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+                expect($e->getCode())->toBe(1103);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bccomp',
+                    'operand'       => ['1', 'test'],
+                    'args'          => []
+                ]);
+            }
+
+            try {
+
+                Math::equal('test', 1);
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+                expect($e->getCode())->toBe(1103);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bccomp',
+                    'operand'       => ['test', '1'],
+                    'args'          => []
+                ]);
+            }
+
+            try {
+
+                Math::notEqual(1, 'test');
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+                expect($e->getCode())->toBe(1103);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bccomp',
+                    'operand'       => ['1', 'test'],
                     'args'          => []
                 ]);
             }
