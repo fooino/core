@@ -200,3 +200,60 @@ nullIfBlankOrZeroInput(key: 'title');                                      // nu
 nullIfBlankOrZeroInput(key: 'title', fallback: 'fallback');                // 'fallback' when blank or zero
 nullIfBlankOrZeroInput(key: 'title', request: $customRequest);             // resolve from a specific request instance
 ```
+
+## percentageChange
+
+Calculate the relative percentage change from `$from` to `$to`, handling division-by-zero when the base value is zero.
+
+```php
+percentageChange(from: 200, to: 50);                // '-75'   (50% of 200 = 100, remaining 50)
+percentageChange(from: 20, to: 40);                 // '100'   (doubled)
+percentageChange(from: 0, to: 15);                  // '100'   (had none → now has some)
+percentageChange(from: 15, to: 0);                  // '-100'  (had some → now has none)
+percentageChange(from: 0, to: 0);                   // '0'     (no change)
+percentageChange(from: 13, to: 14);                 // '7.69'  (truncated to 2 decimal places)
+percentageChange(from: 13, to: 14, precision: 12);  // '7.6923076923'
+```
+
+## unitNumberFormat
+
+Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions). Supports Laravel pluralization via the `count` parameter.
+
+define translations as
+
+```php
+  'trillion' => '[1] Trillion|[2,*] Trillions',
+  'billion'  => '[1] Billion|[2,*] Billions',
+  'million'  => '[1] Million|[2,*] Millions',
+  'thousand' => '[1] Thousand|[2,*] Thousands',
+``` 
+
+in `en/msg.php` file.
+
+```php
+unitNumberFormat(number: 1_000_000, unit: 'USD Dollar');              // '1 Million USD Dollar'
+unitNumberFormat(number: 5_000_000, unit: '$');                       // '5 Millions $'
+unitNumberFormat(number: -123_076_012, unit: '$');                    // '-123.076 Millions $'
+unitNumberFormat(number: 1.e20, unit: 'Persons');                     // '100,000,000 Trillions Persons'
+unitNumberFormat(number: 2501, unit: 'Persons');                      // '2.501 Thousands Persons'
+unitNumberFormat(number: 0.011, unit: 'seconds');                     // '0.011 seconds'
+unitNumberFormat(number: 0, unit: 'seconds');                         // '0 seconds'
+unitNumberFormat(number: 123_076_012, unit: '$', precision: 5);       // '123.07601 Millions $'
+```
+
+## unitSizeFormat
+
+Format bytes into a human-readable file size string using binary units (1 KB = 1024 B).
+
+```php
+unitSizeFormat(bytes: 1649267441664);                // '1.5 TB'
+unitSizeFormat(bytes: 1610612736);                   // '1.5 GB'
+unitSizeFormat(bytes: 1572864);                      // '1.5 MB'
+unitSizeFormat(bytes: 1536);                         // '1.5 KB'
+unitSizeFormat(bytes: 500);                          // '500 Bytes'
+unitSizeFormat(bytes: 1);                            // '1 byte'
+unitSizeFormat(bytes: 0);                            // '0 byte'
+unitSizeFormat(bytes: -10);                          // '-10 msg.isInvalid'
+unitSizeFormat(bytes: 1234567);                      // '1.177 MB'
+unitSizeFormat(bytes: 1234567, precision: 5);        // '1.17737 MB'
+```

@@ -618,24 +618,46 @@ describe('Helpers unit tests', function () {
     test('percentageChange method', function () {
 
         expect(percentageChange(from: 200, to: 50))->toBe('-75');
+        expect(percentageChange(from: 50, to: 200))->toBe('300');
+
         expect(percentageChange(from: 20, to: 40))->toBe('100');
         expect(percentageChange(from: 40, to: 20))->toBe('-50');
+
         expect(percentageChange(from: 10, to: 12))->toBe('20');
+        expect(percentageChange(from: 12, to: 10))->toBe('-16.66');
 
         expect(percentageChange(from: 12, to: 12))->toBe('0');
         expect(percentageChange(from: 12, to: -12))->toBe('-200');
-        expect(percentageChange(from: 12, to: 0))->toBe('-100');
-        expect(percentageChange(from: 0, to: -12))->toBe('100');
         expect(percentageChange(from: -12, to: 12))->toBe('200');
 
         expect(percentageChange(from: 13, to: 14))->toBe('7.69');
         expect(percentageChange(from: 13, to: 14, precision: 12))->toBe('7.6923076923');
 
-        $zeros = array_filter(Datasets::zeros(), 'is_numeric');
-        $lastIndex = count($zeros) - 1;
+        $zeros = array_filter(Datasets::shuffleZeros(), 'is_numeric');
 
-        expect(percentageChange(from: 12, to: $zeros[rand(0, $lastIndex)]))->toBe('-100');
-        expect(percentageChange(from: $zeros[rand(0, $lastIndex)], to: -12))->toBe('100');
+        foreach ($zeros as $zero) {
+
+            expect(percentageChange(from: 12, to: $zero))->toBe('-100');
+            expect(percentageChange(from: $zero, to: 12))->toBe('100');
+
+            expect(percentageChange(from: -12, to: $zero))->toBe('-100');
+            expect(percentageChange(from: $zero, to: -12))->toBe('100');
+
+            expect(percentageChange(from: $zero, to: $zero))->toBe('0');
+        }
+
+        expect(percentageChange(from: 1, to: 3))->toBe('200');
+        expect(percentageChange(from: -12, to: -24))->toBe('-100');
+        expect(percentageChange(from: -24, to: -12))->toBe('50');
+
+        expect(percentageChange(from: 10.5, to: 20.5))->toBe('95.23');
+        expect(percentageChange(from: '10', to: '20'))->toBe('100');
+
+        expect(percentageChange(from: 1000, to: 1001))->toBe('0.1');
+        expect(percentageChange(from: 1001, to: 1000))->toBe('-0.09');
+
+        expect(percentageChange(from: 1000000, to: 2000000))->toBe('100');
+        expect(percentageChange(from: 0.0001, to: 0.0002))->toBe('100');
     });
 
     test('unitNumberFormat method', function () {
@@ -648,6 +670,10 @@ describe('Helpers unit tests', function () {
         expect(unitNumberFormat(number: 1.e20, unit: 'Persons'))->toBe('100,000,000 ' . $trillion . ' Persons');
 
         expect(unitNumberFormat(number: 10_000_000_000,))->toBe('10 ' . $billion);
+
+        expect(unitNumberFormat(number: -10_000_000_000,))->toBe('-10 ' . $billion);
+
+        expect(unitNumberFormat(number: 1_000_000_000,))->toBe('1 ' . $billion);
 
         expect(unitNumberFormat(number: 123_000_000, unit: '$'))->toBe('123 ' . $million . ' $');
 
@@ -687,17 +713,27 @@ describe('Helpers unit tests', function () {
         expect(unitSizeFormat(bytes: 2048))->toBe('2 KB');
         expect(unitSizeFormat(bytes: 1536))->toBe('1.5 KB');
 
-        expect(unitSizeFormat(bytes: 500))->toBe('500 bytes');
-        expect(unitSizeFormat(bytes: 2))->toBe('2 bytes');
+        expect(unitSizeFormat(bytes: 500))->toBe('500 Bytes');
+        expect(unitSizeFormat(bytes: 2))->toBe('2 Bytes');
 
-        expect(unitSizeFormat(bytes: 1))->toBe('1 byte');
+        expect(unitSizeFormat(bytes: 1))->toBe('1 Byte');
 
-        expect(unitSizeFormat(bytes: 0))->toBe('0 byte');
+        expect(unitSizeFormat(bytes: 0))->toBe('0 Byte');
 
         expect(unitSizeFormat(bytes: -10))->toBe('-10 msg.isInvalid');
 
         expect(unitSizeFormat(bytes: 1234567))->toBe('1.177 MB');
         expect(unitSizeFormat(bytes: 1234567, precision: 5))->toBe('1.17737 MB');
+
+        expect(unitSizeFormat(bytes: 1234567, precision: 0))->toBe('1 MB');
+        expect(unitSizeFormat(bytes: 1536, precision: 0))->toBe('1 KB');
+
+        expect(unitSizeFormat(bytes: '1024'))->toBe('1 KB');
+        expect(unitSizeFormat(bytes: '500'))->toBe('500 Bytes');
+        expect(unitSizeFormat(bytes: '0'))->toBe('0 Byte');
+
+        expect(unitSizeFormat(bytes: 5497558138880))->toBe('5 TB');
+        expect(unitSizeFormat(bytes: 2199023255552, precision: 0))->toBe('2 TB');
     });
 
     test('sanitizeUrl and sanitizeSlug method', function () {

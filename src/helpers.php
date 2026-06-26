@@ -18,7 +18,7 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 
-if (!defined('CONSTANTS_DEFINED')) {
+if (!defined('FOOINO_CORE_CONSTANTS_DEFINED')) {
 
     define('STANDARD_DATE_TIME_FORMAT', 'Y-m-d H:i:s');
     define('STANDARD_DATE_FORMAT', 'Y-m-d');
@@ -26,28 +26,9 @@ if (!defined('CONSTANTS_DEFINED')) {
     define('FOOINO_PER_PAGE', 30);
     define('FOOINO_MAX_PER_PAGE', 300);
 
-    define('FOOINO_PRIORITY_STEP', 1000);
+    define('FOOINO_PRIORITY_STEP', 10_000);
 
-
-    define('FOOINO_IMAGE_EXTENSION', ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp']);
-    define('FOOINO_VIDEO_EXTENSION', ['mp4']);
-    define('FOOINO_EXCEL_EXTENSION', ['xlsx', 'xls']);
-    define('FOOINO_IMAGE_AND_VIDEO_EXTENSION', [...FOOINO_IMAGE_EXTENSION, ...FOOINO_VIDEO_EXTENSION]);
-
-    define('FOOINO_VERY_LOW_TTL_TIME', (60 * 5)); // 5 minutes
-    define('FOOINO_LOW_TTL_TIME', (60 * 60)); // 1 hour
-    define('FOOINO_MEDIUM_TTL_TIME', (60 * 60 * 24)); // 1 day
-    define('FOOINO_HIGH_TTL_TIME', (60 * 60 * 24 * 7)); // 1 week
-    define('FOOINO_VERY_HIGH_TTL_TIME', (60 * 60 * 24 * 30)); // 1 month
-
-    define('FOOINO_CACHE_KEY', [
-        'ACTIVE_LANGUAGES'  => 'fooino:languages:active',
-        'MODELS'            => 'fooino:models',
-        'ALL_COUNTRIES'     => 'fooino:countries:all',
-        'ACTIVE_COUNTRIES'  => 'fooino:countries:active',
-    ]);
-
-    define('CONSTANTS_DEFINED', true);
+    define('FOOINO_CORE_CONSTANTS_DEFINED', true);
 }
 
 if (!function_exists('isJson')) {
@@ -608,28 +589,17 @@ if (!function_exists('percentageChange')) {
     /**
      * Calculate the relative percentage change from $from to $to.
      */
-    function percentageChange(
-        int|float $from,
-        int|float $to,
-        int $precision = 2
-    ): string {
-
+    function percentageChange(string|int|float $from, string|int|float $to, int $precision = 2): string
+    {
         return match (true) {
 
-            isZero($from)   => '100',
+            isZero($from) && isZero($to)    => '0',
 
-            isZero($to)     => '-100',
+            isZero($from)                   => '100',
 
-            default         => math(precision: $precision)
-                ->number(
-                    multiply(
-                        divide(
-                            subtract($to, $from),
-                            abs($from)
-                        ),
-                        100
-                    )
-                )
+            isZero($to)                     => '-100',
+
+            default                         => math(precision: $precision)->number(multiply(divide(subtract($to, $from), abs($from)), 100))
         };
     }
 }
@@ -638,28 +608,47 @@ if (!function_exists('unitNumberFormat')) {
     /**
      * Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions)
      */
-    function unitNumberFormat(int|float|string $number, string $unit = '', int $precision = 3): string
+    function unitNumberFormat(string|int|float $number, string $unit = '', int $precision = 3): string
     {
-        return match (true) {
-
-            greaterThanOrEqual(abs($number), '1000000000000')      => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000000')) . ' ' . __('msg.trillion') . ' ' . $unit),
-
-            greaterThanOrEqual(abs($number), '1000000000')         => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000')) . ' ' . __('msg.billion') . ' ' . $unit),
-
-            greaterThanOrEqual(abs($number), '1000000')            => trim(math(precision: $precision)->numberFormat(divide($number, '1000000')) . ' ' . __('msg.million') . ' ' . $unit),
-
-            greaterThanOrEqual(abs($number), '1000')               => trim(math(precision: $precision)->numberFormat(divide($number, '1000')) . ' ' . __('msg.thousand') . ' ' . $unit),
-
-            default                                                => trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit),
+        $threshold = match (true) {
+            greaterThanOrEqual(abs($number), '1000000000000') => '1000000000000',
+            greaterThanOrEqual(abs($number), '1000000000')    => '1000000000',
+            greaterThanOrEqual(abs($number), '1000000')       => '1000000',
+            greaterThanOrEqual(abs($number), '1000')          => '1000',
+            default                                           => null,
         };
+
+        $unitKey = match ($threshold) {
+            '1000000000000' => 'msg.trillion',
+            '1000000000'    => 'msg.billion',
+            '1000000'       => 'msg.million',
+            '1000'          => 'msg.thousand',
+            default         => null,
+        };
+
+        if ($threshold === null) {
+            return trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit);
+        }
+
+        $divided = divide($number, $threshold);
+
+        $count = equal(abs($divided), '1') ? 1 : 2;
+
+        return trim(
+            math(precision: $precision)->numberFormat($divided)
+                . ' '
+                . __($unitKey, ['count' => $count])
+                . ' '
+                . $unit
+        );
     }
 }
 
 if (!function_exists('unitSizeFormat')) {
     /**
-     * Format bytes into a human-readable file size string (B, KB, MB, GB, TB)
+     * Format bytes into a human-readable file size string (Bytes, KB, MB, GB, TB). the method followd Binary standard but show the unit in SI standarad
      */
-    function unitSizeFormat(int|float|string $bytes, int $precision = 3): string
+    function unitSizeFormat(string|int|float $bytes, int $precision = 3): string
     {
         return match (true) {
 
@@ -671,16 +660,14 @@ if (!function_exists('unitSizeFormat')) {
 
             greaterThanOrEqual($bytes, '1024')            => math(precision: $precision)->numberFormat(divide($bytes, '1024')) . ' KB',
 
-            greaterThan($bytes, '1')                      => $bytes . ' bytes',
+            greaterThan($bytes, '1')                      => $bytes . ' Bytes',
 
-            greaterThanOrEqual($bytes, '0')               => $bytes . ' byte',
+            greaterThanOrEqual($bytes, '0')               => $bytes . ' Byte',
 
             default                                       => $bytes . ' ' . __('msg.isInvalid'),
         };
     }
 }
-
-
 
 if (!function_exists('sanitizer')) {
     /**
