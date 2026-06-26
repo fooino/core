@@ -795,6 +795,11 @@ class Datasets
             [0.499,  0, RoundingMode::HalfAwayFromZero, '0'],     // just below halfway → rounds towards zero
             [-0.499, 0, RoundingMode::HalfAwayFromZero, '0'],     // just below halfway → rounds towards zero
 
+            [999.995,  0, RoundingMode::HalfAwayFromZero, '1000'],    // integer-boundary carry
+            [-999.995, 0, RoundingMode::HalfAwayFromZero, '-1000'],
+            [999.5,    0, RoundingMode::HalfAwayFromZero, '1000'],
+            [998.5,    0, RoundingMode::HalfAwayFromZero, '999'],
+
             [[1.1, 1.5, 0.499], 0, RoundingMode::HalfAwayFromZero, ['1', '2', '0']],
 
             [1.2,     2, RoundingMode::HalfAwayFromZero, '1.2'],
@@ -806,6 +811,9 @@ class Datasets
             [-1.004,  2, RoundingMode::HalfAwayFromZero, '-1'],
             [1.995,   2, RoundingMode::HalfAwayFromZero, '2'],      // halfway + carry
             [-1.995,  2, RoundingMode::HalfAwayFromZero, '-2'],
+
+            [999.995, 2, RoundingMode::HalfAwayFromZero, '1000'],  // precision=2, carry past integer boundary
+            [-999.995, 2, RoundingMode::HalfAwayFromZero, '-1000'],
 
             [1.1,    0, RoundingMode::HalfTowardsZero, '1'],      // below halfway → normal rounding
             [1.5,    0, RoundingMode::HalfTowardsZero, '1'],      // halfway → toward zero (not 2)
@@ -828,6 +836,10 @@ class Datasets
             [0.005,   2, RoundingMode::HalfTowardsZero, '0'],     // halfway → toward zero
             [-0.005,  2, RoundingMode::HalfTowardsZero, '0'],     // halfway → toward zero
 
+            [999.995, 0, RoundingMode::HalfTowardsZero, '1000'],   // integer-boundary, above halfway → normal rounding up
+            [-999.995, 0, RoundingMode::HalfTowardsZero, '-1000'],
+            [999.999, 0, RoundingMode::HalfTowardsZero, '1000'],   // above halfway → normal rounding up
+
             [1.1,    0, RoundingMode::HalfEven, '1'],            // normal rounding
             [1.5,    0, RoundingMode::HalfEven, '2'],            // half → even neighbour (2 is even)
             [2.5,    0, RoundingMode::HalfEven, '2'],            // half → even (2)
@@ -847,6 +859,11 @@ class Datasets
             [0.005,   2, RoundingMode::HalfEven, '0'],          // half → even (0.00)
             [-0.005,  2, RoundingMode::HalfEven, '0'],          // half → even (0.00)
             [1.004,   2, RoundingMode::HalfEven, '1'],          // just below half → normal rounding down
+
+            [999.5,   0, RoundingMode::HalfEven, '1000'],       // integer-boundary, halfway → even (1000)
+            [998.5,   0, RoundingMode::HalfEven, '998'],        // halfway → even (998)
+            [-999.5,  0, RoundingMode::HalfEven, '-1000'],      // halfway → even (-1000)
+            [-998.5,  0, RoundingMode::HalfEven, '-998'],
 
             [1.1,    0, RoundingMode::HalfOdd, '1'],            // normal rounding
             [1.5,    0, RoundingMode::HalfOdd, '1'],            // half → odd neighbour (1 is odd, not 2)
@@ -868,6 +885,11 @@ class Datasets
             [-0.005,  2, RoundingMode::HalfOdd, '-0.01'],       // half → odd (-0.01)
             [1.004,   2, RoundingMode::HalfOdd, '1'],           // just below half → normal rounding down
 
+            [999.5,   0, RoundingMode::HalfOdd, '999'],         // integer-boundary, halfway → odd (999)
+            [998.5,   0, RoundingMode::HalfOdd, '999'],         // halfway → odd (999)
+            [-999.5,  0, RoundingMode::HalfOdd, '-999'],
+            [-998.5,  0, RoundingMode::HalfOdd, '-999'],
+
             [1.1,    0, RoundingMode::TowardsZero, '1'],      // truncate → 1
             [1.5,    0, RoundingMode::TowardsZero, '1'],      // half does not round up → 1
             [1.9,    0, RoundingMode::TowardsZero, '1'],      // just below 2 → 1
@@ -888,6 +910,10 @@ class Datasets
             [-1.995,  2, RoundingMode::TowardsZero, '-1.99'], // truncate toward zero → -1.99
             [0.005,   2, RoundingMode::TowardsZero, '0'],     // truncate → 0.00
 
+            [999.995, 0, RoundingMode::TowardsZero, '999'],    // integer-boundary, truncate toward zero
+            [-999.995, 0, RoundingMode::TowardsZero, '-999'],
+            [999.999, 0, RoundingMode::TowardsZero, '999'],
+
             [1.0,    0, RoundingMode::AwayFromZero, '1'],      // exact integer → no change
             [1.1,    0, RoundingMode::AwayFromZero, '2'],      // any fraction → away from zero (up)
             [1.5,    0, RoundingMode::AwayFromZero, '2'],      // halfway included
@@ -907,6 +933,10 @@ class Datasets
             [-1.999,  2, RoundingMode::AwayFromZero, '-2'],     // negative, rounds down with carry
             [0.001,   2, RoundingMode::AwayFromZero, '0.01'],   // tiny fraction → away from zero
             [-0.001,  2, RoundingMode::AwayFromZero, '-0.01'],  // tiny negative fraction → away
+
+            [999.1,   0, RoundingMode::AwayFromZero, '1000'],   // integer-boundary, any fraction → away
+            [-999.1,  0, RoundingMode::AwayFromZero, '-1000'],
+            [999.001, 2, RoundingMode::AwayFromZero, '999.01'],   // precision=2, any fraction at rounding pos → away
 
             [1.0,     0, RoundingMode::NegativeInfinity, '1'],       // exact integer → unchanged
             [1.0001,  0, RoundingMode::NegativeInfinity, '1'],       // tiny fraction → round down (floor)
@@ -929,6 +959,11 @@ class Datasets
             [0.001,   2, RoundingMode::NegativeInfinity, '0'],      // tiny positive → 0.00
             [-0.001,  2, RoundingMode::NegativeInfinity, '-0.01'],  // tiny negative → -0.01
 
+            [999.995, 0, RoundingMode::NegativeInfinity, '999'],    // integer-boundary, round down
+            [-999.995, 0, RoundingMode::NegativeInfinity, '-1000'], // floor: -1000 < -999.995
+            [999.1,   0, RoundingMode::NegativeInfinity, '999'],
+            [-999.1,  0, RoundingMode::NegativeInfinity, '-1000'],
+
             [1.0,    0, RoundingMode::PositiveInfinity,  '1'],      // exact integer → unchanged
             [1.1,    0, RoundingMode::PositiveInfinity,  '2'],      // any fraction → round up (ceil)
             [1.5,    0, RoundingMode::PositiveInfinity,  '2'],      // half → up
@@ -949,6 +984,11 @@ class Datasets
             [-1.005,  2, RoundingMode::PositiveInfinity,  '-1'],    // half → -1.00
             [-1.999,  2, RoundingMode::PositiveInfinity,  '-1.99'],  // ceil of -199.9 → -199 → -1.99
             [-0.001,  2, RoundingMode::PositiveInfinity,  '0'],     // negative tiny → ceil to zero
+
+            [999.995, 0, RoundingMode::PositiveInfinity,  '1000'],  // integer-boundary, any fraction → up
+            [-999.995, 0, RoundingMode::PositiveInfinity,  '-999'], // ceil: -999 > -999.995
+            [999.1,   0, RoundingMode::PositiveInfinity,  '1000'],
+            [-999.1,  0, RoundingMode::PositiveInfinity,  '-999'],
         ];
     }
 

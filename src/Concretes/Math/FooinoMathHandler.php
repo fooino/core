@@ -8,7 +8,7 @@ use RoundingMode;
 
 class FooinoMathHandler implements Mathable
 {
-    private array $instances = [];
+    private static array $instances = [];
 
     private const int BC_SCALE = 12;
 
@@ -63,7 +63,7 @@ class FooinoMathHandler implements Mathable
          * Do not chain setPrecision with setPrecision like Math::setPrecision(2)->setPrecision(3)
          * It can increase memory usage
          */
-        return $this->instances[$precision] ??= new static(precision: $precision);
+        return self::$instances[$precision] ??= new static(precision: $precision);
     }
 
     /**

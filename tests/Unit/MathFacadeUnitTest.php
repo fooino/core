@@ -2,6 +2,7 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use Fooino\Core\Concretes\Math\FooinoMathHandler;
 use Fooino\Core\Exceptions\MathCalculationException;
 use Fooino\Core\Facades\Math;
 use Fooino\Core\Tests\Data\Datasets;
@@ -18,6 +19,26 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(math(precision: 5)->getPrecision())->toBe(5);
 
         expect(bcscale())->toBe(0);
+    });
+
+    test('setPrecision returns same instance for same precision', function () {
+
+        $a = Math::setPrecision(precision: 5);
+        $b = Math::setPrecision(precision: 5);
+        expect($a)->toBe($b); // same object via singleton cache
+
+        $c = Math::setPrecision(precision: 7);
+        expect($a)->not->toBe($c); // different precision → different instance
+    });
+
+    test('static instances cache works across different handler instances', function () {
+
+        $a = (new FooinoMathHandler())->setPrecision(precision: 5);
+        $b = (new FooinoMathHandler())->setPrecision(precision: 5);
+        expect($a)->toBe($b); // same object via static cache, even from different handlers
+
+        $c = (new FooinoMathHandler())->setPrecision(precision: 7);
+        expect($a)->not->toBe($c); // different precision → different instance
     });
 
     test('convertScientificNumber method', function () {
@@ -1521,6 +1542,85 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getWith())->toBe([
                     'method'        => 'bccomp',
                     'operand'       => ['1', 'test'],
+                    'args'          => []
+                ]);
+            }
+        });
+
+        test('unsupported calc method throws MathCalculationException with code 1106', function () {
+
+            $handler = new FooinoMathHandler();
+
+            $reflector = new \ReflectionMethod($handler, 'calc');
+
+            expect(fn() => $reflector->invoke($handler, 'bcfoobar', [1, 2]))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionUnsupportedFunction');
+
+            try {
+
+                $reflector->invoke($handler, 'bcfoobar', [1, 2]);
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionUnsupportedFunction');
+                expect($e->getCode())->toBe(1106);
+                expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bcfoobar',
+                    'operand'       => [1, 2],
+                    'args'          => []
+                ]);
+            }
+
+
+            $handler = new FooinoMathHandler();
+
+            $reflector = new \ReflectionMethod($handler, 'calcTwoOperand');
+
+            expect(fn() => $reflector->invoke($handler, 'bcfoobar', [1, 2]))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionUnsupportedFunction');
+
+            try {
+
+                $reflector->invoke($handler, 'bcfoobar', [1, 2]);
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionUnsupportedFunction');
+                expect($e->getCode())->toBe(1106);
+                expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bcfoobar',
+                    'operand'       => [1, 2],
+                    'args'          => []
+                ]);
+            }
+
+            $handler = new FooinoMathHandler();
+
+            $reflector = new \ReflectionMethod($handler, 'calcOneOperand');
+
+            expect(fn() => $reflector->invoke($handler, 'bcfoobar', [1, 2]))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionUnsupportedFunction');
+
+            try {
+
+                $reflector->invoke($handler, 'bcfoobar', [1, 2]);
+
+                // 
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionUnsupportedFunction');
+                expect($e->getCode())->toBe(1106);
+                expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'bcfoobar',
+                    'operand'       => [1, 2],
                     'args'          => []
                 ]);
             }
