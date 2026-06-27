@@ -1,7 +1,9 @@
 <?php
 
 use Fooino\Core\Exceptions\FooinoException;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
 use Fooino\Core\Exceptions\TransactionRollBackedException;
+
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
@@ -17,35 +19,22 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 
-if (!defined('CONSTANTS_DEFINED')) {
+if (!defined('FOOINO_CORE_CONSTANTS_DEFINED')) {
+
+    define('STANDARD_DATE_TIME_FORMAT', 'Y-m-d H:i:s');
+    define('STANDARD_DATE_FORMAT', 'Y-m-d');
 
     define('FOOINO_PER_PAGE', 30);
-    define('FOOINO_PRIORITY_STEP', 1000);
+    define('FOOINO_MAX_PER_PAGE', 300);
 
-    define('FOOINO_IMAGE_EXTENSION', ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp']);
-    define('FOOINO_VIDEO_EXTENSION', ['mp4']);
-    define('FOOINO_EXCEL_EXTENSION', ['xlsx', 'xls']);
-    define('FOOINO_IMAGE_AND_VIDEO_EXTENSION', [...FOOINO_IMAGE_EXTENSION, ...FOOINO_VIDEO_EXTENSION]);
+    define('FOOINO_PRIORITY_STEP', 10_000);
 
-    define('FOOINO_VERY_LOW_TTL_TIME', (60 * 5)); // 5 minutes
-    define('FOOINO_LOW_TTL_TIME', (60 * 60)); // 1 hour
-    define('FOOINO_MEDIUM_TTL_TIME', (60 * 60 * 24)); // 1 day
-    define('FOOINO_HIGH_TTL_TIME', (60 * 60 * 24 * 7)); // 1 week
-    define('FOOINO_VERY_HIGH_TTL_TIME', (60 * 60 * 24 * 30)); // 1 month
-
-    define('FOOINO_CACHE_KEY', [
-        'ACTIVE_LANGUAGES'  => 'fooino:languages:active',
-        'MODELS'            => 'fooino:models',
-        'ALL_COUNTRIES'     => 'fooino:countries:all',
-        'ACTIVE_COUNTRIES'  => 'fooino:countries:active',
-    ]);
-
-    define('CONSTANTS_DEFINED', true);
+    define('FOOINO_CORE_CONSTANTS_DEFINED', true);
 }
 
 if (!function_exists('isJson')) {
     /**
-     * Validate a value is json or not.
+     * Determine whether a string is valid JSON
      */
     function isJson(int|float|string|null|bool|array|object $value): bool
     {
@@ -55,7 +44,7 @@ if (!function_exists('isJson')) {
 
 if (!function_exists('jsonEncode')) {
     /**
-     * Encode a value to json format.
+     * Serialize a value to a JSON string, passing through values that are already valid JSON
      */
     function jsonEncode(int|float|string|null|bool|array|object $value, int $flags = 0, int $depth = 512): string|false
     {
@@ -63,21 +52,21 @@ if (!function_exists('jsonEncode')) {
     }
 }
 
-if (!function_exists('jsonEncodePrettified')) {
+if (!function_exists('jsonEncodePretty')) {
     /**
-     * Encode a value to json format for showing purpose.
+     * Serialize a value to a human-readable JSON string with HTML-safe escaping for display
      */
-    function jsonEncodePrettified(string|array $value): string
+    function jsonEncodePretty(string|array $value): string
     {
-        return Json::encodePrettified(value: $value);
+        return Json::encodePretty(value: $value);
     }
 }
 
 if (!function_exists('jsonDecode')) {
     /**
-     * Decode a json to value.
+     * Convert a JSON string back to its original PHP value
      */
-    function jsonDecode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): mixed
+    function jsonDecode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): int|float|string|null|bool|array|object
     {
         return Json::decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
     }
@@ -85,7 +74,7 @@ if (!function_exists('jsonDecode')) {
 
 if (!function_exists('jsonDecodeToArray')) {
     /**
-     * Decode a json to array.
+     * Convert a JSON string to an associative array
      */
     function jsonDecodeToArray(int|float|string|null|bool|array|object $json): array
     {
@@ -93,25 +82,41 @@ if (!function_exists('jsonDecodeToArray')) {
     }
 }
 
-if (!function_exists('jsonResponse')) {
+if (!function_exists('jsonRespond')) {
     /**
-     * Return response to user.
+     * Build a JSON HTTP response with a standardized structure for API responses
      */
-    function jsonResponse(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse
+    function jsonRespond(int $status = 200, string $message = '', array $errors = [], array $data = [], array $additional = [], array $headers = [], int $options = 0): JsonResponse
     {
-        return Json::response(status: $status, message: $message, errors: $errors, data: $data, additional: $additional, headers: $headers, options: $options);
+        return Json::respond(status: $status, message: $message, errors: $errors, data: $data, additional: $additional, headers: $headers, options: $options);
     }
 }
 
 if (!function_exists('dateConvert')) {
     /**
-     * Convert date base on timezone and the format you desire.
-     * 
+     * Convert a date between timezones and calendar systems (Gregorian, Jalali, Hijri)
+     *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
      */
-    function dateConvert(string|int|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
+    function dateConvert(string|int|null $date, string $format = STANDARD_DATE_TIME_FORMAT, DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
     {
         return Date::convert(date: $date, format: $format, from: $from, to: $to, fallback: $fallback, throwException: $throwException);
+    }
+}
+
+if (!function_exists('datesBetween')) {
+    /**
+     * Generate an array of dates within a given period(from, to) at specified intervals and format.
+     *
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     *
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
+     *
+     * @throws \Fooino\Core\Exceptions\InfiniteLoopException
+     */
+    function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array
+    {
+        return Date::datesBetween(from: $from, to: $to, format: $format, interval: $interval);
     }
 }
 
@@ -129,7 +134,7 @@ if (!function_exists('number')) {
     /**
      * Format one or more numbers by truncating them to the configured precision, removing trailing zeros, and returning clean numeric strings
      */
-    function number(mixed ...$number): string|array
+    function number(string|int|float|array ...$number): string|array
     {
         return Math::number(...$number);
     }
@@ -141,7 +146,7 @@ if (!function_exists('numberFormat')) {
      */
     function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string
     {
-        return Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator,);
+        return Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator);
     }
 }
 
@@ -149,7 +154,7 @@ if (!function_exists('sum')) {
     /**
      * Add a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
-    function sum(mixed ...$operand): string
+    function sum(string|int|float|array ...$operand): string
     {
         return Math::sum(...$operand);
     }
@@ -159,7 +164,7 @@ if (!function_exists('subtract')) {
     /**
      * Subtract a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    function subtract(mixed ...$operand): string
+    function subtract(string|int|float|array ...$operand): string
     {
         return Math::subtract(...$operand);
     }
@@ -169,7 +174,7 @@ if (!function_exists('multiply')) {
     /**
      * Multiply a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
      */
-    function multiply(mixed ...$operand): string
+    function multiply(string|int|float|array ...$operand): string
     {
         return Math::multiply(...$operand);
     }
@@ -179,7 +184,7 @@ if (!function_exists('divide')) {
     /**
      * Divide a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    function divide(mixed ...$operand): string
+    function divide(string|int|float|array ...$operand): string
     {
         return Math::divide(...$operand);
     }
@@ -189,7 +194,7 @@ if (!function_exists('remainder')) {
     /**
      * Compute the modulus (remainder) of a series of numbers (or an array of numbers) sequentially using arbitrary precision arithmetic
      */
-    function remainder(mixed ...$operand): string
+    function remainder(string|int|float|array ...$operand): string
     {
         return Math::remainder(...$operand);
     }
@@ -227,61 +232,61 @@ if (!function_exists('roundClose')) {
 
 if (!function_exists('greaterThan')) {
     /**
-     * Compare two numbers
+     * Check if the first number is strictly greater than the second using arbitrary precision comparison
      */
-    function greaterThan(string|int|float $a, string|int|float $b): bool
+    function greaterThan(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::greaterThan(a: $a, b: $b);
+        return Math::greaterThan(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('greaterThanOrEqual')) {
     /**
-     * Compare two numbers
+     * Check if the first number is greater than or equal to the second using arbitrary precision comparison
      */
-    function greaterThanOrEqual(string|int|float $a, string|int|float $b): bool
+    function greaterThanOrEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::greaterThanOrEqual(a: $a, b: $b);
+        return Math::greaterThanOrEqual(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('lessThan')) {
     /**
-     * Compare two numbers
+     * Check if the first number is strictly less than the second using arbitrary precision comparison
      */
-    function lessThan(string|int|float $a, string|int|float $b): bool
+    function lessThan(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::lessThan(a: $a, b: $b);
+        return Math::lessThan(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('lessThanOrEqual')) {
     /**
-     * Compare two numbers
+     * Check if the first number is less than or equal to the second using arbitrary precision comparison
      */
-    function lessThanOrEqual(string|int|float $a, string|int|float $b): bool
+    function lessThanOrEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::lessThanOrEqual(a: $a, b: $b);
+        return Math::lessThanOrEqual(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('equal')) {
     /**
-     * Compare two numbers
+     * Check if two numbers are exactly equal using arbitrary precision comparison
      */
-    function equal(string|int|float $a, string|int|float $b): bool
+    function equal(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::equal(a: $a, b: $b);
+        return Math::equal(num1: $num1, num2: $num2);
     }
 }
 
 if (!function_exists('notEqual')) {
     /**
-     * Compare two numbers
+     * Check if two numbers differ from each other using arbitrary precision comparison
      */
-    function notEqual(string|int|float $a, string|int|float $b): bool
+    function notEqual(string|int|float $num1, string|int|float $num2): bool
     {
-        return Math::notEqual(a: $a, b: $b);
+        return Math::notEqual(num1: $num1, num2: $num2);
     }
 }
 
@@ -293,27 +298,17 @@ if (!function_exists('isZero')) {
     {
         $value = (is_object($value) && $value instanceof Stringable) ? $value->__toString() : $value;
 
-        if (
-            is_null($value) ||
-            is_bool($value) ||
-            is_array($value) ||
-            is_object($value) ||
-            $value instanceof Closure
-        ) {
-            return false;
-        }
-
-        return preg_match(pattern: '/^[+-]?(?:0+\.?0*|\.0+|(?:0+\.?0*|\.0*)[Ee][+-]?\d+)$/', subject: trim((string) $value)) === 1;
+        return is_numeric($value) && ((float) $value) === 0.0;
     }
 }
 
 if (!function_exists('nullIfBlank')) {
     /**
-     * Returns a fallback value when the input is considered "blank" or a null-like string which usually produce by js.
+     * Returns a fallback value when the input is considered "blank" or a null-like string which usually produced by js.
      */
     function nullIfBlank(int|float|string|null|bool|array|object|callable $value, int|float|string|null|bool|array|object|callable $fallback = null): int|float|string|null|bool|array|object|callable
     {
-        return ((blank($value) || (is_string($value) && trim(str_replace(["'", "`", '"', "null", "undefined", "nan"], '', strtolower($value))) === '')) ? null : $value) ?? $fallback;
+        return ((blank($value) || (is_string($value) && trim(str_replace([" ", "\n", "\t", "'", "`", '"', "null", "undefined", "nan"], '', strtolower($value))) === '')) ? null : $value) ?? $fallback;
     }
 }
 
@@ -341,34 +336,55 @@ if (!function_exists('nullIfBlankInput')) {
     }
 }
 
+if (!function_exists('nullIfBlankOrZeroInput')) {
+    /**
+     * Retrieve an input value from the request and return null if it is blank or zero
+     */
+    function nullIfBlankOrZeroInput(string $key, int|float|string|null|bool|array|object|callable $fallback = null, Request|null $request = null): int|float|string|null|bool|array|object|callable
+    {
+        $request ??= request();
+
+        return nullIfBlankOrZero(value: $request->input($key), fallback: $fallback);
+    }
+}
+
 if (!function_exists('unwrapBackedEnum')) {
     /**
-     * Unwrap a backed enum to its scalar value, or return the value unchanged if it is not a backed enum
+     * Normalize a value to its primitive form by extracting the scalar value from BackedEnum instances
      */
-    function unwrapBackedEnum(int|float|string|null|bool|array|object $object): int|float|string|null|bool|array|object
+    function unwrapBackedEnum(int|float|string|null|bool|array|object $value): int|float|string|null|bool|array|object
     {
-        return ($object instanceof \BackedEnum) ? $object->value : $object;
+        return ($value instanceof \BackedEnum) ? $value->value : $value;
     }
 }
 
 if (!function_exists('mergeArraysByKey')) {
     /**
-     * Merge multiple arrays by grouping values under shared keys into sub-arrays
+     * Aggregate values from multiple arrays into grouped sub-arrays keyed by their original keys
      */
     function mergeArraysByKey(array ...$arrays): array
     {
         $merged = [];
 
         foreach ($arrays as $array) {
+
             foreach ($array as $key => $value) {
-                if (!isset($merged[$key])) {
+
+                if (!array_key_exists(key: $key, array: $merged)) {
+
                     $merged[$key] = [];
                 }
 
-                if (is_array($value)) {
+                if (is_array(value: $value)) {
+
                     $merged[$key] = array_merge($merged[$key], $value);
+
+                    //
                 } else {
+
                     $merged[$key][] = $value;
+
+                    //
                 }
             }
         }
@@ -377,44 +393,88 @@ if (!function_exists('mergeArraysByKey')) {
     }
 }
 
-
 if (!function_exists('removeComma')) {
     /**
-     * Remove comma between letters when the value is string or array
+     * Normalize strings by stripping commas, for sanitizing numeric input and text from external sources
      */
     function removeComma(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
-        return (\is_string($value) || \is_array($value)) ? \str_replace(',', $replace, $value) : $value;
+        if (is_string($value)) {
+            return str_replace(',', $replace, $value);
+        }
+
+        if (is_array($value)) {
+
+            $result = [];
+
+            foreach ($value as $key => $item) {
+                $result[$key] = is_string($item) ? str_replace(',', $replace, $item) : $item;
+            }
+
+            return $result;
+        }
+
+        return $value;
     }
 }
 
-if (!function_exists('removeSpace')) {
+if (!function_exists('removeWhitespace')) {
     /**
-     * Remove space between letters when the value is string or array
+     * Strip all whitespace characters (spaces, newlines, tabs) from strings, for cleaning user input and formatted text
      */
-    function removeSpace(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
+    function removeWhitespace(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
-        return (\is_string($value) || \is_array($value)) ? \str_replace(' ', $replace, $value) : $value;
+        if (is_string($value)) {
+            return str_replace([' ', "\n", "\t"], $replace, $value);
+        }
+
+        if (is_array($value)) {
+
+            $result = [];
+
+            foreach ($value as $key => $item) {
+                $result[$key] = is_string($item) ? str_replace([' ', "\n", "\t"], $replace, $item) : $item;
+            }
+
+            return $result;
+        }
+
+        return $value;
     }
 }
 
 if (!function_exists('sanitizeNumber')) {
     /**
-     * Remove space and comma from value
+     * Remove spaces and commas from strings, for sanitizing phone numbers and numeric input
      */
     function sanitizeNumber(int|float|string|null|bool|array $value): int|float|string|null|bool|array
     {
-        return removeSpace(value: removeComma(value: $value));
+        return removeWhitespace(value: removeComma(value: $value));
     }
 }
 
-if (!function_exists('replaceSlashToDash')) {
+if (!function_exists('replaceSlashWithDash')) {
     /**
-     * Replace slashes to dashes when the value is string or array
+     * Normalize date strings by converting slashes to dashes
      */
-    function replaceSlashToDash(int|float|string|null|bool|array $value): int|float|string|null|bool|array
+    function replaceSlashWithDash(int|float|string|null|bool|array $value): int|float|string|null|bool|array
     {
-        return (\is_string($value) || \is_array($value)) ? \str_replace('/', '-', $value) : $value;
+        if (is_string($value)) {
+            return str_replace('/', '-', $value);
+        }
+
+        if (is_array($value)) {
+
+            $result = [];
+
+            foreach ($value as $key => $item) {
+                $result[$key] = is_string($item) ? str_replace('/', '-', $item) : $item;
+            }
+
+            return $result;
+        }
+
+        return $value;
     }
 }
 
@@ -434,7 +494,7 @@ if (!function_exists('getUserTimezone')) {
      */
     function getUserTimezone(): string
     {
-        return (config('user-timezone', 'UTC')) ?: 'UTC';
+        return (config(key: 'user-timezone', default: 'UTC')) ?: 'UTC';
     }
 }
 
@@ -454,7 +514,7 @@ if (!function_exists('getDefaultLocale')) {
      */
     function getDefaultLocale(): string
     {
-        return (config('app.locale', 'fa')) ?: 'fa';
+        return (config(key: 'app.locale', default: 'fa')) ?: 'fa';
     }
 }
 
@@ -462,13 +522,17 @@ if (!function_exists('perPage')) {
     /**
      * Resolve the per-page value from the request with validation against a maximum
      */
-    function perPage(string $key = 'per_page', int $maxPerPage = 300, Request|null $request = null): int
+    function perPage(string $key = 'per_page', int $maxPerPage = FOOINO_MAX_PER_PAGE, Request|null $request = null): int
     {
         $request ??= request();
 
         $perPage = $request->input($key);
 
-        return (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0 || $perPage > $maxPerPage) ? FOOINO_PER_PAGE : $perPage;
+        if (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0) {
+            return FOOINO_PER_PAGE;
+        }
+
+        return min((int) $perPage, $maxPerPage);
     }
 }
 
@@ -478,7 +542,7 @@ if (!function_exists('currentDate')) {
      */
     function currentDate(): string
     {
-        return \date('Y-m-d');
+        return date(STANDARD_DATE_FORMAT);
     }
 }
 
@@ -488,7 +552,79 @@ if (!function_exists('currentDateTime')) {
      */
     function currentDateTime(): string
     {
-        return \date('Y-m-d H:i:s');
+        return date(STANDARD_DATE_TIME_FORMAT);
+    }
+}
+
+if (!function_exists('currentDateTs')) {
+    /**
+     * Get the current date as a Unix timestamp
+     */
+    function currentDateTs(): int
+    {
+        return strtotime(currentDate());
+    }
+}
+
+if (!function_exists('currentDateTimeTs')) {
+    /**
+     * Get the current datetime as a Unix timestamp
+     */
+    function currentDateTimeTs(): int
+    {
+        return strtotime(currentDateTime());
+    }
+}
+
+if (!function_exists('strToDate')) {
+    /**
+     * Convert a date string to the standard date format (Y-m-d)
+     * The helper use php strtotime function to parse $str
+     *
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException with code 3
+     */
+    function strToDate(string $str): string
+    {
+        $timestamp = strtotime($str);
+
+        if ($timestamp === false) {
+
+            app(FooinoRuntimeException::class)
+                ->_3()
+                ->with([
+                    'method'    => 'strToDate',
+                    'input'     => $str
+                ])
+                ->throw();
+        }
+
+        return date(STANDARD_DATE_FORMAT, $timestamp);
+    }
+}
+
+if (!function_exists('strToDateTime')) {
+    /**
+     * Convert a date string to the standard datetime format (Y-m-d H:i:s)
+     * The helper use php strtotime function to parse $str
+     *
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException with code 3
+     */
+    function strToDateTime(string $str): string
+    {
+        $timestamp = strtotime($str);
+
+        if ($timestamp === false) {
+
+            app(FooinoRuntimeException::class)
+                ->_3()
+                ->with([
+                    'method'    => 'strToDateTime',
+                    'input'     => $str
+                ])
+                ->throw();
+        }
+
+        return date(STANDARD_DATE_TIME_FORMAT, $timestamp);
     }
 }
 
@@ -506,28 +642,17 @@ if (!function_exists('percentageChange')) {
     /**
      * Calculate the relative percentage change from $from to $to.
      */
-    function percentageChange(
-        int|float $from,
-        int|float $to,
-        int $precision = 2
-    ): string {
-
+    function percentageChange(string|int|float $from, string|int|float $to, int $precision = 2): string
+    {
         return match (true) {
 
-            isZero($from)   => '100',
+            isZero($from) && isZero($to)    => '0',
 
-            isZero($to)     => '-100',
+            isZero($from)                   => '100',
 
-            default         => math(precision: $precision)
-                ->number(
-                    multiply(
-                        divide(
-                            subtract($to, $from),
-                            abs($from)
-                        ),
-                        100
-                    )
-                )
+            isZero($to)                     => '-100',
+
+            default                         => math(precision: $precision)->number(multiply(divide(subtract($to, $from), abs($from)), 100))
         };
     }
 }
@@ -536,28 +661,47 @@ if (!function_exists('unitNumberFormat')) {
     /**
      * Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions)
      */
-    function unitNumberFormat(int|float|string $number, string $unit = '', int $precision = 3): string
+    function unitNumberFormat(string|int|float $number, string $unit = '', int $precision = 3): string
     {
-        return match (true) {
-
-            greaterThanOrEqual(abs($number), '1000000000000')      => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000000')) . ' ' . __('msg.trillion') . ' ' . $unit),
-
-            greaterThanOrEqual(abs($number), '1000000000')         => trim(math(precision: $precision)->numberFormat(divide($number, '1000000000')) . ' ' . __('msg.billion') . ' ' . $unit),
-
-            greaterThanOrEqual(abs($number), '1000000')            => trim(math(precision: $precision)->numberFormat(divide($number, '1000000')) . ' ' . __('msg.million') . ' ' . $unit),
-
-            greaterThanOrEqual(abs($number), '1000')               => trim(math(precision: $precision)->numberFormat(divide($number, '1000')) . ' ' . __('msg.thousand') . ' ' . $unit),
-
-            default                                                => trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit),
+        $threshold = match (true) {
+            greaterThanOrEqual(abs($number), '1000000000000') => '1000000000000',
+            greaterThanOrEqual(abs($number), '1000000000')    => '1000000000',
+            greaterThanOrEqual(abs($number), '1000000')       => '1000000',
+            greaterThanOrEqual(abs($number), '1000')          => '1000',
+            default                                           => null,
         };
+
+        $unitKey = match ($threshold) {
+            '1000000000000' => 'msg.trillion',
+            '1000000000'    => 'msg.billion',
+            '1000000'       => 'msg.million',
+            '1000'          => 'msg.thousand',
+            default         => null,
+        };
+
+        if ($threshold === null) {
+            return trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit);
+        }
+
+        $divided = divide($number, $threshold);
+
+        $count = equal(abs($divided), '1') ? 1 : 2;
+
+        return trim(
+            math(precision: $precision)->numberFormat($divided)
+                . ' '
+                . __($unitKey, ['count' => $count])
+                . ' '
+                . $unit
+        );
     }
 }
 
 if (!function_exists('unitSizeFormat')) {
     /**
-     * Format bytes into a human-readable file size string (B, KB, MB, GB, TB)
+     * Format bytes into a human-readable file size string (Bytes, KB, MB, GB, TB). the method followd Binary standard but show the unit in SI standarad
      */
-    function unitSizeFormat(int|float|string $bytes, int $precision = 3): string
+    function unitSizeFormat(string|int|float $bytes, int $precision = 3): string
     {
         return match (true) {
 
@@ -569,64 +713,12 @@ if (!function_exists('unitSizeFormat')) {
 
             greaterThanOrEqual($bytes, '1024')            => math(precision: $precision)->numberFormat(divide($bytes, '1024')) . ' KB',
 
-            greaterThan($bytes, '1')                      => $bytes . ' bytes',
+            greaterThan($bytes, '1')                      => $bytes . ' Bytes',
 
-            greaterThanOrEqual($bytes, '0')               => $bytes . ' byte',
+            greaterThanOrEqual($bytes, '0')               => $bytes . ' Byte',
 
             default                                       => $bytes . ' ' . __('msg.isInvalid'),
         };
-    }
-}
-
-if (!function_exists('datesBetween')) {
-    /**
-     * Generate an array of dates within a given range at specified intervals and format.
-     * 
-     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
-     * 
-     * @throws \Fooino\Core\Exceptions\FooinoException
-     */
-    function datesBetween(
-        string|int $from,
-        string|int $to,
-        string $format = 'Y-m-d',
-        string $interval = 'P1D'
-    ): array {
-
-        $originalFrom = $from;
-        $originalTo = $to;
-
-        $from = dateConvert(date: $from, throwException: true);
-        $to = dateConvert(date: $to, throwException: true);
-
-        if ($to < $from) {
-
-            app(FooinoException::class)
-                ->_1001()
-                ->with([
-                    'from'      => $originalFrom,
-                    'to'        => $originalTo,
-                    'format'    => $format,
-                    'interval'  => $interval,
-                ])
-                ->throw();
-        }
-
-        $output = [];
-        $utc = new DateTimeZone(timezone: 'UTC');
-
-        $period = new DatePeriod(
-            start: new DateTime(datetime: $from, timezone: $utc),
-            interval: new DateInterval(duration: $interval),
-            end: new DateTime(datetime: $to, timezone: $utc),
-            options: DatePeriod::INCLUDE_END_DATE
-        );
-
-        foreach ($period as $value) {
-            $output[] = $value->format($format);
-        }
-
-        return $output;
     }
 }
 
@@ -734,12 +826,13 @@ if (!function_exists('dbTransaction')) {
 
             return $result;
 
-            // 
+            //
         } catch (FooinoException | Exception $e) {
 
             DB::rollBack();
 
             app(TransactionRollBackedException::class)
+                ->cause($e)
                 ->setMessage($e->getMessage())
                 ->setCode($e->getCode())
                 ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))

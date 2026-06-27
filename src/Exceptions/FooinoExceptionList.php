@@ -5,106 +5,27 @@ namespace Fooino\Core\Exceptions;
 trait FooinoExceptionList
 {
     // FooinoException codes
-    public function _1001(): static
-    {
-        return $this
-            ->setMessage('msg.invalidPeriodForDateRange')
-            ->setCode(1001)
-            ->warning()
-            ->shouldReport();
-    }
 
     // CanNotConvertDateException (range 10050-10099)
-    public function _10051(): static
-    {
-        return $this
-            ->setMessage('msg.canNotConvertDateExceptionInvalidTimezone')
-            ->setCode(10051)
-            ->error()
-            ->shouldReport();
-    }
 
-    public function _10052(): static
-    {
-        return $this
-            ->setMessage('msg.canNotConvertDateExceptionTheDateIsEmpty')
-            ->setCode(10052)
-            ->warning()
-            ->dontReport();
-    }
 
-    public function _10053(): static
-    {
-        return $this
-            ->setMessage('msg.canNotConvertDateExceptionInvalidDate')
-            ->setCode(10053)
-            ->error()
-            ->shouldReport();
-    }
+
+
 
     // MathCalculationException (range 10100-10199)
-    public function _10101(): static
-    {
-        return $this
-            ->setMessage('msg.mathCalculationExceptionInvalidPrecision')
-            ->setCode(10101)
-            ->critical()
-            ->shouldReport();
-    }
 
-    public function _10102(): static
-    {
-        return $this
-            ->setMessage('msg.mathCalculationExceptionInvalidArgumentsCount')
-            ->setCode(10102)
-            ->error()
-            ->shouldReport();
-    }
 
-    public function _10103(): static
-    {
-        return $this
-            ->setMessage('msg.mathCalculationExceptionInvalidArgumentType')
-            ->setCode(10103)
-            ->error()
-            ->shouldReport();
-    }
 
-    public function _10104(): static
-    {
-        return $this
-            ->setMessage('msg.mathCalculationExceptionDivisionByZero')
-            ->setCode(10104)
-            ->critical()
-            ->shouldReport();
-    }
 
-    public function _10105(): static
-    {
-        return $this
-            ->setMessage('msg.mathCalculationExceptionInvalidValueError')
-            ->setCode(10105)
-            ->critical()
-            ->shouldReport();
-    }
 
-    public function _10106(): static
-    {
-        return $this
-            ->setMessage('msg.mathCalculationExceptionUnsupportedFunction')
-            ->setCode(10106)
-            ->shouldReport();
-    }
+
+
+
+
+
+
 
     // InfiniteLoopException (range 10200-10300)
-    public function _10201(): static
-    {
-        return $this
-            ->setMessage('msg.infiniteLoopException')
-            ->setCode(10201)
-            ->critical()
-            ->shouldReport();
-    }
 
     public function _10202(): static
     {

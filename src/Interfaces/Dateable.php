@@ -7,49 +7,45 @@ use DateTimeZone;
 interface Dateable
 {
     /**
-     * Convert date base on timezone and the format you desire.
-     *
-     * @param string|int|null $date
-     * @param string $format
-     * @param DateTimeZone|string $from
-     * @param DateTimeZone|string $to
-     * @param string $fallback
-     * @param bool $throwException
+     * Convert a date between timezones and calendar systems (Gregorian, Jalali, Hijri)
      * 
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
-     * 
-     * @return string
      */
-    public function convert(string|int|null $date, string $format = 'Y-m-d H:i:s', DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string;
+    public function convert(string|int|null $date, string $format = STANDARD_DATE_TIME_FORMAT, DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string;
 
     /**
-     * Get calendar usage: OFFICIAL or UNOFFICIAL
+     * Get the current calendar mode: official (government-set) or unofficial (religious/cultural)
      */
     public function getCalendarUsage(): string;
 
     /**
-     * Use official calendar which set by governments
+     * Switch to the official calendar (government-set) for date conversions
      */
     public function officialCalendar(): static;
 
     /**
-     * Use unofficial calendar which used for religious, cultural events
+     * Switch to the unofficial calendar (religious/cultural) for date conversions
      */
     public function unofficialCalendar(): static;
 
     /**
-     * Get timezones list
-     * 
-     * @return array
+     * Get all supported timezone identifiers
      */
     public function getTimezones(): array;
 
     /**
-     * Validate timezone
-     * 
-     * @param string $timezone
-     * 
-     * @return bool
+     * Check whether a timezone string is a valid PHP timezone identifier
      */
     public function validateTimezone(string $timezone): bool;
+
+    /**
+     * Generate an array of dates within a given period(from, to) at specified intervals and format.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * 
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
+     * 
+     * @throws \Fooino\Core\Exceptions\InfiniteLoopException
+     */
+    public function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array;
 }

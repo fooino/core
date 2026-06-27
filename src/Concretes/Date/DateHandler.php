@@ -4,20 +4,27 @@
 namespace Fooino\Core\Concretes\Date;
 
 use Fooino\Core\Exceptions\CanNotConvertDateException;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
+use Fooino\Core\Exceptions\InfiniteLoopException;
+use Fooino\Core\Facades\Date;
+
 use Morilog\Jalali\Jalalian;
 use Morilog\Jalali\CalendarUtils;
+
 use DateTime;
 use DateTimeZone;
-use IntlDateFormatter;
 use IntlCalendar;
+use IntlDateFormatter;
+use DateInterval;
+use DatePeriod;
 
-class DateHandler
+abstract class DateHandler
 {
     protected array $instances = [];
 
-    private const string OFFICIAL   = 'OFFICIAL';
+    protected const string OFFICIAL   = 'OFFICIAL';
 
-    private const string UNOFFICIAL = 'UNOFFICIAL';
+    protected const string UNOFFICIAL = 'UNOFFICIAL';
 
     protected array $validTimezones = [];
 
@@ -25,10 +32,15 @@ class DateHandler
 
     protected array $dateTimeZones = [];
 
-    public function __construct(protected string $calendarUsage = self::OFFICIAL) {}
+    public function __construct(protected string $calendarUsage = self::OFFICIAL)
+    {
+        if (date_default_timezone_get() !== 'UTC') {
+            $this->throwInvalidDefaultTimezoneException();
+        }
+    }
 
     /**
-     * Get calendar usage: OFFICIAL or UNOFFICIAL
+     * Get the current calendar mode: official (government-set) or unofficial (religious/cultural)
      */
     public function getCalendarUsage(): string
     {
@@ -36,7 +48,7 @@ class DateHandler
     }
 
     /**
-     * Use official calendar which set by governments
+     * Switch to the official calendar (government-set) for date conversions
      */
     public function officialCalendar(): static
     {
@@ -44,7 +56,7 @@ class DateHandler
     }
 
     /**
-     * Use unofficial calendar which used for religious, cultural events
+     * Switch to the unofficial calendar (religious/cultural) for date conversions
      */
     public function unofficialCalendar(): static
     {
@@ -52,7 +64,7 @@ class DateHandler
     }
 
     /**
-     * Get timezones list
+     * Get all supported timezone identifiers, cached after the first call
      */
     public function getTimezones(): array
     {
@@ -65,7 +77,7 @@ class DateHandler
     }
 
     /**
-     * Validate timezone
+     * Check whether a timezone string is a valid PHP timezone identifier, with caching
      */
     public function validateTimezone(string $timezone): bool
     {
@@ -73,37 +85,43 @@ class DateHandler
     }
 
     /**
-     * Convert date from UTC to Jalali timezone
+     * Convert a UTC datetime string to the Jalali (Solar Hijri) calendar used in Iran and Afghanistan
      */
     protected function UTCToJalali(
         string|null $date,
-        string $format = 'Y-m-d H:i:s',
+        string $format = STANDARD_DATE_TIME_FORMAT,
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'Asia/Tehran'
     ): string {
 
+        $from = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from
+        $to = $this->resolveTimezone(timezone: $to);
+
         return Jalalian::forge(
-            timestamp: \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'))),
-            timeZone: $this->getDateTimeZone(timezone: $to)
+            timestamp: strtotime($this->normalize(date: $date, timezone: $from)),
+            timeZone: $to
         )
             ->format(format: $format);
     }
 
     /**
-     * Convert date from Jalali to UTC timezone
+     * Convert a Jalali (Solar Hijri) datetime string back to UTC
      */
     protected function jalaliToUTC(
         string|null $date,
-        string $format = 'Y-m-d H:i:s',
+        string $format = STANDARD_DATE_TIME_FORMAT,
         DateTimeZone|string $from = 'Asia/Tehran',
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from));
+        $from = $this->resolveTimezone(timezone: $from);
+        $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed to
+
+        $date = $this->normalize(date: $date, timezone: $from);
 
         $hasTimePart = $this->hasTimePart(date: $date);
 
-        $baseFormat = $hasTimePart ? 'Y-m-d H:i:s' : 'Y-m-d';
+        $baseFormat = $hasTimePart ? STANDARD_DATE_TIME_FORMAT : STANDARD_DATE_FORMAT;
 
         $converted = CalendarUtils::createCarbonFromFormat(
             format: $baseFormat,
@@ -111,14 +129,20 @@ class DateHandler
         )
             ->format(format: $hasTimePart ? $baseFormat : $format);
 
-        // since Morilog package does not convert the time we change the timezone to UTC if the user asks for time part
-        if ($hasTimePart) {
+        /** 
+         * The Morilog package converts the Jalali date to Gregorian but leaves it in the source timezone.
+         * Shift to UTC whenever the input has time OR the output format requests time fields.
+         */
+        if (
+            $hasTimePart ||
+            preg_match('/[HisahgAeOPTZcr]/', $format)
+        ) {
 
             $converted = (new DateTime(
                 datetime: $converted,
-                timezone: $this->getDateTimeZone(timezone: $from)
+                timezone: $from
             ))
-                ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
+                ->setTimezone(timezone: $to)
                 ->format(format: $format);
         }
 
@@ -126,23 +150,23 @@ class DateHandler
     }
 
     /**
-     * Convert date from UTC to lunar hijri 
+     * Convert a UTC datetime string to the Islamic (Lunar Hijri) calendar used in Middle Eastern countries
      */
     protected function UTCToHijri(
         string|null $date,
-        string $format = 'Y-m-d H:i:s',
+        string $format = STANDARD_DATE_TIME_FORMAT,
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'Asia/Riyadh'
     ): string {
 
-        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'));
+        $from = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from
+        $to = $this->resolveTimezone(timezone: $to);
 
-        $locale = $this->getDateTimeZone(timezone: $to)->getName() == 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
+        $date = $this->normalize(date: $date, timezone: $from);
 
-        $islamicCal = IntlCalendar::createInstance(
-            timezone: $this->getDateTimeZone(timezone: $to),
-            locale: $locale
-        );
+        $locale = $this->getIntlDateFormatterLocaleByTimezone(timezone: $to);
+
+        $islamicCal = IntlCalendar::createInstance(timezone: $to, locale: $locale);
 
         $islamicCal->setTime(timestamp: strtotime($date) * 1000);
 
@@ -150,7 +174,7 @@ class DateHandler
             locale: $locale,
             dateType: IntlDateFormatter::FULL,
             timeType: IntlDateFormatter::FULL,
-            timezone: $this->getDateTimeZone(timezone: $to),
+            timezone: $to,
             calendar: IntlDateFormatter::TRADITIONAL,
             pattern: $this->convertPhpDateFormatToICU(format: $format)
         );
@@ -159,25 +183,25 @@ class DateHandler
     }
 
     /**
-     * Convert date from lunar hijri to UTC
+     * Convert an Islamic (Lunar Hijri) datetime string back to UTC
      */
     protected function hijriToUTC(
         string|null $date,
-        string $format = 'Y-m-d H:i:s',
+        string $format = STANDARD_DATE_TIME_FORMAT,
         DateTimeZone|string $from = 'Asia/Riyadh',
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        $date = $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from));
+        $from = $this->resolveTimezone(timezone: $from);
+        $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite passed to
+
+        $date = $this->normalize(date: $date, timezone: $from);
 
         list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
 
-        $locale = $this->getDateTimeZone(timezone: $from)->getName() == 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
+        $locale = $this->getIntlDateFormatterLocaleByTimezone(timezone: $from);
 
-        $hijriCalendar = IntlCalendar::createInstance(
-            $this->getDateTimeZone(timezone: $from),
-            $locale
-        );
+        $hijriCalendar = IntlCalendar::createInstance(timezone: $from, locale: $locale);
 
         $hijriCalendar->set(
             year: $year,
@@ -191,61 +215,69 @@ class DateHandler
         $timestamp = (int)($hijriCalendar->getTime() / 1000);
 
         return (new DateTime(datetime: date($format, $timestamp)))
-            ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
+            ->setTimezone(timezone: $to)
             ->format(format: $format);
     }
 
     /**
-     * Convert date from gregorian to UTC timezone
+     * Convert a Gregorian datetime string from a specific timezone to UTC
      */
     protected function gregorianToUTC(
         string|null $date,
-        string $format = 'Y-m-d H:i:s',
+        string $format = STANDARD_DATE_TIME_FORMAT,
         DateTimeZone|string $from = 'America/New_York',
         DateTimeZone|string $to = 'UTC'
     ): string {
 
+        $from = $this->resolveTimezone(timezone: $from);
+        $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed to
+
         return (new DateTime(
-            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: $from)),
-            timezone: $this->getDateTimeZone(timezone: $from)
+            datetime: $this->normalize(date: $date, timezone: $from),
+            timezone: $from
         ))
-            ->setTimezone(timezone: $this->getDateTimeZone(timezone: 'UTC'))
+            ->setTimezone(timezone: $to)
             ->format(format: $format);
     }
 
     /**
-     * Convert date from UTC to gregorian timezone
+     * Convert a UTC datetime string to a Gregorian timezone
      */
     protected function UTCToGregorian(
         string|null $date,
-        string $format = 'Y-m-d H:i:s',
+        string $format = STANDARD_DATE_TIME_FORMAT,
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'America/New_York',
     ): string {
 
+        $from = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from
+        $to = $this->resolveTimezone(timezone: $to);
+
         return (new DateTime(
-            datetime: $this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC')),
-            timezone: $this->getDateTimeZone(timezone: 'UTC')
+            datetime: $this->normalize(date: $date, timezone: $from),
+            timezone: $from
         ))
-            ->setTimezone(timezone: $this->getDateTimeZone(timezone: $to))
+            ->setTimezone(timezone: $to)
             ->format(format: $format);
     }
 
     /**
-     * Format the date
+     * Re-format a UTC datetime string without changing the timezone
      */
     protected function UTCToUTC(
         string|null $date,
-        string $format = 'Y-m-d H:i:s',
+        string $format = STANDARD_DATE_TIME_FORMAT,
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'UTC'
     ): string {
 
-        return date($format, \strtotime($this->standardize(date: $date, timezone: $this->getDateTimeZone(timezone: 'UTC'))));
+        $from = $to = $this->resolveTimezone(timezone: 'UTC'); // overwrite the passed from and to
+
+        return date($format, strtotime($this->normalize(date: $date, timezone: $from)));
     }
 
     /**
-     * Converts a PHP date() format string to an ICU/Unicode date pattern.
+     * Convert a PHP date() format string to an ICU/Unicode date pattern for the IntlDateFormatter
      */
     protected function convertPhpDateFormatToICU(string $format): string
     {
@@ -349,11 +381,19 @@ class DateHandler
     }
 
     /**
-     * Get parts of date
+     * Pick the correct Islamic calendar locale: Umm al-Qura for Saudi Arabia, Islamic civil for all other regions
+     */
+    protected function getIntlDateFormatterLocaleByTimezone(DateTimeZone $timezone): string
+    {
+        return $timezone->getName() === 'Asia/Riyadh' ? 'en@calendar=islamic-umalqura' : 'en@calendar=islamic-civil';
+    }
+
+    /**
+     * Split a date string into date and time parts separated by a space
      */
     protected function dateParts(string $date): array
     {
-        $parts = \explode(" ", $date);
+        $parts = explode(" ", $date);
 
         return [
             $parts[0] ?? null,
@@ -362,7 +402,7 @@ class DateHandler
     }
 
     /**
-     * Check the date has time
+     * Determine whether the date string includes a time portion
      */
     protected function hasTimePart(string $date): bool
     {
@@ -370,13 +410,13 @@ class DateHandler
     }
 
     /**
-     * Standardize given date to Y-m-d H:i:s format
+     * Normalize a date to Y-m-d H:i:s format, using today's date when only a time is given
      */
-    protected function standardize(string|null $date, DateTimeZone $timezone): string
+    protected function normalize(string|null $date, DateTimeZone $timezone): string
     {
         list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
 
-        $datePart = $this->addZeroToBeginning($year) . '-' . $this->addZeroToBeginning($month) . '-' . $this->addZeroToBeginning($day);
+        $datePart = $this->padZero($year) . '-' . $this->padZero($month) . '-' . $this->padZero($day);
         $timePart = '';
 
         if (
@@ -384,46 +424,22 @@ class DateHandler
             $minute !== false ||
             $second !== false // since the timezone can change the day, add timePart when exists
         ) {
-            $timePart = $this->addZeroToBeginning($hour) . ':' . $this->addZeroToBeginning($minute) . ':' . $this->addZeroToBeginning($second);
+            $timePart = $this->padZero($hour) . ':' . $this->padZero($minute) . ':' . $this->padZero($second);
         }
 
-        if (
-            $datePart == '00-00-00' // the user want to just convert time part, so we make the datePart from now to have Y-m-d H:i:s
-        ) {
+        $datePart = $datePart === '00-00-00' ? $this->dateParts(date: $this->nowByTimezone(timezone: $timezone))[0] : $datePart; // the user want to just convert time part, so we make the datePart from now to have Y-m-d H:i:s
 
-            if ($this->getCalendarTypeByTimezone(timezone: $timezone) == 'jalali') {
-
-                $datePart = Jalalian::forge(
-                    timestamp: \strtotime(date('Y-m-d H:i:s')),
-                    timeZone: $timezone
-                )
-                    ->format(format: 'Y-m-d');
-
-                // 
-            } else {
-
-                $datePart = (new DateTime(
-                    datetime: date('Y-m-d H:i:s'),
-                    timezone: $this->getDateTimeZone(timezone: 'UTC')
-                ))
-                    ->setTimezone(timezone: $timezone)
-                    ->format(format: 'Y-m-d');
-            }
-        }
-
-        $date = trim($datePart . ' ' . $timePart);
-
-        return $date;
+        return trim($datePart . ' ' . $timePart);
     }
 
     /**
-     * Parse date with date_parse php function
+     * Parse a date string into its components and throw if no valid part is found
      * 
-     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException with 1003 code
      */
     protected function parseDate(string $date): array
     {
-        $parsed = \date_parse(\trim($date));
+        $parsed = date_parse(datetime: trim($date));
 
         $parsed = [
             $parsed['year'],
@@ -437,33 +453,98 @@ class DateHandler
         if (
             count(array_filter($parsed, fn($p) => $p !== false)) === 0 // non part of the date is valid
         ) {
-
-            app(CanNotConvertDateException::class)
-                ->_10053()
-                ->throw();
+            $this->throwInvalidDateException();
         }
 
         return $parsed;
     }
 
     /**
-     * Adds a zero at the beginning of the value if the length is 1.
+     * Pad single-digit values with a leading zero for consistent date string formatting
      */
-    protected function addZeroToBeginning(string|false|int|null $value): string
+    protected function padZero(string|false|int|null $value): string
     {
         $value = (int) $value;
 
-        if (strlen($value) == 1) $value = '0' . $value;
+        if (strlen($value) === 1) $value = '0' . $value;
 
         return $value;
     }
 
     /**
-     * Make DateTimeZone object if the timezone is string.
-     *
-     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException when the timezone is invalid
+     * Fetch the current datetime in the calendar system that applies to the given timezone
      */
-    protected function getDateTimeZone(DateTimeZone|string $timezone): DateTimeZone
+    protected function nowByTimezone(DateTimeZone $timezone): string
+    {
+        $calendarType = $this->getCalendarTypeByTimezone(timezone: $timezone);
+
+        return $this->{'nowIn' . ucfirst($calendarType)}(timezone: $timezone);
+    }
+
+    /**
+     * Return the current UTC datetime converted into the Jalali calendar at the given timezone
+     */
+    protected function nowInJalali(DateTimeZone $timezone): string
+    {
+        return Jalalian::forge(
+            timestamp: strtotime($this->nowInUTC()),
+            timeZone: $timezone
+        )
+            ->format(format: STANDARD_DATE_TIME_FORMAT);
+    }
+
+    /**
+     * Return the current UTC datetime converted into the Hijri calendar at the given timezone
+     */
+    protected function nowInHijri(DateTimeZone $timezone): string
+    {
+        $date = $this->nowInUTC();
+
+        $locale = $this->getIntlDateFormatterLocaleByTimezone(timezone: $timezone);
+
+        $islamicCal = IntlCalendar::createInstance(timezone: $timezone, locale: $locale);
+
+        $islamicCal->setTime(timestamp: strtotime($date) * 1000);
+
+        $formatter = new IntlDateFormatter(
+            locale: $locale,
+            dateType: IntlDateFormatter::FULL,
+            timeType: IntlDateFormatter::FULL,
+            timezone: $timezone,
+            calendar: IntlDateFormatter::TRADITIONAL,
+            pattern: $this->convertPhpDateFormatToICU(format: STANDARD_DATE_TIME_FORMAT)
+        );
+
+        return $formatter->format(datetime: $islamicCal);
+    }
+
+    /**
+     * Return the current datetime in UTC, delegating to the Gregorian calendar for the actual timestamp
+     */
+    protected function nowInUTC(DateTimeZone|string $timezone = 'UTC'): string
+    {
+        return $this->nowInGregorian(timezone: $this->resolveTimezone(timezone: 'UTC'));
+    }
+
+    /**
+     * Build the current Gregorian datetime string shifted into the requested timezone
+     */
+    protected function nowInGregorian(DateTimeZone $timezone): string
+    {
+        return (new DateTime(
+            datetime: date(STANDARD_DATE_TIME_FORMAT),
+            timezone: $this->resolveTimezone(timezone: 'UTC')
+        ))
+            ->setTimezone(timezone: $timezone)
+            ->format(format: STANDARD_DATE_TIME_FORMAT);
+    }
+
+    /**
+     * Resolve a timezone string to a DateTimeZone object, with caching and validation
+     *
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException with 1001 code
+     */
+    protected function resolveTimezone(DateTimeZone|string $timezone): DateTimeZone
     {
         if (is_string($timezone)) {
 
@@ -474,22 +555,17 @@ class DateHandler
 
             if (!$this->validateTimezone(timezone: $timezone)) {
 
-                app(CanNotConvertDateException::class)
-                    ->_10051()
-                    ->with([
-                        'invalid_timezone'  => $timezone
-                    ])
-                    ->throw();
+                $this->throwInvalidTimezoneException(timezone: $timezone);
             }
 
-            return $this->dateTimeZones[$timezone] ??= new DateTimeZone($timezone);
+            return $this->dateTimeZones[$timezone] ??= new DateTimeZone(timezone: $timezone);
         }
 
         return $timezone;
     }
 
     /**
-     * Get calendar type base on timezone and usage
+     * Determine which calendar system (jalali, hijri, gregorian, UTC) applies for a timezone and the current usage mode
      */
     protected function getCalendarTypeByTimezone(DateTimeZone $timezone): string
     {
@@ -497,7 +573,7 @@ class DateHandler
     }
 
     /**
-     * Get official calendar type base on timezone
+     * Map timezones to their official calendar system (government-set)
      */
     protected function getOfficialCalendarTypeByTimezone(DateTimeZone $timezone): string
     {
@@ -512,7 +588,7 @@ class DateHandler
     }
 
     /**
-     * Get unofficial calendar type base on timezone
+     * Map timezones to their unofficial calendar system (religious/cultural)
      */
     protected function getUnofficialCalendarTypeByTimezone(DateTimeZone $timezone): string
     {
@@ -536,5 +612,138 @@ class DateHandler
             'UTC'                   => 'UTC',
             default                 => 'gregorian',
         };
+    }
+
+    /**
+     * Generate an array of dates within a given period(from, to) at specified intervals and format.
+     * 
+     * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
+     * 
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
+     * 
+     * @throws \Fooino\Core\Exceptions\InfiniteLoopException
+     */
+    public function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array
+    {
+        $with = [
+            'from'      => $from,
+            'to'        => $to,
+            'format'    => $format,
+            'interval'  => $interval,
+        ];
+
+        $from = Date::convert(date: $from, format: STANDARD_DATE_FORMAT, from: 'UTC', to: 'UTC', throwException: true);
+        $to = Date::convert(date: $to, format: STANDARD_DATE_FORMAT, from: 'UTC', to: 'UTC', throwException: true);
+
+        if ($to < $from) {
+
+            $this->throwInvalidPeriodForDatesBetweenException(with: $with);
+        }
+
+        $dateInterval = new DateInterval(duration: $interval);
+
+        $dateIntervalProps = [
+            $dateInterval->y,
+            $dateInterval->m,
+            $dateInterval->d,
+            $dateInterval->h,
+            $dateInterval->i,
+            $dateInterval->s,
+            $dateInterval->f
+        ];
+
+        if (count(array_filter($dateIntervalProps, fn($p) => ((float) $p) !== 0.0)) === 0) {
+
+            $this->throwInvalidIntervalForDatesBetweenException(with: $with);
+        }
+
+        $utc = $this->resolveTimezone(timezone: 'UTC');
+
+        $start = new DateTime(datetime: $from, timezone: $utc);
+        
+        $end = new DateTime(datetime: $to, timezone: $utc);
+
+        $period = new DatePeriod(
+            start: $start,
+            interval: $dateInterval,
+            end: $end,
+            options: DatePeriod::INCLUDE_END_DATE
+        );
+
+        $output = [];
+
+        foreach ($period as $value) {
+            $output[] = $value->format($format);
+        }
+
+        return $output;
+    }
+
+    /**
+     * Halt execution when a user-supplied timezone is not a valid PHP timezone identifier
+     */
+    protected function throwInvalidTimezoneException(string $timezone): never
+    {
+        app(CanNotConvertDateException::class)
+            ->_1001()
+            ->with([
+                'invalid_timezone'  => $timezone
+            ])
+            ->throw();
+    }
+
+    /**
+     * Halt execution when the date argument is empty but the caller requires a valid date
+     */
+    protected function throwDateIsEmptyException(): never
+    {
+        app(CanNotConvertDateException::class)
+            ->_1002()
+            ->throw();
+    }
+
+    /**
+     * Halt execution when no component of the date string could be parsed into a valid value
+     */
+    protected function throwInvalidDateException(): never
+    {
+        app(CanNotConvertDateException::class)
+            ->_1003()
+            ->throw();
+    }
+
+    /**
+     * Halt execution when the system default timezone is not UTC, which is required for correct conversions
+     */
+    protected function throwInvalidDefaultTimezoneException(): never
+    {
+        app(CanNotConvertDateException::class)
+            ->_1004()
+            ->with([
+                'invalid_timezone'  => date_default_timezone_get()
+            ])
+            ->throw();
+    }
+
+    /**
+     * Halt execution when the period is invalid for dates between method
+     */
+    protected function throwInvalidPeriodForDatesBetweenException(array $with): never
+    {
+        app(FooinoRuntimeException::class)
+            ->_2()
+            ->with($with)
+            ->throw();
+    }
+
+    /**
+     * Halt execution when the interval is going to make infinite loop
+     */
+    protected function throwInvalidIntervalForDatesBetweenException(array $with): never
+    {
+        app(InfiniteLoopException::class)
+            ->_251()
+            ->with($with)
+            ->throw();
     }
 }

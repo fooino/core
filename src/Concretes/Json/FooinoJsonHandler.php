@@ -12,28 +12,27 @@ class FooinoJsonHandler implements Jsonable
         return is_string($value) && json_validate(json: $value);
     }
 
-    public function encode(
-        int|float|string|null|bool|array|object $value,
-        int $flags = 0,
-        int $depth = 512
-    ): string|false {
-
-        return $this->is(value: $value) ? $value : \json_encode(value: $value, flags: $flags, depth: $depth);
-    }
-
-    public function encodePrettified(string|array $value): string
+    public function encode(int|float|string|null|bool|array|object $value, int $flags = 0, int $depth = 512): string|false
     {
-        return is_null(nullIfBlank($value)) ? '' : htmlspecialchars(string: $this->encode(value: ($this->is(value: $value) ? $this->decodeToArray(json: $value) : $value), flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), flags: ENT_QUOTES, encoding: 'UTF-8');
+        return $this->is(value: $value) ? $value : json_encode(value: $value, flags: $flags, depth: $depth);
     }
 
-    public function decode(
-        int|float|string|null|bool|array|object $json,
-        bool|null $associative = null,
-        int $depth = 512,
-        int $flags = 0
-    ): mixed {
+    public function encodePretty(string|array $value): string
+    {
+        if (is_null(nullIfBlank(value: $value))) {
+            return '';
+        }
 
-        return !$this->is(value: $json) ? $json : \json_decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
+        $input = $this->is(value: $value) ? $this->decodeToArray(json: $value) : $value;
+
+        $encoded = $this->encode(value: $input, flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        return e(value: $encoded);
+    }
+
+    public function decode(int|float|string|null|bool|array|object $json, bool|null $associative = null, int $depth = 512, int $flags = 0): int|float|string|null|bool|array|object
+    {
+        return !$this->is(value: $json) ? $json : json_decode(json: $json, associative: $associative, depth: $depth, flags: $flags);
     }
 
     public function decodeToArray(int|float|string|null|bool|array|object $json): array
@@ -41,7 +40,7 @@ class FooinoJsonHandler implements Jsonable
         return (array) $this->decode(json: $json, associative: true);
     }
 
-    public function response(
+    public function respond(
         int $status = 200,
         string $message = '',
         array $errors = [],
@@ -51,20 +50,24 @@ class FooinoJsonHandler implements Jsonable
         int $options = 0
     ): JsonResponse {
 
-        return response()
-            ->json(
-                data: [
-                    'status'                => $status,
-                    'success'               => $status >= 200 && $status <= 299,
-                    'message'               => $message,
-                    'errors'                => $errors,
-                    'data'                  => $data,
-                    'additional'            => $additional,
-                ],
-                status: $status,
-                headers: $headers,
-                options: $options
-            );
+        $payload = array_merge(
+            $this->responseTemplate(),
+            [
+                'status'        => $status,
+                'success'       => $status >= 200 && $status <= 299,
+                'message'       => $message,
+                'errors'        => $errors,
+                'data'          => $data,
+                'additional'    => $additional,
+            ]
+        );
+
+        return response()->json(
+            data: $payload,
+            status: $status,
+            headers: $headers,
+            options: $options
+        );
     }
 
     public function responseTemplate(): array
