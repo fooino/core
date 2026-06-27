@@ -22,4 +22,14 @@ class FooinoRuntimeException extends FooinoException
             ->setHttpStatusCode(500)
             ->shouldReport();
     }
+
+    final public function _3(): static
+    {
+        return $this
+            ->setMessage('msg.fooinoRunTimeExceptionInvalidDateString')
+            ->setCode(3)
+            ->error()
+            ->setHttpStatusCode(500)
+            ->shouldReport();
+    }
 }

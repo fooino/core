@@ -2,6 +2,7 @@
 
 namespace Fooino\Core\Tests\Unit;
 
+use Fooino\Core\Exceptions\FooinoRuntimeException;
 use Fooino\Core\Exceptions\TransactionRollBackedException;
 use Fooino\Core\Tests\Data\Datasets;
 
@@ -98,10 +99,10 @@ describe('Helpers unit tests', function () {
 
             expect(isZero(value: $zero))->toBeTrue();
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('isZero returns false', function () {
@@ -130,10 +131,10 @@ describe('Helpers unit tests', function () {
 
             expect(isZero(value: $nonZero))->toBeFalse();
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('nullIfBlank returns value when it is filled', function () {
@@ -594,6 +595,64 @@ describe('Helpers unit tests', function () {
 
         expect(currentDateTs())->toBeInt();
         expect(currentDateTimeTs())->toBeInt();
+    });
+
+    test('strToDate helper', function () {
+
+        expect(strToDate(str: '2026-06-27'))->toBe('2026-06-27');
+
+        expect(strToDate(str: '2026-06-27 14:30:00'))->toBe('2026-06-27');
+
+        expect(strToDate(str: 'next monday'))->toBe(date(STANDARD_DATE_FORMAT, strtotime('next monday')));
+
+        expect(fn() => strToDate(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidDateString');
+
+        try {
+
+            strToDate(str: 'not a date');
+
+            //
+        } catch (FooinoRuntimeException $e) {
+
+            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidDateString');
+            expect($e->getCode())->toBe(3);
+            expect($e->reportable())->toBeTrue();
+            expect($e->getLevel())->toBe('error');
+            expect($e->getHttpStatusCode())->toBe(500);
+            expect($e->getWith())->toBe([
+                'method' => 'strToDate',
+                'input'  => 'not a date',
+            ]);
+        }
+    });
+
+    test('strToDateTime helper', function () {
+
+        expect(strToDateTime(str: '2026-06-27'))->toBe('2026-06-27 00:00:00');
+
+        expect(strToDateTime(str: '2026-06-27 14:30:00'))->toBe('2026-06-27 14:30:00');
+
+        expect(strToDateTime(str: 'next monday'))->toBe(date(STANDARD_DATE_TIME_FORMAT, strtotime('next monday')));
+
+        expect(fn() => strToDateTime(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidDateString');
+
+        try {
+
+            strToDateTime(str: 'not a date');
+
+            //
+        } catch (FooinoRuntimeException $e) {
+
+            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidDateString');
+            expect($e->getCode())->toBe(3);
+            expect($e->reportable())->toBeTrue();
+            expect($e->getLevel())->toBe('error');
+            expect($e->getHttpStatusCode())->toBe(500);
+            expect($e->getWith())->toBe([
+                'method' => 'strToDateTime',
+                'input'  => 'not a date',
+            ]);
+        }
     });
 
     test('callMethodIfExists helper', function () {

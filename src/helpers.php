@@ -1,6 +1,7 @@
 <?php
 
 use Fooino\Core\Exceptions\FooinoException;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
 use Fooino\Core\Exceptions\TransactionRollBackedException;
 
 use Fooino\Core\Facades\Date;
@@ -94,7 +95,7 @@ if (!function_exists('jsonRespond')) {
 if (!function_exists('dateConvert')) {
     /**
      * Convert a date between timezones and calendar systems (Gregorian, Jalali, Hijri)
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
      */
     function dateConvert(string|int|null $date, string $format = STANDARD_DATE_TIME_FORMAT, DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string
@@ -106,11 +107,11 @@ if (!function_exists('dateConvert')) {
 if (!function_exists('datesBetween')) {
     /**
      * Generate an array of dates within a given period(from, to) at specified intervals and format.
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\InfiniteLoopException
      */
     function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array
@@ -378,12 +379,12 @@ if (!function_exists('mergeArraysByKey')) {
 
                     $merged[$key] = array_merge($merged[$key], $value);
 
-                    // 
+                    //
                 } else {
 
                     $merged[$key][] = $value;
 
-                    // 
+                    //
                 }
             }
         }
@@ -572,6 +573,58 @@ if (!function_exists('currentDateTimeTs')) {
     function currentDateTimeTs(): int
     {
         return strtotime(currentDateTime());
+    }
+}
+
+if (!function_exists('strToDate')) {
+    /**
+     * Convert a date string to the standard date format (Y-m-d)
+     * The helper use php strtotime function to parse $str
+     *
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException with code 3
+     */
+    function strToDate(string $str): string
+    {
+        $timestamp = strtotime($str);
+
+        if ($timestamp === false) {
+
+            app(FooinoRuntimeException::class)
+                ->_3()
+                ->with([
+                    'method'    => 'strToDate',
+                    'input'     => $str
+                ])
+                ->throw();
+        }
+
+        return date(STANDARD_DATE_FORMAT, $timestamp);
+    }
+}
+
+if (!function_exists('strToDateTime')) {
+    /**
+     * Convert a date string to the standard datetime format (Y-m-d H:i:s)
+     * The helper use php strtotime function to parse $str
+     *
+     * @throws \Fooino\Core\Exceptions\FooinoRuntimeException with code 3
+     */
+    function strToDateTime(string $str): string
+    {
+        $timestamp = strtotime($str);
+
+        if ($timestamp === false) {
+
+            app(FooinoRuntimeException::class)
+                ->_3()
+                ->with([
+                    'method'    => 'strToDateTime',
+                    'input'     => $str
+                ])
+                ->throw();
+        }
+
+        return date(STANDARD_DATE_TIME_FORMAT, $timestamp);
     }
 }
 
@@ -773,7 +826,7 @@ if (!function_exists('dbTransaction')) {
 
             return $result;
 
-            // 
+            //
         } catch (FooinoException | Exception $e) {
 
             DB::rollBack();

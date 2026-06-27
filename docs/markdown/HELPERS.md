@@ -123,6 +123,28 @@ Get the current datetime as a Unix timestamp.
 currentDateTimeTs(); // 1768262400
 ```
 
+## strToDate
+
+Convert a date string to the standard date format (Y-m-d). When the input cannot be parsed by PHP's `strtotime`, a `FooinoRuntimeException` is thrown with code `3`.
+
+```php
+strToDate(str: '2026-06-27');                 // '2026-06-27'
+strToDate(str: '2026-06-27 14:30:00');        // '2026-06-27'
+strToDate(str: 'next monday');                // '2026-06-29' (depends on current date)
+strToDate(str: 'not a date');                 // throws FooinoRuntimeException (code 3)
+```
+
+## strToDateTime
+
+Convert a date string to the standard datetime format (Y-m-d H:i:s). When the input cannot be parsed by PHP's `strtotime`, a `FooinoRuntimeException` is thrown with code `3`.
+
+```php
+strToDateTime(str: '2026-06-27');             // '2026-06-27 00:00:00'
+strToDateTime(str: '2026-06-27 14:30:00');    // '2026-06-27 14:30:00'
+strToDateTime(str: 'next monday');            // '2026-06-29 00:00:00' (depends on current date)
+strToDateTime(str: 'not a date');             // throws FooinoRuntimeException (code 3)
+```
+
 ## callMethodIfExists
 
 Safely call a method on an object or class if it exists, otherwise return a fallback value.
