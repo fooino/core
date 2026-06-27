@@ -36,15 +36,17 @@ exit
 
 5. [Sanitizer](./docs/markdown/SANITIZER.MD)
 
-6. [TokenGenerator](./docs/markdown/TOKEN_GENERATOR.md)
+6. [NormalizesInputs trait](./docs/markdown/NORMALIZES_INPUTS.md)
 
-7. [SingletonableTask](./docs/markdown/SINGLETONABLE_TASK.md)
+7. [TokenGenerator](./docs/markdown/TOKEN_GENERATOR.md)
 
-8. [FooinoException](./docs/markdown/FOOINO_EXCEPTION.md)
+8. [SingletonableTask](./docs/markdown/SINGLETONABLE_TASK.md)
 
-9. [Exceptions](./docs/markdown/EXCEPTIONS.md)
+9. [FooinoException](./docs/markdown/FOOINO_EXCEPTION.md)
 
-10. [Configuration](./docs/markdown/CONFIGURATION.md)
+10. [Exceptions](./docs/markdown/EXCEPTIONS.md)
+
+11. [Configuration](./docs/markdown/CONFIGURATION.md)
 
 
 ## 🚀 Change log
