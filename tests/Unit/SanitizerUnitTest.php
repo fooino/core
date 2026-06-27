@@ -235,6 +235,17 @@ describe('Sanitizer utilities', function () {
 
         expect((new Sanitizer(value: ' fooBar'))->lowercase()->value())->toBe(' foobar');
         expect((new Sanitizer(value: [1, 1.1, null, true, false, ' fooBar', [1, 1.1, null, true, false, 'FOO_BAR']]))->lowercase()->value())->toBe([1, 1.1, null, true, false, ' foobar', [1, 1.1, null, true, false, 'foo_bar']]);
+
+        expect((new Sanitizer(value: 'ÜBER'))->lowercase()->value())->toBe('über');
+        expect((new Sanitizer(value: 'ÄÖÜ'))->lowercase()->value())->toBe('äöü');
+        expect((new Sanitizer(value: 'ТЕКСТ'))->lowercase()->value())->toBe('текст');
+        expect((new Sanitizer(value: 'Σ'))->lowercase()->value())->toBe('σ');
+        expect((new Sanitizer(value: 'عَلِي'))->lowercase()->value())->toBe('عَلِي');
+        expect((new Sanitizer(value: 'über straße'))->lowercase()->value())->toBe('über straße');
+        expect((new Sanitizer(value: 'Hello 世界'))->lowercase()->value())->toBe('hello 世界');
+        expect((new Sanitizer(value: 'STRASSE'))->lowercase()->value())->toBe('strasse');
+
+        expect((new Sanitizer(value: ['ÜBER', 'foo', ['ТЕКСТ']]))->lowercase()->value())->toBe(['über', 'foo', ['текст']]);
     });
 
     test('uppercase method', function () {
@@ -251,6 +262,16 @@ describe('Sanitizer utilities', function () {
 
         expect((new Sanitizer(value: ' fooBar'))->uppercase()->value())->toBe(' FOOBAR');
         expect((new Sanitizer(value: [1, 1.1, null, true, false, ' fooBar', [1, 1.1, null, true, false, 'foo_bar']]))->uppercase()->value())->toBe([1, 1.1, null, true, false, ' FOOBAR', [1, 1.1, null, true, false, 'FOO_BAR']]);
+
+        expect((new Sanitizer(value: 'über'))->uppercase()->value())->toBe('ÜBER');
+        expect((new Sanitizer(value: 'äöü'))->uppercase()->value())->toBe('ÄÖÜ');
+        expect((new Sanitizer(value: 'текст'))->uppercase()->value())->toBe('ТЕКСТ');
+        expect((new Sanitizer(value: 'straße'))->uppercase()->value())->toBe('STRASSE');
+        expect((new Sanitizer(value: 'عَلِي'))->uppercase()->value())->toBe('عَلِي');
+        expect((new Sanitizer(value: 'hello 世界'))->uppercase()->value())->toBe('HELLO 世界');
+        expect((new Sanitizer(value: 'über straße'))->uppercase()->value())->toBe('ÜBER STRASSE');
+
+        expect((new Sanitizer(value: ['über', 'foo', ['текст']]))->uppercase()->value())->toBe(['ÜBER', 'FOO', ['ТЕКСТ']]);
     });
 
     test('collapse method', function () {
@@ -398,11 +419,12 @@ describe('Sanitizer utilities', function () {
         test('recursion limit throws before exceeding max depth', function () {
 
             $nested = ['trigger'];
+
             for ($i = 0; $i < 25; $i++) {
                 $nested = [$nested];
             }
 
-            expect(fn() => (new Sanitizer(value: $nested))->lowercase()->value())->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $nested))->lowercase()->value())->toThrow(InfiniteLoopException::class, 'msg.infiniteLoopExceptionSanitizerRecursionLimit');
 
             try {
 
@@ -411,13 +433,15 @@ describe('Sanitizer utilities', function () {
                 //
             } catch (InfiniteLoopException $e) {
 
-                expect($e->getMessage())->toBe('msg.infiniteLoopException');
-                expect($e->getCode())->toBe(10201);
+                expect($e->getMessage())->toBe('msg.infiniteLoopExceptionSanitizerRecursionLimit');
+                expect($e->getCode())->toBe(252);
                 expect($e->getLevel())->toBe('critical');
+                expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'    => 'toLowercase',
                     'attempted' => 26,
+                    'value'     => $nested
                 ]);
             }
         });

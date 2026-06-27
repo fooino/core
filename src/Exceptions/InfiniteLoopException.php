@@ -22,4 +22,14 @@ class InfiniteLoopException extends FooinoException
             ->setHttpStatusCode(500)
             ->shouldReport();
     }
+
+    final public function _252(): static
+    {
+        return $this
+            ->setMessage('msg.infiniteLoopExceptionSanitizerRecursionLimit')
+            ->setCode(252)
+            ->critical()
+            ->setHttpStatusCode(500)
+            ->shouldReport();
+    }
 }

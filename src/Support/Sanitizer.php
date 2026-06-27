@@ -6,9 +6,9 @@ use Fooino\Core\Exceptions\InfiniteLoopException;
 
 class Sanitizer
 {
-    private array $attempted = [];
-
     private const int MAX_ATTEMPT = 25;
+
+    private array $attempted = [];
 
     public function __construct(private string|int|float|null|bool|array|object $value) {}
 
@@ -90,6 +90,7 @@ class Sanitizer
                 if ($exclude === $forbidden) {
 
                     unset($forbiddens[$key]);
+                    break;
                 }
             }
         }
@@ -120,6 +121,7 @@ class Sanitizer
                 if ($exclude === $sensitive) {
 
                     unset($sensitives[$key]);
+                    break;
                 }
             }
         }
@@ -347,9 +349,30 @@ class Sanitizer
             '.cgi',
             '.pl',
             '.rb',
-            'artisan'
+            'artisan',
+            'Dockerfile',
+            'Makefile',
+            'Procfile',
+            'docker-compose.yml',
+            'docker-compose.yaml',
+            'next.config.js',
+            'next.config.ts',
+            'nginx.conf',
+            'phpstan.neon',
+            'phpstan.neon.dist',
+            'phpunit.xml.dist',
+            'tailwind.config.js',
+            'tailwind.config.ts',
+            'vite.config.js',
+            'vite.config.ts',
+            'yarn.lock',
+            '.dockerignore',
+            '.gitattributes',
+            '.npmrc',
+            '.php-cs-fixer.php',
+            '.php-cs-fixer.dist.php',
+            'makefile'
         ];
-
 
         usort($files, fn($a, $b) => strlen($b) <=> strlen($a));
 
@@ -568,10 +591,11 @@ class Sanitizer
         if ($this->attempted[$method] > self::MAX_ATTEMPT) {
 
             app(InfiniteLoopException::class)
-                ->_10201()
+                ->_252()
                 ->with([
                     'method'    => $method,
                     'attempted' => $this->attempted[$method],
+                    'value'     => $this->value()
                 ])
                 ->throw();
         }

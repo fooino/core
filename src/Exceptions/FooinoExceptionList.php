@@ -26,14 +26,6 @@ trait FooinoExceptionList
 
 
     // InfiniteLoopException (range 10200-10300)
-    public function _10201(): static
-    {
-        return $this
-            ->setMessage('msg.infiniteLoopException')
-            ->setCode(10201)
-            ->critical()
-            ->shouldReport();
-    }
 
     public function _10202(): static
     {
