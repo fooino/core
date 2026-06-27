@@ -38,7 +38,9 @@ class Sanitizer
     {
         $value = $this->value();
 
-        $isJson = isJson(value: $value);
+        $trimmed = is_string($value) ? $this->trimValue(value: $value) : $value;
+
+        $isJson = isJson(value: $value) && !is_numeric($trimmed) && !in_array($trimmed, ['true', 'false', 'null', '{}']);
 
         if ($isJson) {
 
@@ -55,11 +57,7 @@ class Sanitizer
             array_walk_recursive($value, fn(&$item) => $item = $this->normalizeValue(value: $item));
         }
 
-        if (
-            is_string($value) ||
-            is_int($value) ||
-            is_float($value)
-        ) {
+        if (is_string($value)) {
 
             return $this->setValue(value: $this->normalizeValue(value: $value));
         }
@@ -200,7 +198,7 @@ class Sanitizer
     /**
      * Trim characters from the beginning and end of the value
      */
-    public function trim(string $char = ' '): static
+    public function trim(string $char = " \n\r\t\v\0"): static
     {
         $value = $this->value();
 
@@ -386,6 +384,8 @@ class Sanitizer
     private function normalizeValue(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
     {
         if (
+            is_int($value) ||
+            is_float($value) ||
             is_null($value) ||
             is_bool($value) ||
             is_array($value) ||
@@ -393,8 +393,6 @@ class Sanitizer
         ) {
             return $value;
         }
-
-        $type = gettype($value);
 
         // remove ZWNJ, ZWJ, BOM characters
         $value = preg_replace('/[\x{200C}\x{200D}\x{FEFF}]/u', '', $value);
@@ -410,9 +408,7 @@ class Sanitizer
 
         $replaced = strip_tags($replaced, $this->allowedTags());
 
-        $replaced = mb_trim($replaced);
-
-        settype($replaced, $type);
+        $replaced = mb_trim($replaced, " \n\r\t\v\0");
 
         return $replaced;
     }
@@ -478,19 +474,17 @@ class Sanitizer
      */
     private function replace(string|array $search, string|array $replace, string|array $subject): string|array
     {
-        $this->assertRecursionLimit(method: 'replace');
-
         if (is_string($subject)) {
             return str_replace(search: $search, replace: $replace, subject: $subject);
         }
+
+        $this->assertRecursionLimit(method: 'replace');
 
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replace(search: $search, replace: $replace, subject: $item) : $item, $subject);
     }
 
     private function replaceEmojiValue(string|array $value, string $replaceWith): string|array
     {
-        $this->assertRecursionLimit(method: 'replaceEmojiValue');
-
         if (is_string($value)) {
 
             $pattern = '/(' .
@@ -519,6 +513,8 @@ class Sanitizer
             return preg_replace(pattern: $pattern, replacement: $replaceWith, subject: $value);
         }
 
+        $this->assertRecursionLimit(method: 'replaceEmojiValue');
+
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replaceEmojiValue(value: $item, replaceWith: $replaceWith) : $item, $value);
     }
 
@@ -527,11 +523,11 @@ class Sanitizer
      */
     private function toLowercase(string|array $value): string|array
     {
-        $this->assertRecursionLimit(method: 'toLowercase');
-
         if (is_string($value)) {
             return mb_strtolower(string: $value);
         }
+
+        $this->assertRecursionLimit(method: 'toLowercase');
 
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->toLowercase(value: $item) : $item, $value);
     }
@@ -541,11 +537,11 @@ class Sanitizer
      */
     private function toUppercase(string|array $value): string|array
     {
-        $this->assertRecursionLimit(method: 'toUppercase');
-
         if (is_string($value)) {
             return mb_strtoupper(string: $value);
         }
+
+        $this->assertRecursionLimit(method: 'toUppercase');
 
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->toUppercase(value: $item) : $item, $value);
     }
@@ -555,8 +551,6 @@ class Sanitizer
      */
     private function collapseValue(string|array $value, string $char): string|array
     {
-        $this->assertRecursionLimit(method: 'collapseValue');
-
         if ($char === '') {
             return $value;
         }
@@ -565,20 +559,22 @@ class Sanitizer
             return preg_replace(pattern: '/' . preg_quote($char, '/') . '+/u', replacement: $char, subject: $value);
         }
 
+        $this->assertRecursionLimit(method: 'collapseValue');
+
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->collapseValue(value: $item, char: $char) : $item, $value);
     }
 
     /**
      * Trim characters from value, handling arrays recursively
      */
-    private function trimValue(string|array $value, string $char): string|array
+    private function trimValue(string|array $value, string $char = " \n\r\t\v\0"): string|array
     {
-        $this->assertRecursionLimit(method: 'trimValue');
-
         if (is_string($value)) {
 
             return mb_trim($value, $char);
         }
+
+        $this->assertRecursionLimit(method: 'trimValue');
 
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->trimValue(value: $item, char: $char) : $item, $value);
     }

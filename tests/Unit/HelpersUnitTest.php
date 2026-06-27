@@ -674,7 +674,7 @@ describe('Helpers unit tests', function () {
         expect(callMethodIfExists(object: new CustomClass, method: 'nonexistent', fallback: 'default'))->toBe('default');
     });
 
-    test('percentageChange method', function () {
+    test('percentageChange helper', function () {
 
         expect(percentageChange(from: 200, to: 50))->toBe('-75');
         expect(percentageChange(from: 50, to: 200))->toBe('300');
@@ -719,7 +719,7 @@ describe('Helpers unit tests', function () {
         expect(percentageChange(from: 0.0001, to: 0.0002))->toBe('100');
     });
 
-    test('unitNumberFormat method', function () {
+    test('unitNumberFormat helper', function () {
 
         $trillion = __('msg.trillion');
         $billion = __('msg.billion');
@@ -754,7 +754,7 @@ describe('Helpers unit tests', function () {
         expect(unitNumberFormat(number: 0, unit: 'seconds'))->toBe('0 seconds');
     });
 
-    test('unitSizeFormat method', function () {
+    test('unitSizeFormat helper', function () {
 
         expect(unitSizeFormat(bytes: 1099511627776))->toBe('1 TB');
         expect(unitSizeFormat(bytes: 2199023255552))->toBe('2 TB');
@@ -795,7 +795,7 @@ describe('Helpers unit tests', function () {
         expect(unitSizeFormat(bytes: 2199023255552, precision: 0))->toBe('2 TB');
     });
 
-    test('sanitizeUrl and sanitizeSlug method', function () {
+    test('sanitizeUrl and sanitizeSlug helper', function () {
 
         expect(sanitizeUrl(value: 1))->toBe(1);
         expect(sanitizeUrl(value: 1.1))->toBe(1.1);
