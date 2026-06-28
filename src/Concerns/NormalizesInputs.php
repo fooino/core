@@ -82,6 +82,13 @@ trait NormalizesInputs
             config: $config,
         );
 
+        $existing = data_get(target: $prepared, key: $parentKey);
+
+        if (is_array($existing) && $existing !== []) {
+
+            $parent = array_replace_recursive($parent, $existing);
+        }
+
         data_set(target: $prepared, key: $parentKey, value: $parent);
     }
 
@@ -223,7 +230,7 @@ trait NormalizesInputs
      * Return an array keyed by input name. Each value is a config array that
      * controls what transformations run on that input. The pipeline order is:
      *
-     *   normalizeInput → nullIfBlank || nullIfBlankOrZero → custom pipes
+     *   normalizeInput → nullIfBlank or nullIfBlankOrZero → custom pipes
      *
      * Available config options:
      *

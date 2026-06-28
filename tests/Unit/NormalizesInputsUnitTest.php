@@ -42,6 +42,7 @@ describe('NormalizesInputs trait', function () {
         NormalizesInputsTestFormRequest::$testRules = [
             'title'                 => 'required',
             'bio'                   => 'nullable',
+            'slogan'                => 'nullable',
             'content'               => 'required',
             'age'                   => 'required|numeric',
             'phone_number'          => 'required',
@@ -53,6 +54,7 @@ describe('NormalizesInputs trait', function () {
             data: [
                 'title'         => 'عليك سلام',
                 'bio'           => 'null ',
+                // I did not pass the slogan
                 'content'       => '<script>alert(1)</script>',
                 'age'           => 29,
                 'phone_number'  => '۰۱۲۳٤٥٦۷۸۹',
@@ -63,6 +65,7 @@ describe('NormalizesInputs trait', function () {
         expect($request->validated())->toBe([
             'title'         => 'علیک سلام',
             'bio'           => null,
+            'slogan'        => null, // the null value be merged to the request
             'content'       => 'alert(1)',
             'age'           => 29,
             'phone_number'  => '0123456789',
@@ -76,7 +79,9 @@ describe('NormalizesInputs trait', function () {
 
         $request = resolveRequest(
             request: NormalizesInputsTestFormRequest::class,
-            data: ['unused' => 'value'],
+            data: [
+                'unused' => 'value'
+            ],
         );
 
         expect($request->validated())->toBe([]);
@@ -84,16 +89,22 @@ describe('NormalizesInputs trait', function () {
 
     it('does not modify inputs that are not in rules', function () {
 
-        NormalizesInputsTestFormRequest::$testRules = ['title' => 'required'];
+        NormalizesInputsTestFormRequest::$testRules = [
+            'title' => 'required'
+        ];
 
         $request = resolveRequest(
             request: NormalizesInputsTestFormRequest::class,
-            data: ['title' => 'Hello', 'extra' => ' untouched '],
+            data: [
+                'title' => 'Hello',
+                'extra' => ' untouched۱۲۳ '
+            ],
         );
 
         expect($request->validated())->toHaveKey('title');
+
         expect($request->validated())->not->toHaveKey('extra');
-        expect($request->all()['extra'])->toBe(' untouched ');
+        expect($request->all()['extra'])->toBe(' untouched۱۲۳ ');
     });
 
     describe('config options', function () {
@@ -104,11 +115,15 @@ describe('NormalizesInputs trait', function () {
                 'raw' => 'required',
             ];
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['raw' => ['skipNormalize' => true]];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'raw' => ['skipNormalize' => true]
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['raw' => '<script>alert(1)</script>'],
+                data: [
+                    'raw' => '<script>alert(1)</script>'
+                ],
             );
 
             expect($request->validated()['raw'])->toBe('<script>alert(1)</script>');
@@ -116,7 +131,9 @@ describe('NormalizesInputs trait', function () {
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['raw' => '۰۱۲۳٤٥٦۷۸۹'],
+                data: [
+                    'raw' => '۰۱۲۳٤٥٦۷۸۹'
+                ],
             );
 
             expect($request->validated()['raw'])->toBe('۰۱۲۳٤٥٦۷۸۹');
@@ -124,13 +141,19 @@ describe('NormalizesInputs trait', function () {
 
         it('skipNormalize disabled re-enables normalize', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['raw' => 'required'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'raw' => 'required'
+            ];
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['raw' => ['skipNormalize' => false]];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'raw' => ['skipNormalize' => false]
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['raw' => '۰۱۲۳٤٥٦۷۸۹'],
+                data: [
+                    'raw' => '۰۱۲۳٤٥٦۷۸۹'
+                ],
             );
 
             expect($request->validated()['raw'])->toBe('0123456789');
@@ -138,23 +161,33 @@ describe('NormalizesInputs trait', function () {
 
         it('keepBlank', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['bio' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'bio' => 'nullable'
+            ];
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['bio' => ['keepBlank' => true]];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'bio' => ['keepBlank' => true]
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['bio' => ''],
+                data: [
+                    'bio' => ''
+                ],
             );
 
             expect($request->validated()['bio'])->toBe('');
 
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['bio' => ['keepBlank' => false]];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'bio' => ['keepBlank' => false]
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['bio' => 'undefined'],
+                data: [
+                    'bio' => 'undefined'
+                ],
             );
 
             expect($request->validated()['bio'])->toBe(null);
@@ -162,23 +195,33 @@ describe('NormalizesInputs trait', function () {
 
         it('nullOnZero', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['count' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'count' => 'nullable'
+            ];
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['count' => ['nullOnZero' => true]];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'count' => ['nullOnZero' => true]
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['count' => '0'],
+                data: [
+                    'count' => '0'
+                ],
             );
 
             expect($request->validated()['count'])->toBe(null);
 
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['count' => ['nullOnZero' => false]];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'count' => ['nullOnZero' => false]
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['count' => 0],
+                data: [
+                    'count' => 0
+                ],
             );
 
             expect($request->validated()['count'])->toBe(0);
@@ -186,27 +229,41 @@ describe('NormalizesInputs trait', function () {
 
         it('default fallback when input is blank', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['title' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'title'     => 'nullable',
+                'slogan'    => 'nullable'
+            ];
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['title' => ['default' => 'Untitled']];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'title'     => ['default' => 'Untitled'],
+                'slogan'    => ['default' => 'fooino will rock you']
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['title' => "NULL\n"],
+                data: [
+                    'title' => "NULL\n",
+                    // I did not passed the slogan but it gets the default value
+                ],
             );
 
             expect($request->validated()['title'])->toBe('Untitled');
+            expect($request->validated()['slogan'])->toBe('fooino will rock you');
         });
 
         it('does not override non-blank value when default is set', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['title' => 'required'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'title' => 'required'
+            ];
 
             NormalizesInputsTestFormRequest::$testConfigs = ['title' => ['default' => 'Untitled']];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['title' => 'My Title'],
+                data: [
+                    'title' => 'My Title'
+                ],
             );
 
             expect($request->validated()['title'])->toBe('My Title');
@@ -214,7 +271,9 @@ describe('NormalizesInputs trait', function () {
 
         it('nullOnZero with default fallback', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['count' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'count' => 'nullable'
+            ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
                 'count' => ['nullOnZero' => true, 'default' => 0],
@@ -222,7 +281,9 @@ describe('NormalizesInputs trait', function () {
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['count' => '0'],
+                data: [
+                    'count' => '0'
+                ],
             );
 
             expect($request->validated()['count'])->toBe(0);
@@ -230,7 +291,9 @@ describe('NormalizesInputs trait', function () {
 
         it('single pipe', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['slug' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'slug' => 'nullable'
+            ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
                 'slug' => ['pipe' => fn($value, $request) => sanitizeSlug($value)],
@@ -238,7 +301,9 @@ describe('NormalizesInputs trait', function () {
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['slug' => ' Hello__World'],
+                data: [
+                    'slug' => ' Hello__World'
+                ],
             );
 
             expect($request->validated()['slug'])->toBe('hello-world');
@@ -246,7 +311,9 @@ describe('NormalizesInputs trait', function () {
 
         it('multiple pipes in sequence', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['phone' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'phone' => 'nullable'
+            ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
                 'phone' => ['pipe' => [
@@ -257,7 +324,9 @@ describe('NormalizesInputs trait', function () {
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['phone' => ' 0912 , 123 , 4567 '],
+                data: [
+                    'phone' => ' 0912 , 123 , 4567 '
+                ],
             );
 
             expect($request->validated()['phone'])->toBe('09121234567');
@@ -265,7 +334,9 @@ describe('NormalizesInputs trait', function () {
 
         it('pipe receives null after nullIfBlank', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['slug' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'slug' => 'nullable'
+            ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
                 'slug' => ['pipe' => [fn($v) => $v === null ? null : strtolower($v)]],
@@ -273,7 +344,9 @@ describe('NormalizesInputs trait', function () {
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['slug' => ''],
+                data: [
+                    'slug' => ''
+                ],
             );
 
             expect($request->validated()['slug'])->toBe(null);
@@ -281,7 +354,9 @@ describe('NormalizesInputs trait', function () {
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['slug' => 'FOOBAR'],
+                data: [
+                    'slug' => 'FOOBAR'
+                ],
             );
 
             expect($request->validated()['slug'])->toBe('foobar');
@@ -300,7 +375,10 @@ describe('NormalizesInputs trait', function () {
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['slug' => '', 'title' => 'My Article'],
+                data: [
+                    'slug' => '',
+                    'title' => 'My Article'
+                ],
             );
 
             expect($request->validated()['slug'])->toBe('my-article');
@@ -317,7 +395,7 @@ describe('NormalizesInputs trait', function () {
 
             NormalizesInputsTestFormRequest::$testConfigs = [
                 'slug'  => ['pipe' => fn($v) => $v === null ? null : str_replace(' ', '-', strtolower($v))],
-                'count' => ['nullOnZero' => true],
+                'count' => ['nullOnZero' => true, 'default' => 'siuuuu'],
             ];
 
             $request = resolveRequest(
@@ -332,7 +410,7 @@ describe('NormalizesInputs trait', function () {
 
             expect($request->validated()['title'])->toBe('Hello World');
             expect($request->validated()['slug'])->toBeNull();
-            expect($request->validated()['count'])->toBeNull();
+            expect($request->validated()['count'])->toBe('siuuuu');
             expect($request->validated()['email'])->toBe('USER@EXAMPLE.COM');
         });
     });
@@ -348,6 +426,13 @@ describe('NormalizesInputs trait', function () {
                 'user.age'                   => 'required|numeric',
                 'user.phone_number'          => 'required',
                 'user.remember_me'           => 'required|boolean:strict',
+                'user.attributes.id'         => 'nullable',
+                'user.attributes.email'      => 'required|email'
+            ];
+
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'user.attributes.id'        => ['nullOnZero' => true],
+                'user.attributes.email'     => ['default'    => 'FOO@INO.COM', 'pipe' => fn($value, $request) => strtolower($value)]
             ];
 
             $request = resolveRequest(
@@ -360,6 +445,9 @@ describe('NormalizesInputs trait', function () {
                         'age'           => 29,
                         'phone_number'  => '۰۱۲۳٤٥٦۷۸۹',
                         'remember_me'   => true,
+                        'attibutes'     => [
+                            'id'        => 0,
+                        ]
                     ],
                 ],
             );
@@ -372,23 +460,37 @@ describe('NormalizesInputs trait', function () {
                     'age'           => 29,
                     'phone_number'  => '0123456789',
                     'remember_me'   => true,
+                    'attributes'    => [
+                        'id'    => null,
+                        'email' => 'foo@ino.com'
+                    ]
                 ],
             ]);
         });
 
         it('applies config to dot-notation inputs', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['user.name' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'user.name' => 'nullable'
+            ];
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['user.name' => ['default' => 'Guest']];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'user.name' => ['default' => 'Guest']
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['user' => ['name' => '']],
+                data: [
+                    'user' => [
+                        'name' => ''
+                    ]
+                ],
             );
 
             expect($request->validated())->toBe([
-                'user' => ['name' => 'Guest'],
+                'user' => [
+                    'name' => 'Guest'
+                ],
             ]);
         });
 
@@ -397,6 +499,7 @@ describe('NormalizesInputs trait', function () {
             NormalizesInputsTestFormRequest::$testRules = [
                 'user.0.name' => 'required',
                 'user.1.name' => 'required',
+                'user.2.name' => 'nullable',
             ];
 
             $request = resolveRequest(
@@ -413,6 +516,7 @@ describe('NormalizesInputs trait', function () {
                 'user' => [
                     ['name' => 'علیک سلام'],
                     ['name' => '0123'],
+                    ['name' => null]
                 ],
             ]);
         });
@@ -449,7 +553,9 @@ describe('NormalizesInputs trait', function () {
 
         it('normalizes wildcard inputs', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*.name' => 'required'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.name' => 'required'
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
@@ -471,23 +577,31 @@ describe('NormalizesInputs trait', function () {
 
         it('applies config to wildcard inputs', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*.name' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.1.name'  => 'required',
+                'users.*.name'  => 'nullable',
+            ];
 
-            NormalizesInputsTestFormRequest::$testConfigs = ['users.*.name' => ['default' => 'Guest']];
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'users.*.name'  => ['default'   => 'Guest'],
+                'users.1.name'  => ['default'   => 'fooino magic', 'pipe' => fn($value) => strtoupper($value)]
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
                 data: [
                     'users' => [
-                        ['name' => 'عليك'],
-                        ['name' => ''],
+                        ['name' => 'عليك '],
+                        ['name' => null],
+                        ['name' => null]
                     ],
                 ],
             );
 
-            expect($request->validated())->toBe([
+            expect($request->all())->toBe([
                 'users' => [
                     ['name' => 'علیک'],
+                    ['name' => 'FOOINO MAGIC'],
                     ['name' => 'Guest'],
                 ],
             ]);
@@ -537,7 +651,9 @@ describe('NormalizesInputs trait', function () {
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['users' => [['name' => 'Ali']]],
+                data: [
+                    'users' => [['name' => 'Ali']]
+                ],
             );
 
             expect($request->validated())->toBe(['users' => [['name' => 'Ali']]]);
