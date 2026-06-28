@@ -4,6 +4,9 @@ namespace Fooino\Core\Concerns;
 
 trait NormalizesInputs
 {
+    /**
+     * Prepare the data for validation.
+     */
     protected function prepareForValidation(): void
     {
         $inputConfigs = $this->inputConfigs();
@@ -11,13 +14,15 @@ trait NormalizesInputs
         $prepared = [];
 
         foreach ($this->rules() as $input => $rules) {
+
             $prepared[$input] = $this->prepareValue(
                 input: $input,
                 config: $inputConfigs[$input] ?? [],
             );
         }
 
-        if ($prepared !== []) {
+        if (filled($prepared)) {
+
             $this->merge($prepared);
         }
     }
@@ -27,7 +32,9 @@ trait NormalizesInputs
         $value = $this->input($input);
 
         $value = $this->applyNormalize(value: $value, config: $config);
+
         $value = $this->applyNullIfBlank(value: $value, config: $config);
+
         $value = $this->applyPipes(value: $value, config: $config);
 
         return $value;
@@ -36,6 +43,7 @@ trait NormalizesInputs
     private function applyNormalize(mixed $value, array $config): mixed
     {
         if ($config['skipNormalize'] ?? false) {
+
             return $value;
         }
 
@@ -45,12 +53,14 @@ trait NormalizesInputs
     private function applyNullIfBlank(mixed $value, array $config): mixed
     {
         if ($config['keepBlank'] ?? false) {
+
             return $value;
         }
 
         $default = $config['default'] ?? null;
 
         if ($config['nullOnZero'] ?? false) {
+
             return nullIfBlankOrZero(value: $value, fallback: $default);
         }
 
@@ -62,14 +72,17 @@ trait NormalizesInputs
         $pipes = $config['pipe'] ?? null;
 
         if ($pipes === null) {
+
             return $value;
         }
 
         if (!is_array($pipes)) {
+
             $pipes = [$pipes];
         }
 
         foreach ($pipes as $pipe) {
+
             $value = $pipe($value, $this);
         }
 
@@ -82,7 +95,7 @@ trait NormalizesInputs
      * Return an array keyed by input name. Each value is a config array that
      * controls what transformations run on that input. The pipeline order is:
      *
-     *   normalizeInput → nullIfBlank / nullIfBlankOrZero → custom pipes
+     *   normalizeInput → nullIfBlank || nullIfBlankOrZero → custom pipes
      *
      * Available config options:
      *
@@ -109,12 +122,12 @@ trait NormalizesInputs
      * Example:
      *   [
      *       'title' => ['default' => 'Untitled'],
-     *       'slug'  => ['pipe' => fn($v) => sanitizeSlug($v)],
+     *       'slug'  => ['pipe' => fn($v, $request) => sanitizeSlug($v)],
      *       'count' => ['nullOnZero' => true, 'default' => 0],
      *       'phone' => ['pipe' => [
-     *           fn($v) => removeComma($v),
-     *           fn($v) => removeWhitespace($v),
-     *           fn($v) => sanitizeNumber($v),
+     *           fn($v, $request) => removeComma($v),
+     *           fn($v, $request) => removeWhitespace($v),
+     *           fn($v, $request) => sanitizeNumber($v),
      *       ]],
      *       'raw'   => ['skipNormalize' => true, 'keepBlank' => true],
      *   ]
