@@ -52,6 +52,54 @@ Inputs not listed in `inputConfigs()` (like `bio` above) get the default treatme
 
 ---
 
+## Dot Notation
+
+Rule keys using dot notation (`user.name`) are resolved to nested arrays. The result is merged back as a proper nested structure.
+
+```php
+protected function inputConfigs(): array
+{
+    return [
+        'user.name' => ['default' => 'Guest'],
+    ];
+}
+
+public function rules(): array
+{
+    return [
+        'user.name' => 'required|string|max:255',
+    ];
+}
+```
+
+Input `['user' => ['name' => 'عليك']]` becomes `['user' => ['name' => 'علیک']]` after normalization.
+
+## Wildcards
+
+Rule keys with `*` wildcards (`users.*.name`) apply the same config to every matching item in an array. Each item's field is normalized independently.
+
+```php
+protected function inputConfigs(): array
+{
+    return [
+        'users.*.name' => ['default' => 'Guest'],
+    ];
+}
+
+public function rules(): array
+{
+    return [
+        'users.*.name' => 'required|string|max:255',
+    ];
+}
+```
+
+Input `['users' => [['name' => 'عليك'], ['name' => '']]]` becomes `['users' => [['name' => 'علیک'], ['name' => 'Guest']]]`.
+
+When the parent value is not an array, the wildcard is safely skipped and no merge occurs for that key.
+
+---
+
 ## Config Options
 
 ### skipNormalize
