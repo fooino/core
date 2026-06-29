@@ -4,6 +4,7 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Exceptions\InfiniteLoopException;
 use Fooino\Core\Support\Sanitizer;
+use Illuminate\Database\Eloquent\Model;
 use stdClass;
 
 describe('Sanitizer utilities', function () {
@@ -156,12 +157,17 @@ describe('Sanitizer utilities', function () {
 
         expect(sanitizer('{"name":"foo <b>bar<\/b>","num":"۰۱۲۳"}')->normalizeInput()->value())->toBe('{"name":"foo <b>bar<\/b>","num":"0123"}');
 
+        expect(sanitizer(jsonEncode("علیك ۰۱۲۳"))->normalizeInput()->value())->toBe(jsonEncode("علیک 0123"));
+
+        expect(sanitizer('۰۱۲۳ ')->normalizeInput()->value())->toBe('0123');
 
         $object = new stdClass;
         $object->number = '۰۱۲۳';
         expect(sanitizer($object)->normalizeInput()->value())->toBe($object);
 
+        expect(sanitizer(jsonEncode(new stdClass))->normalizeInput()->value())->toBe('{}');
 
+        expect(sanitizer(jsonEncode(new class extends Model {}))->normalizeInput()->value())->toBe('[]');
 
 
         expect(sanitizer([])->normalizeInput()->value())->toBe([]);

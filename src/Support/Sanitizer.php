@@ -46,10 +46,12 @@ class Sanitizer
 
             $decoded = jsonDecode(json: $value);
 
-            if (in_array(gettype($decoded), ['object', 'array'])) {
+            $value = match (true) {
 
-                $value = jsonDecodeToArray(json: $value);
-            }
+                in_array(gettype($decoded), ['object', 'array']) => jsonDecodeToArray(json: $value),
+
+                default                                          => $decoded
+            };
         }
 
         if (is_array($value)) {
@@ -58,8 +60,7 @@ class Sanitizer
         }
 
         if (is_string($value)) {
-
-            return $this->setValue(value: $this->normalizeValue(value: $value));
+            $value = $this->normalizeValue(value: $value);
         }
 
         return $this->setValue(value: ($isJson) ? jsonEncode($value) : $value);

@@ -45,9 +45,14 @@ describe('NormalizesInputs trait', function () {
             'slogan'                => 'nullable',
             'content'               => 'required',
             'age'                   => 'required|numeric',
+            'amount'                => 'required|numeric',
             'phone_number'          => 'required',
             'remember_me'           => 'required|boolean:strict',
+            'user'                  => 'nullable',
+            'attributes'            => 'required|array'
         ];
+
+        $collection = collect(['id' => 123, 'name' => 'عليك سلام']);
 
         $request = resolveRequest(
             request: NormalizesInputsTestFormRequest::class,
@@ -57,8 +62,15 @@ describe('NormalizesInputs trait', function () {
                 // I did not pass the slogan
                 'content'       => '<script>alert(1)</script>',
                 'age'           => 29,
+                'amount'        => 123.0102,
                 'phone_number'  => '۰۱۲۳٤٥٦۷۸۹',
-                'remember_me'   => true
+                'remember_me'   => true,
+                'user'          => $collection,
+                'attributes'    => [
+                    'id'        => 1,
+                    'name'      => 'عليك سلام',
+                    'priority'  => '۷۸۹'
+                ]
             ],
         );
 
@@ -68,9 +80,19 @@ describe('NormalizesInputs trait', function () {
             'slogan'        => null, // the null value be merged to the request
             'content'       => 'alert(1)',
             'age'           => 29,
+            'amount'        => 123.0102,
             'phone_number'  => '0123456789',
-            'remember_me'   => true
+            'remember_me'   => true,
+            'user'          => $collection,
+            'attributes'    => [
+                'id'        => 1,
+                'name'      => 'علیک سلام',
+                'priority'  => '789'
+            ]
         ]);
+
+
+        expect($request->validated()['user']->toArray()['name'])->toBe('عليك سلام'); // it does not effect on object
     });
 
     it('does not merge when there are no rules', function () {
@@ -500,6 +522,11 @@ describe('NormalizesInputs trait', function () {
                 'user.0.name' => 'required',
                 'user.1.name' => 'required',
                 'user.2.name' => 'nullable',
+                'user.3.name' => 'required',
+            ];
+
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'user.3.name'   => ['default' => 'FIFA world cup 2026 - Germany vs Paraguay']
             ];
 
             $request = resolveRequest(
@@ -508,6 +535,7 @@ describe('NormalizesInputs trait', function () {
                     'user' => [
                         ['name' => 'عليك سلام'],
                         ['name' => '۰۱۲۳'],
+                        // I did not passed the thrid and fourth name
                     ],
                 ],
             );
@@ -516,7 +544,8 @@ describe('NormalizesInputs trait', function () {
                 'user' => [
                     ['name' => 'علیک سلام'],
                     ['name' => '0123'],
-                    ['name' => null]
+                    ['name' => null],
+                    ['name' => 'FIFA world cup 2026 - Germany vs Paraguay']
                 ],
             ]);
         });
@@ -561,16 +590,39 @@ describe('NormalizesInputs trait', function () {
                 request: NormalizesInputsTestFormRequest::class,
                 data: [
                     'users' => [
-                        ['name' => 'عليك سلام'],
-                        ['name' => '۰۱۲۳'],
+                        [
+                            'name'  => 'عليك سلام',
+                            'email' => '',
+                        ],
+                        [
+                            'name'  => '۰۱۲۳',
+                            'email' => '۰۱۲۳'
+                        ],
                     ],
                 ],
             );
 
             expect($request->validated())->toBe([
                 'users' => [
-                    ['name' => 'علیک سلام'],
-                    ['name' => '0123'],
+                    [
+                        'name'  => 'علیک سلام'
+                    ],
+                    [
+                        'name'  => '0123'
+                    ],
+                ],
+            ]);
+
+            expect($request->all())->toBe([
+                'users' => [
+                    [
+                        'name'  => 'علیک سلام',
+                        'email' => ''
+                    ],
+                    [
+                        'name'  => '0123',
+                        'email' => '۰۱۲۳',
+                    ],
                 ],
             ]);
         });
@@ -609,7 +661,9 @@ describe('NormalizesInputs trait', function () {
 
         it('applies pipe to wildcard inputs', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*.name' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.name' => 'nullable'
+            ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
                 'users.*.name' => ['pipe' => fn($v) => $v === null ? null : strtoupper($v)],
@@ -635,11 +689,15 @@ describe('NormalizesInputs trait', function () {
 
         it('skips when parent is not an array', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*.name' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.name' => 'nullable'
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
-                data: ['users' => 'not-an-array'],
+                data: [
+                    'users' => 'not-an-array'
+                ],
             );
 
             expect($request->validated())->toBe([]);
@@ -647,21 +705,35 @@ describe('NormalizesInputs trait', function () {
 
         it('skips when wildcard has no remaining segments', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*' => 'required'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*' => 'required'
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
                 data: [
-                    'users' => [['name' => 'Ali']]
+                    'users' => [
+                        ['name' => 'Ali'],
+                        ['name' => '']
+                    ]
                 ],
             );
 
-            expect($request->validated())->toBe(['users' => [['name' => 'Ali']]]);
+            expect($request->validated())->toBe(['users' => [['name' => 'Ali'], ['name' => '']]]);
         });
 
         it('deeply nested wildcards: 3 levels', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*.attributes.*.name' => 'required'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.attributes.*.name' => 'required'
+            ];
+
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'users.*.attributes.*.name' => [
+                    'default'   => 'n/a',
+                    'pipe'      => fn($v) => $v === null ? null : strtoupper($v)
+                ],
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
@@ -676,6 +748,8 @@ describe('NormalizesInputs trait', function () {
                         [
                             'attributes' => [
                                 ['name' => 'مصطفي', 'type' => 'c'],
+                                ['name' => 'undefined'],
+                                ['name' => 'fooino']
                             ],
                         ],
                     ],
@@ -684,15 +758,28 @@ describe('NormalizesInputs trait', function () {
 
             expect($request->validated())->toBe([
                 'users' => [
-                    ['attributes' => [['name' => 'علیک'], ['name' => '0123']]],
-                    ['attributes' => [['name' => 'مصطفی']]],
+                    [
+                        'attributes' => [
+                            ['name' => 'علیک'],
+                            ['name' => '0123']
+                        ]
+                    ],
+                    [
+                        'attributes' => [
+                            ['name' => 'مصطفی'],
+                            ['name' => 'N/A'],
+                            ['name' => 'FOOINO']
+                        ]
+                    ],
                 ],
             ]);
         });
 
         it('applies config to deeply nested wildcards', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*.attributes.*.name' => 'nullable'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.attributes.*.name' => 'nullable',
+            ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
                 'users.*.attributes.*.name' => ['default' => 'Unnamed'],
@@ -702,14 +789,20 @@ describe('NormalizesInputs trait', function () {
                 request: NormalizesInputsTestFormRequest::class,
                 data: [
                     'users' => [
-                        ['attributes' => [['name' => 'عليك'], ['name' => '']]],
+                        ['attributes' => [
+                            ['name' => 'عليك'],
+                            ['name' => '']
+                        ]],
                     ],
                 ],
             );
 
             expect($request->validated())->toBe([
                 'users' => [
-                    ['attributes' => [['name' => 'علیک'], ['name' => 'Unnamed']]],
+                    ['attributes' => [
+                        ['name' => 'علیک'],
+                        ['name' => 'Unnamed']
+                    ]],
                 ],
             ]);
         });
@@ -756,7 +849,9 @@ describe('NormalizesInputs trait', function () {
 
         it('wildcard with non-wildcard intermediate key', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*.metadata.name' => 'required'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.metadata.name' => 'required'
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
@@ -778,7 +873,9 @@ describe('NormalizesInputs trait', function () {
 
         it('wildcard with specific numeric index', function () {
 
-            NormalizesInputsTestFormRequest::$testRules = ['users.*.attributes.1.name' => 'required'];
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.attributes.1.name' => 'required'
+            ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
@@ -786,13 +883,13 @@ describe('NormalizesInputs trait', function () {
                     'users' => [
                         [
                             'attributes' => [
-                                ['name' => 'first'],
+                                ['name' => 'عليك'],
                                 ['name' => 'عليك'],
                             ],
                         ],
                         [
                             'attributes' => [
-                                ['name' => 'first'],
+                                ['name' => '۰۱۲۳'],
                                 ['name' => '۰۱۲۳'],
                             ],
                         ],
@@ -806,14 +903,22 @@ describe('NormalizesInputs trait', function () {
                     ['attributes' => [1 => ['name' => '0123']]],
                 ],
             ]);
+
+            expect($request->all())->toBe([
+                'users' => [
+                    ['attributes' => [['name' => 'عليك'], ['name' => 'علیک']]],
+                    ['attributes' => [['name' => '۰۱۲۳'], ['name' => '0123']]],
+                ],
+            ]);
         });
 
         it('normalizeInput does not corrupt array or JSON structure', function () {
 
             NormalizesInputsTestFormRequest::$testRules = [
-                'metadata.json'          => 'required',
-                'metadata.json_persian'  => 'required',
-                'metadata.nested'        => 'required',
+                'metadata.json'                 => 'required',
+                'metadata.json_persian'         => 'required',
+                'metadata.nested_json'          => 'required',
+                'metadata.nested'               => 'required',
             ];
 
             $request = resolveRequest(
@@ -822,6 +927,7 @@ describe('NormalizesInputs trait', function () {
                     'metadata' => [
                         'json'          => '{"status":"ok"}',
                         'json_persian'  => '{"title":"۰۱۲۳"}',
+                        'nested_json'   => '{"deep":{"deeper":"\u0639\u0644\u064a\u0643 \u0633\u0644\u0627\u0645","0":{"deepest":{"number":"\u06f0\u06f1\u06f2\u06f3","name":"undefined"}}}}',
                         'nested'        => ['deep' => ['deeper' => 'عليك سلام']],
                     ],
                 ],
@@ -832,6 +938,8 @@ describe('NormalizesInputs trait', function () {
             expect($validated['metadata']['json'])->toBe('{"status":"ok"}');
 
             expect($validated['metadata']['json_persian'])->toBe('{"title":"0123"}');
+
+            expect(jsonDecodeToArray($validated['metadata']['nested_json']))->toBe(['deep' => ['deeper' => 'علیک سلام', ['deepest' => ['number' => '0123', 'name' => 'undefined']]]]);
 
             expect($validated['metadata']['nested'])->toBe(['deep' => ['deeper' => 'علیک سلام']]);
         });
