@@ -4,13 +4,12 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Support\SingletonableTask;
 use Fooino\Core\Exceptions\FooinoRuntimeException;
-use Error;
 
-class TestSingletonableTaskForTesting extends SingletonableTask
+class TestSingletonableTask extends SingletonableTask
 {
     public int $calledCount = 0;
 
-    public function getData(): mixed
+    protected function getData(): mixed
     {
         $this->calledCount++;
 
@@ -22,11 +21,35 @@ class NullReturnTaskForTesting extends SingletonableTask
 {
     public int $calledCount = 0;
 
-    public function getData(): mixed
+    protected function getData(): mixed
     {
         $this->calledCount++;
 
         return null;
+    }
+}
+
+class TaskAlphaForTesting extends SingletonableTask
+{
+    public int $calledCount = 0;
+
+    protected function getData(): mixed
+    {
+        $this->calledCount++;
+
+        return ['alpha'];
+    }
+}
+
+class TaskBetaForTesting extends SingletonableTask
+{
+    public int $calledCount = 0;
+
+    protected function getData(): mixed
+    {
+        $this->calledCount++;
+
+        return ['beta'];
     }
 }
 
@@ -37,7 +60,7 @@ class CacheAwareTaskForTesting extends SingletonableTask
     public int $resetCount = 0;
     public bool $cacheInvalidated = false;
 
-    public function getData(): mixed
+    protected function getData(): mixed
     {
         return ['cached'];
     }
@@ -57,17 +80,17 @@ class CacheAwareTaskForTesting extends SingletonableTask
 
 describe('SingletonableTask', function () {
 
-    test('getInstance returns the same instance', function () {
+    test('instance returns the same instance', function () {
 
-        $instance1 = TestSingletonableTaskForTesting::getInstance();
-        $instance2 = TestSingletonableTaskForTesting::getInstance();
+        $instance1 = TestSingletonableTask::instance();
+        $instance2 = TestSingletonableTask::instance();
 
         expect($instance1)->toBe($instance2);
     });
 
     test('caches data and calls getData only once per cycle', function () {
 
-        $task = TestSingletonableTaskForTesting::getInstance();
+        $task = TestSingletonableTask::instance();
         $task->calledCount = 0;
         $task->reset();
 
@@ -83,7 +106,7 @@ describe('SingletonableTask', function () {
 
     test('reset clears cached data so getData is called again', function () {
 
-        $task = TestSingletonableTaskForTesting::getInstance();
+        $task = TestSingletonableTask::instance();
         $task->calledCount = 0;
         $task->reset();
 
@@ -104,7 +127,7 @@ describe('SingletonableTask', function () {
 
     test('beforeReset and afterReset hooks are called on reset', function () {
 
-        $task = CacheAwareTaskForTesting::getInstance();
+        $task = CacheAwareTaskForTesting::instance();
         $task->resetCount = 0;
         $task->reset();
 
@@ -115,8 +138,9 @@ describe('SingletonableTask', function () {
 
     test('beforeReset hook can invalidate external cache', function () {
 
-        $task = CacheAwareTaskForTesting::getInstance();
+        $task = CacheAwareTaskForTesting::instance();
         $task->resetCount = 0;
+        
         // Simulate a cache hit that will be invalidated on reset
         $task->cacheInvalidated = false;
 
@@ -132,11 +156,11 @@ describe('SingletonableTask', function () {
 
     test('getData returning null is cached and does not run on every call', function () {
 
-        $task = NullReturnTaskForTesting::getInstance();
+        $task = NullReturnTaskForTesting::instance();
         $task->calledCount = 0;
         $task->reset();
 
-        $task->run();
+        expect($task->run())->toBe(null);
         expect($task->calledCount)->toBe(1);
 
         $task->run();
@@ -146,15 +170,49 @@ describe('SingletonableTask', function () {
         expect($task->calledCount)->toBe(1);
     });
 
+    test('independent subclasses each have their own singleton', function () {
+
+        $alpha = TaskAlphaForTesting::instance();
+        $beta = TaskBetaForTesting::instance();
+
+        expect($alpha)->not->toBe($beta);
+
+        $alpha->reset();
+        $beta->reset();
+
+        $alpha->calledCount = 0;
+        $beta->calledCount = 0;
+
+        $alpha->run();
+        expect($alpha->calledCount)->toBe(1);
+        expect($alpha->run())->toBe(['alpha']);
+
+        $beta->run();
+        expect($beta->calledCount)->toBe(1);
+        expect($beta->run())->toBe(['beta']);
+
+        $alpha->reset();
+
+        expect($alpha->calledCount)->toBe(1);
+        expect($beta->calledCount)->toBe(1);
+
+        $alpha->run();
+        expect($alpha->calledCount)->toBe(2);
+        expect($beta->calledCount)->toBe(1);
+
+        $alpha->run();
+        expect($alpha->calledCount)->toBe(2);
+    });
+
     describe('handle exceptions', function () {
 
         test('cannot be unserialized', function () {
 
-            expect(fn() => unserialize(serialize(TestSingletonableTaskForTesting::getInstance())))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionCannotUnserializeSingleton');
+            expect(fn() => unserialize(serialize(TestSingletonableTask::instance())))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionCannotUnserializeSingleton');
 
             try {
 
-                unserialize(serialize(TestSingletonableTaskForTesting::getInstance()));
+                unserialize(serialize(TestSingletonableTask::instance()));
 
                 //
             } catch (FooinoRuntimeException $e) {
@@ -170,7 +228,7 @@ describe('SingletonableTask', function () {
 
         test('cannot be cloned', function () {
 
-            $task = TestSingletonableTaskForTesting::getInstance();
+            $task = TestSingletonableTask::instance();
 
             expect(fn() => clone $task)->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionCannotCloneSingleton');
 

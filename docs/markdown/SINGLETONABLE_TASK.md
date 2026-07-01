@@ -1,143 +1,123 @@
 # SingletonableTask
 
-An abstract base class for singleton tasks that cache their computed data. Useful when you need to compute expensive data once per request cycle and serve the cached result across multiple consumers.
+An abstract base class that implements the **singleton + memoization** pattern for one-shot tasks. Each subclass is automatically a singleton — `instance()` always returns the same object — and `run()` lazily computes the result exactly once, caching it for all subsequent calls until `reset()` clears it.
 
----
+## When to use
 
-## Basic Usage
+Use `SingletonableTask` when you have a unit of work that:
 
-Extend SingletonableTask and implement getData():
+- Should be computed **at most once per request/cycle**
+- Returns the **same result** every time it's called within a cycle
+- Needs a simple **reset mechanism** to force re-computation
+
+Common examples: loading configuration, fetching a remote resource, computing a derived value, building a lookup map.
+
+## How it works
+
+```
+┌──────────┐    run()     ┌──────────┐    getData()    ┌──────────────┐
+│ Consumer │─────────────▶│   Task   │────────────────▶│  Computation │
+└──────────┘              └──────────┘                 └──────────────┘
+                               │
+                               │  (2nd+ calls skip getData)
+                               ▼
+                          Return cached $data
+```
+
+- `instance()` returns the singleton.
+- `run()` calls `getData()` on the **first** invocation only. Subsequent calls return the cached result.
+- `reset()` clears the cached data so the next `run()` re-executes `getData()`.
+- `beforeReset()` / `afterReset()` are lifecycle hooks that run before and after data is cleared.
+
+## Usage example
 
 ```php
-use Fooino\Core\Support\SingletonableTask;
-
-class UserPermissionsTask extends SingletonableTask
+class AppConfig extends SingletonableTask
 {
-    public function getData(): mixed
+    protected function getData(): mixed
     {
-        return auth()->user()->getAllPermissions()->pluck('name');
+        return json_decode(
+            file_get_contents(base_path('config.json')),
+            associative: true
+        );
     }
 }
+
+// First call — reads and caches the file
+$config = AppConfig::instance()->run();
+
+// Subsequent calls — return cached result immediately
+$same = AppConfig::instance()->run();
+
+// Force re-read on next run
+AppConfig::instance()->reset();
 ```
 
-Then use the cached result anywhere in your application:
+## API
+
+### `instance(): static`
+
+Returns the singleton instance. The constructor is `protected` — the only way to obtain an instance is through this method.
 
 ```php
-$permissions = UserPermissionsTask::getInstance()->run();
-$permissions = UserPermissionsTask::getInstance()->run(); // same result as above
+$task = MyTask::instance();
 ```
 
----
+### `run(): mixed`
 
-
-## How It Works
-
-- run() calls setData() which calls getData() once and stores the result in $this->data.
-- A $dataLoaded flag tracks whether data has been fetched, so null return values from getData() are also correctly cached.
-- Subsequent run() calls return the cached data without re-invoking getData().
-- Call reset() to clear the cache and force a fresh getData() call on the next run().
-
----
-
-## Methods
-
-### run(): mixed
-
-Execute the task and return the cached result. On the first call it triggers getData(), on subsequent calls it returns the cached value.
+Executes `getData()` on the first call and caches the result. All subsequent calls return the cached value without re-executing `getData()`.
 
 ```php
-$task->run();
-$task->run();
+$result = $task->run(); // calls getData()
+$result = $task->run(); // returns cached value
 ```
 
-### setData(): mixed
+### `reset(): static`
 
-Lazily load and cache data via getData(). The result is cached even when getData() returns null.
+Clears the cached data so the next `run()` calls `getData()` again. Fires `beforeReset()` and `afterReset()` hooks. Returns the instance for fluent chaining.
 
 ```php
-$task->setData();
-$task->setData();
+$task->reset()->run();
 ```
 
-### reset(): static
+### `beforeReset(): void`
 
-Clear the cached data so the next run() refreshes it. Calls beforeReset() and afterReset() hooks.
+Hook called before cached data is cleared. Override to invalidate external caches, release resources, etc.
 
-```php
-$task->reset();
-$task->run();
-```
+### `afterReset(): void`
 
-### getInstance(): static
+Hook called after cached data is cleared. Override to perform post-cleanup tasks.
 
-Return the singleton instance maintained by the class itself. Uses a static array keyed by the concrete class name.
+### `getData(): mixed`
 
-```php
-$task = UserPermissionsTask::getInstance();
-```
+Override this to provide the actual computation. This is where the expensive work happens.
 
----
-
-## Hooks
-
-### beforeReset(): void
-
-Called at the start of reset(), before the cached data is cleared. Override to invalidate external caches.
-
-### afterReset(): void
-
-Called at the end of reset(), after the cached data is cleared. Override to perform post-reset cleanup.
+## Reset hooks example
 
 ```php
-class CachedSettingsTask extends SingletonableTask
+class UserPermissions extends SingletonableTask
 {
-    private array $cache = [];
+    private array $permissionCache = [];
 
-    public function getData(): mixed
+    protected function getData(): mixed
     {
-        return cache()->remember('app.settings', 3600, fn() => Setting::all());
+        return DB::table('permissions')->get();
     }
 
     protected function beforeReset(): void
     {
-        cache()->forget('app.settings');
+        $this->permissionCache = [];
     }
 
     protected function afterReset(): void
     {
-        logger('Settings cache invalidated');
+        logger('Permission cache has been cleared');
     }
 }
 ```
 
----
+## Exception safety
 
-## Singleton Enforcement
-
-The class prevents multiple instances through three mechanisms:
-
-| Mechanism | How it works |
-|---|---|
-| protected __construct() | Prevents new SingletonableTask() from outside the class hierarchy |
-| public __wakeup() | Prevents unserialize() -- throws FooinoRuntimeException (code 4) |
-| public __clone() | Prevents clone $task -- PHP throws an FooinoRuntimeException (code 5) |
-
----
-
-## Exception Reference
-
-| Code | Exception | Condition |
-|---|---|---|
-| 4 | FooinoRuntimeException | Attempted unserialization via __wakeup() |
-| 5 | FooinoRuntimeException | Attempted clone via __clone() |
-
----
-
-## Caching Behaviour
-
-| getData() returns | First run() | Second run() | After reset() |
-|---|---|---|---|
-| ['key' => 'value'] | Returns data | Returns cached data (no re-call) | Clears cache, re-calls getData() |
-| null | Returns null | Returns cached null (no re-call) | Clears cache, re-calls getData() |
-
-The $dataLoaded flag ensures that null is a valid cached value -- getData() is not called again until reset().
+- `__wakeup()` throws `FooinoRuntimeException` (code `4`) to prevent unserialization.
+- `__clone()` throws `FooinoRuntimeException` (code `5`) to prevent cloning.
+- If `getData()` throws, the instance remains in a retryable state — the next `run()` call re-executes `getData()` rather than returning stale data.

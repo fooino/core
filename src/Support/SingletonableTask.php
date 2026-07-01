@@ -6,9 +6,9 @@ use Fooino\Core\Exceptions\FooinoRuntimeException;
 
 abstract class SingletonableTask
 {
-    private static array $instances = [];
+    protected static array $instances = [];
 
-    private bool $dataLoaded = false;
+    protected bool $dataLoaded = false;
 
     protected mixed $data;
 
@@ -36,7 +36,7 @@ abstract class SingletonableTask
     /**
      * Return the singleton instance.
      */
-    public static function getInstance(): static
+    public static function instance(): static
     {
         return self::$instances[static::class] ??= new static();
     }
@@ -46,9 +46,7 @@ abstract class SingletonableTask
      */
     public function run(): mixed
     {
-        $this->setData();
-
-        return $this->data;
+        return $this->setData();
     }
 
     /**
@@ -56,7 +54,7 @@ abstract class SingletonableTask
      */
     protected function setData(): mixed
     {
-        if (!$this->dataLoaded) {
+        if ($this->dataLoaded === false) {
 
             $this->data = $this->getData();
 
@@ -94,5 +92,5 @@ abstract class SingletonableTask
     /**
      * Compute the task data. Must be implemented by subclasses.
      */
-    abstract public function getData(): mixed;
+    abstract protected function getData(): mixed;
 }
