@@ -745,13 +745,14 @@ if (!function_exists('normalizeInput')) {
 
 if (!function_exists('sanitizeUrl')) {
     /**
-     * Clean a value for use in URLs by replacing forbidden characters with dashes
+     * Clean a value for use in URLs base on RFC 3986 by replacing forbidden characters with dashes
      */
     function sanitizeUrl(string|int|float|null|bool|array $value): string|int|float|null|bool|array
     {
         return sanitizer(value: $value)
-            ->replaceForbiddenCharacters(excludes: ['/', '=', ':', '?', '&', '.', '-', '#', '@', '~', '%', '+'], replaceWith: '-')
-            ->collapse('-')
+            ->replaceEmoji(replaceWith: '-')
+            ->replaceForbiddenCharacters(excludes: ['/', '=', ':', '?', '&', '.', '-', '#', '@', '~', '%', '+', ' ', '../', '_'], replaceWith: '-')
+            ->collapse(char: '-')
             ->value();
     }
 }
@@ -762,12 +763,25 @@ if (!function_exists('sanitizeSlug')) {
      */
     function sanitizeSlug(string|int|float|null|bool|array $value): string|int|float|null|bool|array
     {
-        return sanitizer(value: $value)
+        $result = sanitizer(value: $value)
+            ->replaceEmoji(replaceWith: '-')
             ->replaceForbiddenCharacters(excludes: ['-'], replaceWith: '-')
             ->collapse(char: '-')
             ->trim(char: '-')
             ->lowercase()
             ->value();
+
+        if (is_string($result)) {
+
+            return str()->slug($result);
+        }
+
+        if (is_array($result)) {
+
+            array_walk_recursive($result, fn(&$item) => $item = is_string($item) ? str()->slug($item) : $item);
+        }
+
+        return $result;
     }
 }
 

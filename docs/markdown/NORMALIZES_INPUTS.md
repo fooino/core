@@ -7,7 +7,7 @@ A trait for Laravel form requests that automatically prepares user input before 
 Each input goes through three stages in order:
 
 ```
-normalizeInput → nullIfBlank / nullIfBlankOrZero → custom pipes
+normalizeInput → nullIfBlank or nullIfBlankOrZero → custom pipes
 ```
 
 ## Usage

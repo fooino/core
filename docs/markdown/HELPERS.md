@@ -248,7 +248,7 @@ define translations as
   'billion'  => '[1] Billion|[2,*] Billions',
   'million'  => '[1] Million|[2,*] Millions',
   'thousand' => '[1] Thousand|[2,*] Thousands',
-``` 
+```
 
 in `en/msg.php` file.
 
@@ -278,4 +278,39 @@ unitSizeFormat(bytes: 0);                            // '0 byte'
 unitSizeFormat(bytes: -10);                          // '-10 msg.isInvalid'
 unitSizeFormat(bytes: 1234567);                      // '1.177 MB'
 unitSizeFormat(bytes: 1234567, precision: 5);        // '1.17737 MB'
+```
+
+## sanitizeUrl
+
+Normalize a value for use in URLs by replacing forbidden characters with dashes. Emoji are replaced, then a defined set of characters are replaced with `-`. Consecutive dashes are collapsed.
+
+Characters that are **preserved** (excluded from replacement) per RFC 3986 URL syntax:
+`/` `=` `:` `?` `&` `.` `-` `#` `@` `~` `%` `+` `whitespace` `../` `_`
+
+The helper does **not** validate the input — if the result is not a valid URL, downstream validation rules will reject it.
+
+```php
+sanitizeUrl(value: 'https://example.com/search?q=hello&page=1');     // unchanged  (all chars excluded)
+sanitizeUrl(value: 'https://example.com/laravel_tips!for-2025');     // 'https://example.com/laravel_tips-for-2025'
+sanitizeUrl(value: 'https://example.com/page;param=value');          // 'https://example.com/page-param=value'
+sanitizeUrl(value: "https://example.com/(test)");                    // 'https://example.com/-test-'
+sanitizeUrl(value: 'https://example.com/api/v1/../v2');              // unchanged  (../ excluded)
+sanitizeUrl(value: 'https://x.com/test 🎉');                         // 'https://x.com/test -'
+sanitizeUrl(value: ['https://a.com/b_c', 'https://a.com/d/e']);     // ['https://a.com/b_c', 'https://a.com/d/e']
+```
+
+## sanitizeSlug
+
+Generate a URL-friendly slug from the given value. Emoji are replaced, forbidden characters are replaced with `-`, consecutive dashes are collapsed, leading/trailing dashes are trimmed, the result is lowercased, then passed through `Str::slug()` for transliteration of non-ASCII characters.
+
+Only `-` is excluded from replacement — all other forbidden characters (spaces, punctuation, special chars) become `-`.
+
+```php
+sanitizeSlug(value: 'Laravel_tips!for-2025');            // 'laravel-tips-for-2025'
+sanitizeSlug(value: 'café');                             // 'cafe'          (transliterated)
+sanitizeSlug(value: 'straße');                           // 'strasse'       (transliterated)
+sanitizeSlug(value: 'über cool');                        // 'ueber-cool'    (transliterated)
+sanitizeSlug(value: 'hello 🎉 world');                   // 'hello-world'   (emoji removed)
+sanitizeSlug(value: ['café', 'hello world']);            // ['cafe', 'hello-world']
+sanitizeSlug(value: 1);                                  // 1               (non-string: passthrough)
 ```

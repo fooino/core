@@ -795,7 +795,7 @@ describe('Helpers unit tests', function () {
         expect(unitSizeFormat(bytes: 2199023255552, precision: 0))->toBe('2 TB');
     });
 
-    test('sanitizeUrl and sanitizeSlug helper', function () {
+    test('sanitizeUrl helper', function () {
 
         expect(sanitizeUrl(value: 1))->toBe(1);
         expect(sanitizeUrl(value: 1.1))->toBe(1.1);
@@ -803,12 +803,42 @@ describe('Helpers unit tests', function () {
         expect(sanitizeUrl(value: true))->toBe(true);
         expect(sanitizeUrl(value: false))->toBe(false);
         expect(sanitizeUrl(value: []))->toBe([]);
+        expect(sanitizeUrl(value: ''))->toBe('');
+        expect(sanitizeUrl(value: '0'))->toBe('0');
 
-        expect(sanitizeUrl(value: "test / prettify canonical ? %& $ *"))->toBe("test-/-prettify-canonical-?-%&-");
+        expect(sanitizeUrl(value: "test / prettify canonical ? %& $ *"))->toBe("test / prettify canonical ? %& - -");
 
-        expect(sanitizeUrl(value: "https://google.com/laravel_tips!for-2025"))->toBe("https://google.com/laravel-tips-for-2025");
-        expect(sanitizeUrl(value: ["https://google.com/laravel_tips!for-2025", "https://fooino.com/I am_god"]))->toBe(["https://google.com/laravel-tips-for-2025", "https://fooino.com/I-am-god"]);
+        expect(sanitizeUrl(value: "https://google.com/laravel_tips!for-2025"))->toBe("https://google.com/laravel_tips-for-2025");
+        expect(sanitizeUrl(value: ["https://google.com/laravel_tips!for-2025", "https://fooino.com/I am_god"]))->toBe(["https://google.com/laravel_tips-for-2025", "https://fooino.com/I am_god"]);
 
+        expect(sanitizeUrl(value: "https://example.com/search?q=hello&page=1"))->toBe("https://example.com/search?q=hello&page=1");
+        expect(sanitizeUrl(value: "https://example.com/page#section"))->toBe("https://example.com/page#section");
+        expect(sanitizeUrl(value: "https://user:pass@example.com/path"))->toBe("https://user:pass@example.com/path");
+        expect(sanitizeUrl(value: "https://x.com/test 🎉"))->toBe("https://x.com/test -");
+
+        expect(sanitizeUrl(value: "https://example.com/page;param=value"))->toBe("https://example.com/page-param=value");
+
+        expect(sanitizeUrl(value: "https://example.com/(test)"))->toBe("https://example.com/-test-");
+        expect(sanitizeUrl(value: "https://example.com/'test'"))->toBe("https://example.com/-test-");
+        expect(sanitizeUrl(value: "https://example.com/<test>"))->toBe("https://example.com/-test-");
+
+        expect(sanitizeUrl(value: "foo   bar   baz"))->toBe("foo   bar   baz");
+
+        expect(sanitizeUrl(value: "https://github.com/user/repo_name"))->toBe("https://github.com/user/repo_name");
+        expect(sanitizeUrl(value: "https://en.wikipedia.org/wiki/C_Sharp"))->toBe("https://en.wikipedia.org/wiki/C_Sharp");
+        expect(sanitizeUrl(value: "https://example.com/search?q=foo_bar"))->toBe("https://example.com/search?q=foo_bar");
+
+        expect(sanitizeUrl(value: ["https://example.com/a_b", "https://example.com/c_d"]))->toBe(["https://example.com/a_b", "https://example.com/c_d"]);
+
+        expect(sanitizeUrl(value: "https://example.com/api/v1/../v2/resource"))->toBe("https://example.com/api/v1/../v2/resource");
+        expect(sanitizeUrl(value: "https://example.com/a/../../c"))->toBe("https://example.com/a/../../c");
+
+
+        expect(sanitizeUrl(value: "https://example.com/path with spaces"))->toBe("https://example.com/path with spaces");
+        expect(sanitizeUrl(value: ["https://example.com/a b", "https://example.com/c d"]))->toBe(["https://example.com/a b", "https://example.com/c d"]);
+    });
+
+    test('sanitizeSlug helper', function () {
 
         expect(sanitizeSlug(value: 1))->toBe(1);
         expect(sanitizeSlug(value: 1.1))->toBe(1.1);
@@ -820,6 +850,22 @@ describe('Helpers unit tests', function () {
         expect(sanitizeSlug(value: "test / Prettify slug ? %& $ *"))->toBe('test-prettify-slug');
         expect(sanitizeSlug(value: "Laravel_tips!for-2025"))->toBe('laravel-tips-for-2025');
         expect(sanitizeSlug(value: ["Laravel_tips!for-2025", "I am_god"]))->toBe(["laravel-tips-for-2025", "i-am-god"]);
+
+        expect(sanitizeSlug(value: "café"))->toBe('cafe');
+        expect(sanitizeSlug(value: "straße"))->toBe('strasse');
+        expect(sanitizeSlug(value: "über cool"))->toBe('uber-cool');
+        expect(sanitizeSlug(value: "ñoño"))->toBe('nono');
+        expect(sanitizeSlug(value: "München"))->toBe('munchen');
+
+        expect(sanitizeSlug(value: ["café", "straße"]))->toBe(["cafe", "strasse"]);
+        expect(sanitizeSlug(value: ["über cool", "hello world"]))->toBe(["uber-cool", "hello-world"]);
+
+        expect(sanitizeSlug(value: "café 🎉"))->toBe('cafe');
+        expect(sanitizeSlug(value: "hello 🎉 world"))->toBe('hello-world');
+
+        expect(sanitizeSlug(value: "hello-world"))->toBe('hello-world');
+        expect(sanitizeSlug(value: "foo_bar_baz"))->toBe('foo-bar-baz');
+        expect(sanitizeSlug(value: "test123"))->toBe('test123');
     });
 
     test('jsonAttribute helper', function () {
