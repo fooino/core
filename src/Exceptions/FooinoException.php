@@ -6,8 +6,6 @@ use Exception;
 
 class FooinoException extends Exception
 {
-    use FooinoExceptionList;
-
     protected Exception|null $cause = null;
 
     protected string $level = 'error';

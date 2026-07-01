@@ -32,4 +32,14 @@ class InfiniteLoopException extends FooinoException
             ->setHttpStatusCode(500)
             ->shouldReport();
     }
+
+    final public function _253(): static
+    {
+        return $this
+            ->setMessage('msg.infiniteLoopExceptionInTokenGenerator')
+            ->setCode(253)
+            ->critical()
+            ->setHttpStatusCode(500)
+            ->shouldReport();
+    }
 }
