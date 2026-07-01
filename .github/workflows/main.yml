@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -26,7 +26,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Tests
-        run: ./vendor/bin/pest --ci
+        run: ./vendor/bin/pest --ci --coverage --min=95
 
   docs:
     needs: ci
@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout core
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -51,16 +51,18 @@ jobs:
         run: php phpDocumentor.phar
 
       - name: Checkout fooino-docs
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: fooino/fooino-docs
           path: fooino-docs
           token: ${{ secrets.DOCS_PAT }}
 
-      - name: Copy docs to core directory
+      - name: Copy docs and README to core directory
         run: |
           rm -rf fooino-docs/core
-          cp -r docs/phpdoc fooino-docs/core
+          mkdir -p fooino-docs/core
+          cp -r docs fooino-docs/core/docs
+          cp README.md fooino-docs/core/README.md
 
       - name: Commit and push docs
         run: |
