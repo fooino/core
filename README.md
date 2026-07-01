@@ -13,14 +13,22 @@ composer require fooino/core
 
 2. With Docker(for running and modify the package)
 ```bash
-git clone https://github.com/fooino/core.git
-git clone https://github.com/fooino/laravel-fooino-packages-docker.git
-cd ./laravel-fooino-packages-docker
-docker-compose -p fooino up -d --build
-docker exec -it fooino_php bash
-cd ../core
+mkdir fooino && cd fooino && mkdir packages
+
+cd fooino/packages && git clone https://github.com/fooino/core.git
+
+cd fooino/ && git clone https://github.com/fooino/laravel-fooino-packages-docker.git
+
+cd ./fooino/laravel-fooino-packages-docker && docker-compose -p fooino up -d --build
+
+docker exec -it fooino-php bash
+
+cd ./packages/core
+
 composer update
+
 ./vendor/bin/pest
+
 exit
 ```
 
