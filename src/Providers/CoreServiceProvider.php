@@ -7,6 +7,7 @@ use Fooino\Core\Concretes\Date\DateManager;
 use Fooino\Core\Concretes\Math\MathManager;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Contracts\Foundation\Application;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -23,17 +24,11 @@ class CoreServiceProvider extends ServiceProvider
      */
     protected function registerSingletons(): self
     {
-        $this->app->singleton('fooino-json-facade', function ($app) {
-            return new JsonManager($app);
-        });
+        $this->app->singleton(abstract: 'fooino-json-facade', concrete: fn(Application $app) => new JsonManager($app));
 
-        $this->app->singleton('fooino-date-facade', function ($app) {
-            return new DateManager($app);
-        });
+        $this->app->singleton(abstract: 'fooino-date-facade', concrete: fn(Application $app) => new DateManager($app));
 
-        $this->app->singleton('fooino-math-facade', function ($app) {
-            return new MathManager($app);
-        });
+        $this->app->singleton(abstract: 'fooino-math-facade', concrete: fn(Application $app) => new MathManager($app));
 
         return $this;
     }

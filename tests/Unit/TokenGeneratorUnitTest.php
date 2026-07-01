@@ -259,6 +259,24 @@ describe('TokenGenerator utilities', function () {
         expect($property->getValue($gen))->toBe(0);
     });
 
+    test('weakPassword never starts with zero', function () {
+
+        $verified = false;
+
+        for ($i = 0; $i < 200; $i++) {
+
+            $token = app(TokenGenerator::class)->weakPassword()->length(3)->value();
+
+            expect(strlen($token))->toBe(3);
+            expect(ctype_digit($token))->toBeTrue();
+            expect($token[0])->not->toBe('0');
+
+            $verified = true;
+        }
+
+        expect($verified)->toBeTrue();
+    });
+
     describe('handle exceptions', function () {
 
         test('generate make infinite loop', function () {

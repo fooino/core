@@ -454,7 +454,7 @@ abstract class DateHandler
         ];
 
         if (
-            count(array_filter($parsed, fn($p) => $p !== false)) === 0 // no part of the date is valid
+            count(array_filter($parsed, fn(mixed $p) => $p !== false)) === 0 // no part of the date is valid
         ) {
             $this->throwInvalidDateException();
         }
@@ -655,7 +655,7 @@ abstract class DateHandler
             $dateInterval->f
         ];
 
-        if (count(array_filter($dateIntervalProps, fn($p) => ((float) $p) !== 0.0)) === 0) {
+        if (count(array_filter($dateIntervalProps, fn(mixed $p) => ((float) $p) !== 0.0)) === 0) {
 
             $this->throwInvalidIntervalForDatesBetweenException(with: $with);
         }

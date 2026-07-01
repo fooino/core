@@ -5,6 +5,23 @@ namespace Fooino\Core\Tests\Unit;
 use Fooino\Core\Concerns\NormalizesInputs;
 use Illuminate\Foundation\Http\FormRequest;
 
+class NormalizesInputsDefaultConfigFormRequest extends FormRequest
+{
+    use NormalizesInputs;
+
+    public static array $testRules = [];
+
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return static::$testRules;
+    }
+}
+
 class NormalizesInputsTestFormRequest extends FormRequest
 {
     use NormalizesInputs;
@@ -912,6 +929,78 @@ describe('NormalizesInputs trait', function () {
             ]);
         });
 
+        it('skips non-array items in wildcard fields', function () {
+
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.name' => 'nullable',
+            ];
+
+            $request = resolveRequest(
+                request: NormalizesInputsTestFormRequest::class,
+                data: [
+                    'users' => [
+                        ['name' => 'Ali'],
+                        'not_an_array',
+                        ['name' => ''],
+                    ],
+                ],
+            );
+
+            $items = array_values($request->validated()['users']);
+
+            expect($items)->toHaveCount(2);
+            expect($items[0]['name'])->toBe('Ali');
+            expect($items[1]['name'])->toBeNull();
+        });
+
+        it('skips non-array items in deeply nested wildcard', function () {
+
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.attributes.*.name' => 'nullable',
+            ];
+
+            $request = resolveRequest(
+                request: NormalizesInputsTestFormRequest::class,
+                data: [
+                    'users' => [
+                        'not_an_array',
+                        [
+                            'attributes' => [
+                                ['name' => 'عليك'],
+                            ],
+                        ],
+                    ],
+                ],
+            );
+
+            $items = array_values($request->validated()['users']);
+
+            expect($items)->toHaveCount(1);
+            expect($items[0]['attributes'][0]['name'])->toBe('علیک');
+        });
+
+        it('skips when wildcard subItems is not an array', function () {
+
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.attributes.*.name' => 'nullable',
+            ];
+
+            $request = resolveRequest(
+                request: NormalizesInputsTestFormRequest::class,
+                data: [
+                    'users' => [
+                        ['attributes' => 'not_an_array'],
+                        ['attributes' => [['name' => '']]],
+                    ],
+                ],
+            );
+
+            $items = array_values($request->validated()['users']);
+
+            expect($items)->toHaveCount(1);
+            expect($items[0]['attributes'][0]['name'])->toBeNull();
+        });
+
         it('normalizeInput does not corrupt array or JSON structure', function () {
 
             NormalizesInputsTestFormRequest::$testRules = [
@@ -943,5 +1032,19 @@ describe('NormalizesInputs trait', function () {
 
             expect($validated['metadata']['nested'])->toBe(['deep' => ['deeper' => 'علیک سلام']]);
         });
+    });
+
+    it('uses default empty inputConfigs when not overridden (line 283)', function () {
+
+        NormalizesInputsDefaultConfigFormRequest::$testRules = [
+            'title' => 'nullable',
+        ];
+
+        $request = resolveRequest(
+            request: NormalizesInputsDefaultConfigFormRequest::class,
+            data: ['title' => ''],
+        );
+
+        expect($request->validated()['title'])->toBeNull();
     });
 });

@@ -59,7 +59,7 @@ class Sanitizer
 
         if (is_array($value)) {
 
-            array_walk_recursive($value, fn(&$item) => $item = $this->normalizeValue(value: $item));
+            array_walk_recursive($value, fn(mixed &$item) => $item = $this->normalizeValue(value: $item));
         }
 
         if (is_string($value)) {
@@ -260,7 +260,7 @@ class Sanitizer
             '_'
         ];
 
-        usort($chars, fn($a, $b) => strlen($b) <=> strlen($a));
+        usort($chars, fn(mixed $a, mixed $b) => strlen($b) <=> strlen($a));
 
         return $chars;
     }
@@ -376,7 +376,7 @@ class Sanitizer
             'makefile'
         ];
 
-        usort($files, fn($a, $b) => strlen($b) <=> strlen($a));
+        usort($files, fn(mixed $a, mixed $b) => strlen($b) <=> strlen($a));
 
         return $files;
     }
@@ -487,7 +487,7 @@ class Sanitizer
 
         $this->assertRecursionLimit(method: 'replace');
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replace(search: $search, replace: $replace, subject: $item) : $item, $subject);
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->replace(search: $search, replace: $replace, subject: $item) : $item, $subject);
     }
 
     /**
@@ -525,7 +525,7 @@ class Sanitizer
 
         $this->assertRecursionLimit(method: 'replaceEmojiValue');
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replaceEmojiValue(value: $item, replaceWith: $replaceWith) : $item, $value);
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->replaceEmojiValue(value: $item, replaceWith: $replaceWith) : $item, $value);
     }
 
     /**
@@ -539,7 +539,7 @@ class Sanitizer
 
         $this->assertRecursionLimit(method: 'toLowercase');
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->toLowercase(value: $item) : $item, $value);
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->toLowercase(value: $item) : $item, $value);
     }
 
     /**
@@ -553,7 +553,7 @@ class Sanitizer
 
         $this->assertRecursionLimit(method: 'toUppercase');
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->toUppercase(value: $item) : $item, $value);
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->toUppercase(value: $item) : $item, $value);
     }
 
     /**
@@ -571,7 +571,7 @@ class Sanitizer
 
         $this->assertRecursionLimit(method: 'collapseValue');
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->collapseValue(value: $item, char: $char) : $item, $value);
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->collapseValue(value: $item, char: $char) : $item, $value);
     }
 
     /**
@@ -586,7 +586,7 @@ class Sanitizer
 
         $this->assertRecursionLimit(method: 'trimValue');
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->trimValue(value: $item, char: $char) : $item, $value);
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->trimValue(value: $item, char: $char) : $item, $value);
     }
 
     /**

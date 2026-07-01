@@ -777,7 +777,7 @@ if (!function_exists('sanitizeSlug')) {
 
         if (is_array($result)) {
 
-            array_walk_recursive($result, fn(&$item) => $item = is_string($item) ? str()->slug($item) : $item);
+            array_walk_recursive($result, fn(mixed &$item) => $item = is_string($item) ? str()->slug($item) : $item);
         }
 
         return $result;
@@ -791,8 +791,8 @@ if (!function_exists('jsonAttribute')) {
     function jsonAttribute(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => !is_null(nullIfBlank($value)) ? jsonDecodeToArray($value) : [],
-            set: fn($value) => !is_null(nullIfBlank($value)) ? jsonEncode($value)        : null,
+            get: fn(mixed $value) => !is_null(nullIfBlank($value)) ? jsonDecodeToArray($value) : [],
+            set: fn(mixed $value) => !is_null(nullIfBlank($value)) ? jsonEncode($value)        : null,
         );
     }
 }
