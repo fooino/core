@@ -32,4 +32,24 @@ class FooinoRuntimeException extends FooinoException
             ->setHttpStatusCode(500)
             ->shouldReport();
     }
+
+    final public function _4(): static
+    {
+        return $this
+            ->setMessage('msg.fooinoRunTimeExceptionCannotUnserializeSingleton')
+            ->setCode(4)
+            ->critical()
+            ->setHttpStatusCode(500)
+            ->shouldReport();
+    }
+
+    final public function _5(): static
+    {
+        return $this
+            ->setMessage('msg.fooinoRunTimeExceptionCannotCloneSingleton')
+            ->setCode(5)
+            ->critical()
+            ->setHttpStatusCode(500)
+            ->shouldReport();
+    }
 }

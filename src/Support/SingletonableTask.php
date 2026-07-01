@@ -2,11 +2,13 @@
 
 namespace Fooino\Core\Support;
 
-use RuntimeException;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
 
 abstract class SingletonableTask
 {
     private static array $instances = [];
+
+    private bool $dataLoaded = false;
 
     protected mixed $data;
 
@@ -16,16 +18,19 @@ abstract class SingletonableTask
     protected function __construct() {}
 
     /**
-     * Prevent cloning.
-     */
-    protected function __clone() {}
-
-    /**
      * Prevent unserialization.
      */
-    public function __wakeup(): void
+    public function __wakeup(): never
     {
-        throw new RuntimeException('Cannot unserialize a singleton.');
+        app(FooinoRuntimeException::class)->_4()->throw();
+    }
+
+    /**
+     * Prevent cloning.
+     */
+    public function __clone(): never
+    {
+        app(FooinoRuntimeException::class)->_5()->throw();
     }
 
     /**
@@ -46,21 +51,31 @@ abstract class SingletonableTask
         return $this->data;
     }
 
-    /** 
+    /**
      * Lazily load and cache data via getData.
      */
-    public function setData(): mixed
+    protected function setData(): mixed
     {
-        return $this->data ??= $this->getData();
+        if (!$this->dataLoaded) {
+
+            $this->data = $this->getData();
+
+            $this->dataLoaded = true;
+        }
+
+        return $this->data;
     }
 
-    /** 
+    /**
      * Clear the cached data so the next run refreshes it.
      */
     public function reset(): static
     {
         $this->beforeReset();
+
+        $this->dataLoaded = false;
         $this->data = null;
+
         $this->afterReset();
 
         return $this;
