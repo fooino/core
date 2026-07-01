@@ -798,8 +798,6 @@ if (!function_exists('jsonAttribute')) {
     }
 }
 
-
-
 if (!function_exists('resolveRequest')) {
     /**
      * Resolve and validate a FormRequest with the given data and optional authenticated user

@@ -314,3 +314,28 @@ sanitizeSlug(value: 'hello 🎉 world');                   // 'hello-world'   (e
 sanitizeSlug(value: ['café', 'hello world']);            // ['cafe', 'hello-world']
 sanitizeSlug(value: 1);                                  // 1               (non-string: passthrough)
 ```
+
+## jsonAttribute
+
+Cast an Eloquent attribute to/from JSON automatically. Designed for storing arrays as JSON in the database — the getter always returns an array (via `jsonDecodeToArray`) and the setter encodes via `jsonEncode`, which passes through already-valid JSON strings.
+
+Blank values (`null`, `''`, `[]`) are stored as `null` in the database and read back as `[]`.
+
+```php
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
+public function metadata(): Attribute
+{
+    return jsonAttribute();
+}
+
+// Storing:
+$model->metadata = ['key' => 'value'];
+$model->metadata = [0, false, null];
+$model->metadata = '{"a":1}';        // pass-through: already-valid JSON string
+$model->metadata = [];               // stored as null, read back as []
+
+// Retrieving (always array):
+$model->metadata; // ['key' => 'value']
+$model->metadata; // []
+```

@@ -890,16 +890,69 @@ describe('Helpers unit tests', function () {
 
         $model->create(['info' => '   ']);
         expect($model->find(1)->info)->toBe([]);
-        expect($model->find(1)->getRawOriginal('info'))->toBeNull();
+        $this->assertDatabaseHas('json_attr_table', ['id' => 1, 'info' => null]);
 
         $data = ['foo' => 'bar', 123];
         $model->create(['info' => $data]);
         expect($model->find(2)->info)->toBe($data);
-        expect($model->find(2)->getRawOriginal('info'))->toBe(json_encode($data));
+        $this->assertDatabaseHas('json_attr_table', ['id' => 2, 'info' => json_encode($data)]);
 
         $model->create(['info' => null]);
         expect($model->find(3)->info)->toBe([]);
-        expect($model->find(3)->getRawOriginal('info'))->toBeNull();
+        $this->assertDatabaseHas('json_attr_table', ['id' => 3, 'info' => null]);
+
+        $model->create(['info' => [0]]);
+        expect($model->find(4)->info)->toBe([0]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 4, 'info' => '[0]']);
+
+        $model->create(['info' => [false]]);
+        expect($model->find(5)->info)->toBe([false]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 5, 'info' => '[false]']);
+
+        $model->create(['info' => [null]]);
+        expect($model->find(6)->info)->toBe([null]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 6, 'info' => '[null]']);
+
+        $model->create(['info' => ['null']]);
+        expect($model->find(7)->info)->toBe(['null']);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 7, 'info' => '["null"]']);
+
+        $model->create(['info' => []]);
+        expect($model->find(8)->info)->toBe([]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 8, 'info' => null]);
+
+        $model->create(['info' => '{"a":1}']);
+        expect($model->find(9)->info)->toBe(['a' => 1]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 9, 'info' => '{"a":1}']);
+
+        $model->create(['info' => '{}']);
+        expect($model->find(10)->info)->toBe([]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 10, 'info' => '{}']);
+
+        $nested = [['a' => 1], ['b' => 2]];
+        $model->create(['info' => $nested]);
+        expect($model->find(11)->info)->toBe($nested);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 11, 'info' => json_encode($nested)]);
+
+        $m = $model->create(['info' => ['a' => 1]]);
+        $m->update(['info' => ['b' => 2]]);
+        expect($m->fresh()->info)->toBe(['b' => 2]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 12, 'info' => '{"b":2}']);
+
+        $m = $model->create(['info' => ['a' => 1, 'b' => 2]]);
+        $m->update(['info' => ['a' => 1, 'b' => 3]]);
+        expect($m->fresh()->info)->toBe(['a' => 1, 'b' => 3]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 13, 'info' => '{"a":1,"b":3}']);
+
+        $m = $model->create(['info' => ['a' => 1, 'b' => 2]]);
+        $m->update(['info' => ['a' => 1]]);
+        expect($m->fresh()->info)->toBe(['a' => 1]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 14, 'info' => '{"a":1}']);
+
+        $m = $model->create(['info' => ['a' => 1]]);
+        $m->update(['info' => ['a' => 1, 'b' => 2]]);
+        expect($m->fresh()->info)->toBe(['a' => 1, 'b' => 2]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 15, 'info' => '{"a":1,"b":2}']);
     });
 
     test('resolveRequest helper', function () {
