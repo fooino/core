@@ -54,9 +54,9 @@ describe('Arch tests', function () {
         ->expect(['dd', 'dump', 'var_dump', 'ray'])
         ->not->toBeUsed();
 
-    // arch('Documented')
-    //     ->expect('Fooino\Core')
-    //     ->toHaveMethodsDocumented();
+    arch('Documented')
+        ->expect('Fooino\Core')
+        ->toHaveMethodsDocumented();
 
     arch('Abstract')
         ->expect([

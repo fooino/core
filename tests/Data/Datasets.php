@@ -3,13 +3,10 @@
 namespace Fooino\Core\Tests\Data;
 
 use Fooino\Core\Facades\Math;
-use Fooino\Core\Tests\Data\Traits\Datasetable;
 use RoundingMode;
 
 class Datasets
 {
-    use Datasetable;
-
     public static function zeros(): array
     {
         return [
@@ -56,29 +53,25 @@ class Datasets
             '-0.0E+10',
 
             .0e+10,
-            +.0E+10,
+            +.0E-10,
             -.0E+10,
             '.0E+10',
-            '+.0E+10',
-            '-.0E+10',
+            '+.0e+10',
+            '-.0E-10',
 
             0.E+10,
-            +0.E+10,
+            +0.e+10,
             -0.E-10,
-            '0.E+10',
+            '0.e-10',
             '+0.E+10',
             '-0.E+10',
-
-            '.e+10',
-            '+.E+10',
-            '-.E-10',
 
             0E+10,
             +0e+10,
             -0E-10,
             '0E+10',
-            '+0E+10',
-            '-0E+10',
+            '+0E-10',
+            '-0e+10',
 
             0.E10,
             +0.e10,
@@ -102,7 +95,10 @@ class Datasets
             '0.E0',
             '0.00e10',
             '000.0000E+5',
-            '0.000000e-3'
+            '0.000000e-3',
+            '00',
+            00,
+            0_0,
         ];
     }
 
@@ -148,6 +144,7 @@ class Datasets
             "\t",
             "\n",
 
+            NAN,
             INF,
             -INF,
 
@@ -175,6 +172,10 @@ class Datasets
             'E+10',
             '+E+10',
             '-E-10',
+
+            '.e+10',
+            '+.E+10',
+            '-.E-10',
         ];
     }
 
@@ -188,7 +189,7 @@ class Datasets
             ['foo.bar', 'foo.bar'],
             ['foo.bar.ino', 'foo.bar.ino'],
             ['-foo.bar.ino', '-foo.bar.ino'],
-            ['abc1E+3xyz', 'abc1E+3xyz'], // contains 1E+3 which is valid Scientific Number but the method must not convert it
+            ['abc1E+3xyz', 'abc1E+3xyz'], // contains 1E+3 which is a valid scientific number but the method must not convert it
             ['test', 'test'],
 
             ['', ''],
@@ -340,10 +341,28 @@ class Datasets
             ['-1.1e-20', '-0.000000000000000000011'],
 
             ['1.1e+20', '110000000000000000000'],
-            ['20.1e+20', '2010000000000000000000']
+            ['20.1e+20', '2010000000000000000000'],
+
+            [1.1E-999, '0'],
+            [1.1E-324, '0'],
+            [-1.1E-324, '0'],
+
+            ['.e+8', '.e+8'],
+            ['.e8', '.e8'],
+            ['e8', 'e8'],
+            ['1.1e+', '1.1e+'],
+            ['1.1e-', '1.1e-'],
+            ['1.1e', '1.1e'],
+            ['1.1e+2', '110'],
+            ['1.e+2', '100'],
+            ['.1e+2', '10'],
+            ['1e+2', '100'],
+            ['000.000', '0'],
+            ['000123.12', '123.12'],
+            ['0001.1e+2', '110'],
         ];
 
-        return array_merge(self::shuffleZeros(), $set);
+        return array_merge(self::shuffleZeros(20), $set);
     }
 
     public static function mathTrimTrailingZeros(): array
@@ -355,6 +374,7 @@ class Datasets
             ['foo.0', 'foo.0'],
 
             ['-0.1E-2', '-0.001'],
+            ['1.00100000E+5', '100100'],
 
             [11, '11'],
             [+11, '11'],
@@ -417,8 +437,6 @@ class Datasets
             ['.001100', '0.0011'],
             ['+.001100', '0.0011'],
             ['-.001100', '-0.0011'],
-
-            ['-0.1E-2', '-0.001']
         ];
 
         return array_merge(self::shuffleZeros(), $set);
@@ -442,7 +460,9 @@ class Datasets
 
             ['test', 0],
             ['test.', 0],
-            ['test.0', 0]
+            ['test.0', 0],
+            ['test.01', 0],
+            ['1.00100000E+5', 0],
         ];
 
         return array_merge(
@@ -455,23 +475,34 @@ class Datasets
     {
         $set = [
             [0.001, '0.001', null],
+            ['0.00000000000123', '0.000000000001', null], // the decimal places far exceed the precision
             [0.001, '0', 2],
+
             ['.44015042', '0.44015042', null],
             [0.44015042, '0.4401', 4],
+
             [11.000001000, '11.000001', null],
             [-11.000001000, '-11.000001', null],
+
             [1e8, '100000000', null],
             [-1e8, '-100000000', null],
+
             [1.1e+8, '110000000', null],
             [.1e+8, '10000000', null],
+
             [1.101e-5, '0.00001101', null],
             [-0.101e-5, '-0.00000101', null],
+
             [1.1E+20, '110000000000000000000', null],
             [1.1E-20, '0', null], // the decimal numbers is very more than precision
-            [[1, 11.000001000, '.e+8'], ['1', '11.000001', '0'], null],
 
-            [fn() => expect(Math::setPrecision(2)->number(1.001, '.44015042', '1e8', '.e+8'))->toBe(['1', '0.44', '100000000', '0']), null, null],
-            [fn() => expect(number(1, 11.000001000, '.e8'))->toBe(['1', '11.000001', '0']), null, null]
+            [[0.00101], ['0.001'], 4],
+
+            [[1, 11.000001000, '0.e+8'], ['1', '11.000001', '0'], null],
+
+            [fn() => expect(Math::setPrecision(2)->number(1.001, '.44015042', '1e8', '0.e+8'))->toBe(['1', '0.44', '100000000', '0']), null, null],
+
+            [fn() => expect(number(1, 11.000001000, '.0e8'))->toBe(['1', '11.000001', '0']), null, null]
         ];
 
         return array_merge(
@@ -483,18 +514,25 @@ class Datasets
     public static function mathNumberFormat(): array
     {
         $set = [
-            [1.1e-20, ',', '0', null], // the decimal numbers is very more than precision
+            [1.1e-20, ',', '0', null], // the decimal places far exceed the precision
+
             [1.1e-8, ',', '0.000000011', null],
             [1.1e+8, ',', '110,000,000', null],
+
             [5000000, ',', '5,000,000', null],
             [5000000.50, ',', '5,000,000.5', null],
             [5000000.05, ',', '5,000,000.05', null],
             [5000000.0150100, ',', '5,000,000.01501', null],
             [5000000.0150100, ',', '5,000,000.015', 3],
             [5000000.0150100, ',', '5,000,000.01', 2],
+
             [1.1e+20, '|', '110|000|000|000|000|000|000', null],
+
             ['5,000,000.0150100', ' ', '5 000 000.01501', null],
+            ['+5,000,000.0150100', ' ', '5 000 000.01501', null],
+
             ['-5-000-000.0150100', '-', '-5-000-000.01501', null],
+
             ['1.250,50', ',', '1.2505', null]
         ];
 
@@ -509,8 +547,10 @@ class Datasets
         $set = [
             [[5.599, 5.499], '11.098'],
             [[5.599, -5.499], '0.1'],
+
             [[1.1e+8, 1.1e-8], '110000000.000000011'],
             [[1.1e+20, 1.1e-8], '110000000000000000000.000000011'],
+
             [[0, '1234567891234567889999999'], '1234567891234567889999999'],
             [['1234567891234567889999999', 0], '1234567891234567889999999'],
 
@@ -755,6 +795,11 @@ class Datasets
             [0.499,  0, RoundingMode::HalfAwayFromZero, '0'],     // just below halfway → rounds towards zero
             [-0.499, 0, RoundingMode::HalfAwayFromZero, '0'],     // just below halfway → rounds towards zero
 
+            [999.995,  0, RoundingMode::HalfAwayFromZero, '1000'],    // integer-boundary carry
+            [-999.995, 0, RoundingMode::HalfAwayFromZero, '-1000'],
+            [999.5,    0, RoundingMode::HalfAwayFromZero, '1000'],
+            [998.5,    0, RoundingMode::HalfAwayFromZero, '999'],
+
             [[1.1, 1.5, 0.499], 0, RoundingMode::HalfAwayFromZero, ['1', '2', '0']],
 
             [1.2,     2, RoundingMode::HalfAwayFromZero, '1.2'],
@@ -766,6 +811,9 @@ class Datasets
             [-1.004,  2, RoundingMode::HalfAwayFromZero, '-1'],
             [1.995,   2, RoundingMode::HalfAwayFromZero, '2'],      // halfway + carry
             [-1.995,  2, RoundingMode::HalfAwayFromZero, '-2'],
+
+            [999.995, 2, RoundingMode::HalfAwayFromZero, '1000'],  // precision=2, carry past integer boundary
+            [-999.995, 2, RoundingMode::HalfAwayFromZero, '-1000'],
 
             [1.1,    0, RoundingMode::HalfTowardsZero, '1'],      // below halfway → normal rounding
             [1.5,    0, RoundingMode::HalfTowardsZero, '1'],      // halfway → toward zero (not 2)
@@ -788,6 +836,10 @@ class Datasets
             [0.005,   2, RoundingMode::HalfTowardsZero, '0'],     // halfway → toward zero
             [-0.005,  2, RoundingMode::HalfTowardsZero, '0'],     // halfway → toward zero
 
+            [999.995, 0, RoundingMode::HalfTowardsZero, '1000'],   // integer-boundary, above halfway → normal rounding up
+            [-999.995, 0, RoundingMode::HalfTowardsZero, '-1000'],
+            [999.999, 0, RoundingMode::HalfTowardsZero, '1000'],   // above halfway → normal rounding up
+
             [1.1,    0, RoundingMode::HalfEven, '1'],            // normal rounding
             [1.5,    0, RoundingMode::HalfEven, '2'],            // half → even neighbour (2 is even)
             [2.5,    0, RoundingMode::HalfEven, '2'],            // half → even (2)
@@ -807,6 +859,11 @@ class Datasets
             [0.005,   2, RoundingMode::HalfEven, '0'],          // half → even (0.00)
             [-0.005,  2, RoundingMode::HalfEven, '0'],          // half → even (0.00)
             [1.004,   2, RoundingMode::HalfEven, '1'],          // just below half → normal rounding down
+
+            [999.5,   0, RoundingMode::HalfEven, '1000'],       // integer-boundary, halfway → even (1000)
+            [998.5,   0, RoundingMode::HalfEven, '998'],        // halfway → even (998)
+            [-999.5,  0, RoundingMode::HalfEven, '-1000'],      // halfway → even (-1000)
+            [-998.5,  0, RoundingMode::HalfEven, '-998'],
 
             [1.1,    0, RoundingMode::HalfOdd, '1'],            // normal rounding
             [1.5,    0, RoundingMode::HalfOdd, '1'],            // half → odd neighbour (1 is odd, not 2)
@@ -828,6 +885,11 @@ class Datasets
             [-0.005,  2, RoundingMode::HalfOdd, '-0.01'],       // half → odd (-0.01)
             [1.004,   2, RoundingMode::HalfOdd, '1'],           // just below half → normal rounding down
 
+            [999.5,   0, RoundingMode::HalfOdd, '999'],         // integer-boundary, halfway → odd (999)
+            [998.5,   0, RoundingMode::HalfOdd, '999'],         // halfway → odd (999)
+            [-999.5,  0, RoundingMode::HalfOdd, '-999'],
+            [-998.5,  0, RoundingMode::HalfOdd, '-999'],
+
             [1.1,    0, RoundingMode::TowardsZero, '1'],      // truncate → 1
             [1.5,    0, RoundingMode::TowardsZero, '1'],      // half does not round up → 1
             [1.9,    0, RoundingMode::TowardsZero, '1'],      // just below 2 → 1
@@ -848,6 +910,10 @@ class Datasets
             [-1.995,  2, RoundingMode::TowardsZero, '-1.99'], // truncate toward zero → -1.99
             [0.005,   2, RoundingMode::TowardsZero, '0'],     // truncate → 0.00
 
+            [999.995, 0, RoundingMode::TowardsZero, '999'],    // integer-boundary, truncate toward zero
+            [-999.995, 0, RoundingMode::TowardsZero, '-999'],
+            [999.999, 0, RoundingMode::TowardsZero, '999'],
+
             [1.0,    0, RoundingMode::AwayFromZero, '1'],      // exact integer → no change
             [1.1,    0, RoundingMode::AwayFromZero, '2'],      // any fraction → away from zero (up)
             [1.5,    0, RoundingMode::AwayFromZero, '2'],      // halfway included
@@ -867,6 +933,10 @@ class Datasets
             [-1.999,  2, RoundingMode::AwayFromZero, '-2'],     // negative, rounds down with carry
             [0.001,   2, RoundingMode::AwayFromZero, '0.01'],   // tiny fraction → away from zero
             [-0.001,  2, RoundingMode::AwayFromZero, '-0.01'],  // tiny negative fraction → away
+
+            [999.1,   0, RoundingMode::AwayFromZero, '1000'],   // integer-boundary, any fraction → away
+            [-999.1,  0, RoundingMode::AwayFromZero, '-1000'],
+            [999.001, 2, RoundingMode::AwayFromZero, '999.01'],   // precision=2, any fraction at rounding pos → away
 
             [1.0,     0, RoundingMode::NegativeInfinity, '1'],       // exact integer → unchanged
             [1.0001,  0, RoundingMode::NegativeInfinity, '1'],       // tiny fraction → round down (floor)
@@ -889,6 +959,11 @@ class Datasets
             [0.001,   2, RoundingMode::NegativeInfinity, '0'],      // tiny positive → 0.00
             [-0.001,  2, RoundingMode::NegativeInfinity, '-0.01'],  // tiny negative → -0.01
 
+            [999.995, 0, RoundingMode::NegativeInfinity, '999'],    // integer-boundary, round down
+            [-999.995, 0, RoundingMode::NegativeInfinity, '-1000'], // floor: -1000 < -999.995
+            [999.1,   0, RoundingMode::NegativeInfinity, '999'],
+            [-999.1,  0, RoundingMode::NegativeInfinity, '-1000'],
+
             [1.0,    0, RoundingMode::PositiveInfinity,  '1'],      // exact integer → unchanged
             [1.1,    0, RoundingMode::PositiveInfinity,  '2'],      // any fraction → round up (ceil)
             [1.5,    0, RoundingMode::PositiveInfinity,  '2'],      // half → up
@@ -909,116 +984,233 @@ class Datasets
             [-1.005,  2, RoundingMode::PositiveInfinity,  '-1'],    // half → -1.00
             [-1.999,  2, RoundingMode::PositiveInfinity,  '-1.99'],  // ceil of -199.9 → -199 → -1.99
             [-0.001,  2, RoundingMode::PositiveInfinity,  '0'],     // negative tiny → ceil to zero
+
+            [999.995, 0, RoundingMode::PositiveInfinity,  '1000'],  // integer-boundary, any fraction → up
+            [-999.995, 0, RoundingMode::PositiveInfinity,  '-999'], // ceil: -999 > -999.995
+            [999.1,   0, RoundingMode::PositiveInfinity,  '1000'],
+            [-999.1,  0, RoundingMode::PositiveInfinity,  '-999'],
         ];
     }
 
     public static function mathGreaterThan(): array
     {
         return [
-            [0, 0, false],
-            [-1, 0, false],
+            ['0', '0', false],
 
-            [0, 5, false],
-            [0, -1, true],
+            ['0', '-0', false],
+            ['-0', '0', false],
+            ['-0', '-0', false],
+
+            ['0', '+0', false],
+            ['+0', '0', false],
+            ['+0', '+0', false],
+
+            ['0', '5', false],
+            ['5', '0', true],
+
+            ['0', '-5', true],
+            ['-5', '0', false],
+
+            ['+5', '+5', false],
+            ['-5', '-5', false],
+
+            ['+5', '-5', true],
+            ['-5', '+5', false],
 
             [1.11, 1.112, false],
+            [1.112, 1.11, true],
+            [1.112, 1.112, false],
 
             [1.1e+8, 1.1e-8, true],
+            [1.1e-8, 1.1e+8, false],
+
             [1.1e+8, 1.1e+8, false],
-            [1.1e-8, 1.1e+8, false],
-            [1.1e-8, 1.1e+8, false],
+            [1.1e-8, 1.1e-8, false],
         ];
     }
 
     public static function mathGreaterThanOrEqual(): array
     {
         return [
-            [0, 0, true],
+            ['0', '0', true],
 
-            [-1, 0, false],
-            [0, 5, false],
-            [0, -1, true],
+            ['0', '-0', true],
+            ['-0', '0', true],
+            ['-0', '-0', true],
 
+            ['0', '+0', true],
+            ['+0', '0', true],
+            ['+0', '+0', true],
+
+            ['0', '5', false],
+            ['5', '0', true],
+
+            ['0', '-5', true],
+            ['-5', '0', false],
+
+            ['+5', '+5', true],
+            ['-5', '-5', true],
+
+            ['+5', '-5', true],
+            ['-5', '+5', false],
+
+            [1.11, 1.112, false],
+            [1.112, 1.11, true],
             [1.112, 1.112, true],
-            [1.113, 1.112, true],
 
             [1.1e+8, 1.1e-8, true],
-            [1.1e+8, 1.1e+8, true],
             [1.1e-8, 1.1e+8, false],
+
+            [1.1e+8, 1.1e+8, true],
+            [1.1e-8, 1.1e-8, true],
         ];
     }
 
     public static function mathLessThan(): array
     {
         return [
-            [0, 0, false],
+            ['0', '0', false],
 
-            [-1, 0, true],
-            [0, 5, true],
-            [0, -1, false],
+            ['0', '-0', false],
+            ['-0', '0', false],
+            ['-0', '-0', false],
 
+            ['0', '+0', false],
+            ['+0', '0', false],
+            ['+0', '+0', false],
+
+            ['0', '5', true],
+            ['5', '0', false],
+
+            ['0', '-5', false],
+            ['-5', '0', true],
+
+            ['+5', '+5', false],
+            ['-5', '-5', false],
+
+            ['+5', '-5', false],
+            ['-5', '+5', true],
+
+            [1.11, 1.112, true],
             [1.112, 1.11, false],
-            [1.112, 1.11, false],
+            [1.112, 1.112, false],
 
-            [1.1e-8, 1.1e+8, true],
-            [1.1e+8, 1.1e+8, false],
             [1.1e+8, 1.1e-8, false],
+            [1.1e-8, 1.1e+8, true],
+
+            [1.1e+8, 1.1e+8, false],
+            [1.1e-8, 1.1e-8, false],
         ];
     }
 
     public static function mathLessThanOrEqual(): array
     {
         return [
-            [0, 0, true],
+            ['0', '0', true],
 
-            [-1, 0, true],
-            [0, 5, true],
-            [0, -1, false],
+            ['0', '-0', true],
+            ['-0', '0', true],
+            ['-0', '-0', true],
 
-            [1.11, 1.11, true],
-            [1.1, 1.11, true],
+            ['0', '+0', true],
+            ['+0', '0', true],
+            ['+0', '+0', true],
 
-            [1.1e-8, 1.1e+8, true],
-            [1.1e+8, 1.1e+8, true],
+            ['0', '5', true],
+            ['5', '0', false],
+
+            ['0', '-5', false],
+            ['-5', '0', true],
+
+            ['+5', '+5', true],
+            ['-5', '-5', true],
+
+            ['+5', '-5', false],
+            ['-5', '+5', true],
+
+            [1.11, 1.112, true],
+            [1.112, 1.11, false],
+            [1.112, 1.112, true],
+
             [1.1e+8, 1.1e-8, false],
+            [1.1e-8, 1.1e+8, true],
+
+            [1.1e+8, 1.1e+8, true],
+            [1.1e-8, 1.1e-8, true],
         ];
     }
 
     public static function mathEqual(): array
     {
         return [
-            [0, 0, true],
+            ['0', '0', true],
 
-            [-1, 0, false],
-            [0, 5, false],
-            [0, -1, false],
+            ['0', '-0', true],
+            ['-0', '0', true],
+            ['-0', '-0', true],
 
-            [1.112, 1.113, false],
-            [1.112, 1.113, false],
+            ['0', '+0', true],
+            ['+0', '0', true],
+            ['+0', '+0', true],
+
+            ['0', '5', false],
+            ['5', '0', false],
+
+            ['0', '-5', false],
+            ['-5', '0', false],
+
+            ['+5', '+5', true],
+            ['-5', '-5', true],
+
+            ['+5', '-5', false],
+            ['-5', '+5', false],
+
+            [1.11, 1.112, false],
+            [1.112, 1.11, false],
             [1.112, 1.112, true],
 
-            [1.1e-8, 1.1e+8, false],
-            [1.1e+8, 1.1e+8, true],
             [1.1e+8, 1.1e-8, false],
+            [1.1e-8, 1.1e+8, false],
+
+            [1.1e+8, 1.1e+8, true],
+            [1.1e-8, 1.1e-8, true],
         ];
     }
 
     public static function mathNotEqual(): array
     {
         return [
-            [0, 0, false],
+            ['0', '0', false],
 
-            [-1, 0, true],
-            [0, 5, true],
-            [0, -1, true],
+            ['0', '-0', false],
+            ['-0', '0', false],
+            ['-0', '-0', false],
 
-            [1.112, 1.113, true],
-            [1.112, 1.113, true],
+            ['0', '+0', false],
+            ['+0', '0', false],
+            ['+0', '+0', false],
+
+            ['0', '5', true],
+            ['5', '0', true],
+
+            ['0', '-5', true],
+            ['-5', '0', true],
+
+            ['+5', '+5', false],
+            ['-5', '-5', false],
+
+            ['+5', '-5', true],
+            ['-5', '+5', true],
+
+            [1.11, 1.112, true],
+            [1.112, 1.11, true],
             [1.112, 1.112, false],
 
-            [1.1e-8, 1.1e+8, true],
-            [1.1e+8, 1.1e+8, false],
             [1.1e+8, 1.1e-8, true],
+            [1.1e-8, 1.1e+8, true],
+
+            [1.1e+8, 1.1e+8, false],
+            [1.1e-8, 1.1e-8, false],
         ];
     }
 }

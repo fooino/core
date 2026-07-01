@@ -10,11 +10,13 @@ use Exception;
 class FooinoDateHandler extends DateHandler implements Dateable
 {
     /**
+     * Convert a date between timezones and calendar systems, with fallback and exception control
+     * 
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
      */
     public function convert(
         string|int|null $date,
-        string $format = 'Y-m-d H:i:s',
+        string $format = STANDARD_DATE_TIME_FORMAT,
         DateTimeZone|string $from = 'UTC',
         DateTimeZone|string $to = 'UTC',
         string $fallback = '',
@@ -23,9 +25,9 @@ class FooinoDateHandler extends DateHandler implements Dateable
 
         $originalDate = $date;
 
-        $date = is_numeric($date) ? date('Y-m-d H:i:s', $date) : $date;
+        $date = is_numeric($date) ? date(STANDARD_DATE_TIME_FORMAT, $date) : $date;
 
-        $date = nullIfBlank(value: replaceSlashToDash(value: (string) $date));
+        $date = nullIfBlank(value: replaceSlashWithDash(value: (string) $date));
 
         if (
             !$throwException &&
@@ -36,16 +38,14 @@ class FooinoDateHandler extends DateHandler implements Dateable
 
         try {
 
-            $from = $this->getDateTimeZone(timezone: $from);
-            $to = $this->getDateTimeZone(timezone: $to);
+            $from = $this->resolveTimezone(timezone: $from);
+            $to = $this->resolveTimezone(timezone: $to);
 
             if (
                 $throwException &&
                 blank($date)
             ) {
-                app(CanNotConvertDateException::class)
-                    ->_10052()
-                    ->throw();
+                $this->throwDateIsEmptyException();
             }
 
             foreach ($this->chainMethods($from, $to) as $method) {
@@ -66,20 +66,16 @@ class FooinoDateHandler extends DateHandler implements Dateable
             if ($throwException) {
 
                 app(CanNotConvertDateException::class)
-                    ->setMessage($e->getMessage())
-                    ->setCode($e->getCode())
-                    ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))
-                    ->report(callMethodIfExists(object: $e, method: 'reportable', fallback: true))
-                    ->with(array_merge(
-                        callMethodIfExists(object: $e, method: 'getWith', fallback: []),
-                        [
+                    ->from(
+                        e: $e,
+                        with: [
                             'original_date' => $originalDate,
                             'date'          => $date,
                             'format'        => $format,
                             'from'          => is_string($from) ? $from : $from->getName(),
                             'to'            => is_string($to)   ? $to   : $to->getName(),
                         ]
-                    ))
+                    )
                     ->throw();
             }
 
@@ -92,24 +88,10 @@ class FooinoDateHandler extends DateHandler implements Dateable
      */
     private function chainMethods(DateTimeZone $from, DateTimeZone $to): array
     {
-        $methods = [];
         $fromMethod = $this->getCalendarTypeByTimezone(timezone: $from);
+
         $toMethod   = $this->getCalendarTypeByTimezone(timezone: $to);
 
-        if (
-            $fromMethod != 'UTC' &&
-            $toMethod != 'UTC'
-        ) {
-
-
-            $methods[] = $fromMethod . 'ToUTC';
-            $methods[] = 'UTCTo' .  \ucfirst($toMethod);
-
-            // 
-        } else {
-            $methods[] = $fromMethod . 'To' . \ucfirst($toMethod);
-        }
-
-        return $methods;
+        return ($fromMethod !== 'UTC' && $toMethod !== 'UTC') ? [$fromMethod . 'ToUTC', 'UTCTo' .  ucfirst($toMethod)] : [$fromMethod . 'To' . ucfirst($toMethod)];
     }
 }

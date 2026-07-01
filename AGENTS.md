@@ -21,8 +21,9 @@ Source code lives under `src/`. File placement is determined by content, not by 
 | `src/Enums/` | PHP native enums only. |
 | `src/Concerns/` | Traits only. |
 | `tests/Unit/` | Pest tests. One test file per source class. |
+| `docs/markdown/` | Documentation files. Domain docs and reference files. |
 
-Global functions go in `src/helpers.php`, each wrapped in `if (!function_exists(...))`.
+Global functions go in `src/helpers.php`, each wrapped in `if (!function_exists(...))`. Constants go in `src/helpers.php` guarded by `if (!defined(...))`.
 
 **Architecture is enforced** by `tests/Unit/ArchitectureUnitTest.php` — any new file must pass these structural assertions.
 
@@ -69,25 +70,25 @@ Follow **SOLID** and **KISS** principles. Methods must have a **single responsib
 
 ## Error Code Ranges
 
-All errors use the fluent exception system built on `FooinoException`. The trait `FooinoExceptionList` defines error codes in these ranges:
+All errors use the fluent exception system built on `FooinoException`. Error methods (`_XXXX()`) are defined directly on each exception class.
 
-| Range | Domain |
-|---|---|
-| `1001` | General invalid period |
-| `10050–10099` | Date conversion (`CanNotConvertDateException`) |
-| `10100–10199` | Math calculation (`MathCalculationException`) |
-| `10200–10300` | Infinite loop detection (`InfiniteLoopException`) |
-| `10400–10499` | Token generation (`TokenGeneratorException`) |
+| Range | Exception Class | Domain |
+|---|---|---|
+| `1–249` | `FooinoRuntimeException` | General runtime errors (invalid period, invalid date string, unserialize/clone protection) |
+| `250–499` | `InfiniteLoopException` | Infinite loop / recursion protection (datesBetween, sanitizer recursion, token generator retry) |
+| `1000–1099` | `CanNotConvertDateException` | Date conversion (invalid timezone, empty date, invalid date, non-UTC default timezone) |
+| `1100–1199` | `MathCalculationException` | Math calculation (precision, argument count, argument type, division by zero, invalid value, unsupported function) |
+| `1200–1299` | `TokenGeneratorException` | Token generation (length, password constraints, missing field, memorable OTP length) |
 
-When adding a new error, pick the next unused code in the appropriate range, add an `_XXXX()` method to `FooinoExceptionList`, and follow the existing pattern: set message key, code, level, and reportable flag via fluent chain.
+When adding a new error, pick the next unused code in the appropriate range, add an `_XXXX()` method to the corresponding exception class, and follow the existing pattern: set message key, code, level, and reportable flag via fluent chain.
 
 ---
 
 ## Testing Conventions
 
 - **Framework**: Pest PHP with Orchestra Testbench.
-- **Architecture tests**: `tests/Unit/ArchitectureUnitTest.php` enforces structural rules (directories contain correct types, no debug calls, managers extend correct base class).
-- **Data providers**: Static methods in `tests/Data/Datasets.php`, composable via `Datasetable` trait.
+- **Architecture tests**: `tests/Unit/ArchitectureUnitTest.php` enforces structural rules (directories contain correct types, no debug calls, managers extend correct base class, every method documented).
+- **Data providers**: Static methods in `tests/Data/Datasets.php`.
 - **Naming**: Test methods use descriptive lowercase strings: `test('precision getter and setter', function () { ... })`.
 - **Coverage requirements**: Code coverage AND type coverage must both stay above **90%**. Every new or changed source line must have a corresponding test. Do not ship untested code.
 - **Run tests with**: `composer pest` or `./vendor/bin/pest`.

@@ -2,19 +2,20 @@
 
 namespace Fooino\Core\Tests\Unit;
 
-use Fooino\Core\Exceptions\CanNotConvertDateException;
-use Fooino\Core\Exceptions\FooinoException;
-use Fooino\Core\Exceptions\TransactionRollBackedException;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
 use Fooino\Core\Tests\Data\Datasets;
+
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
+
 use stdClass;
 use Stringable;
 use Exception;
@@ -43,13 +44,20 @@ enum WrappedBackedEnum: string
 {
     case ACTIVE   = 'ACTIVE';
     case INACTIVE = 'INACTIVE';
-}
+};
+
+enum WrappedNumberBackedEnum: int
+{
+    case ONE    = 1;
+    case TWO    = 2;
+};
 
 enum WrappedPureEnum
 {
     case ACTIVE;
     case INACTIVE;
-}
+};
+
 class TestFormRequest extends FormRequest
 {
     public function authorize(): bool
@@ -72,57 +80,79 @@ class TestFormRequest extends FormRequest
     }
 }
 
+class UnauthorizedFormRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return false;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'title' => [
+                'required',
+                'string',
+            ],
+        ];
+    }
+}
+
 describe('Helpers unit tests', function () {
 
     test('isZero returns true', function () {
 
         foreach (
-            Datasets::merge(
-                'zeros',
+            [
+                ...Datasets::zeros(),
                 new class implements Stringable {
+
                     public function __toString()
                     {
-                        return '0';
+                        return '0.0E+10';
                     }
                 },
-            ) as $zero
+            ] as $zero
         ) {
 
-            expect(isZero($zero))->toBeTrue();
+            expect(isZero(value: $zero))->toBeTrue();
 
-            // 
+            //
         }
 
-        // 
+        //
     });
-
 
     test('isZero returns false', function () {
 
         foreach (
-            Datasets::merge(
-                'nonZero',
+            [
+                ...Datasets::nonZero(),
                 true,
                 false,
-                fn() => [],
-                fn() => [0],
-                fn() => fn() => 0,
+                null,
+                ['foo' => 'bar'],
+                [],
+                [0],
+                fn() => 0,
                 new stdClass,
                 new class implements Stringable {
+
                     public function __toString()
                     {
-                        return 'foobar';
+                        return '.e+10';
                     }
-                }
-            ) as $nonZero
+                },
+            ]
+            as $nonZero
         ) {
 
-            expect(isZero($nonZero))->toBeFalse();
+            expect(isZero(value: $nonZero))->toBeFalse();
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('nullIfBlank returns value when it is filled', function () {
@@ -143,10 +173,16 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: '0', fallback: 'fooino'))->toBe('0');
         expect(nullIfBlank(value: '0.0', fallback: 'fooino'))->toBe('0.0');
         expect(nullIfBlank(value: 'false', fallback: 'fooino'))->toBe('false');
+        expect(nullIfBlank(value: 'true', fallback: 'fooino'))->toBe('true');
+        expect(nullIfBlank(value: 'nill', fallback: 'fooino'))->toBe('nill');
+        expect(nullIfBlank(value: 'notnull', fallback: 'fooino'))->toBe('notnull');
         expect(nullIfBlank(value: ' foobar ', fallback: 'fooino'))->toBe(' foobar ');
         expect(nullIfBlank(value: ' null"ish ', fallback: 'fooino'))->toBe(' null"ish ');
+        expect(nullIfBlank(value: " ' ` \" \n \t null nan undefined foobar", fallback: 'fooino'))->toBe(" ' ` \" \n \t null nan undefined foobar");
 
+        expect(nullIfBlank(value: [0], fallback: 'fooino'))->toBe([0]);
         expect(nullIfBlank(value: [null], fallback: 'fooino'))->toBe([null]);
+        expect(nullIfBlank(value: [true], fallback: 'fooino'))->toBe([true]);
         expect(nullIfBlank(value: [false], fallback: 'fooino'))->toBe([false]);
         expect(nullIfBlank(value: [""], fallback: 'fooino'))->toBe([""]);
         expect(nullIfBlank(value: [1, 'foobar', true], fallback: 'fooino'))->toBe([1, 'foobar', true]);
@@ -166,6 +202,8 @@ describe('Helpers unit tests', function () {
         };
 
         expect((string) nullIfBlank(value: $object, fallback: 'fooino'))->toBe('foobar');
+
+        expect(nullIfBlank(value: new stdClass, fallback: 'fooino'))->toBeInstanceOf(stdClass::class);
     });
 
     test('nullIfBlank returns null when the value is blank', function () {
@@ -180,6 +218,13 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: '" \'null ` nan undefined'))->toBeNull();
         expect(nullIfBlank(value: 'null', fallback: 'fooino'))->toEqual('fooino');
 
+        expect(nullIfBlank(value: 'nan'))->toBeNull();
+        expect(nullIfBlank(value: 'undefined'))->toBeNull();
+        expect(nullIfBlank(value: 'nullnull'))->toBeNull();
+        expect(nullIfBlank(value: 'nanundefined'))->toBeNull();
+        expect(nullIfBlank(value: "nu\tll"))->toBeNull();
+        expect(nullIfBlank(value: "nu\nll"))->toBeNull();
+
         expect(nullIfBlank(value: ''))->toBeNull();
         expect(nullIfBlank(value: '      '))->toBeNull();
         expect(nullIfBlank(value: '  "" '))->toBeNull();
@@ -189,6 +234,7 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: "  '' "))->toBeNull();
         expect(nullIfBlank(value: "  ' \" ' "))->toBeNull();
         expect(nullIfBlank(value: "  ' \" ' ", fallback: 'fooino'))->toEqual('fooino');
+        expect(nullIfBlank(value: " ' ` \" \n \t null nan undefined "))->toBeNull();
 
         expect(nullIfBlank(value: []))->toBeNull();
         expect(nullIfBlank(value: [], fallback: 'fooino'))->toEqual('fooino');
@@ -309,25 +355,61 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlankInput(key: 'custom', request: $customRequest))->toBe('value');
     });
 
+    test('nullIfBlankOrZeroInput helper', function () {
+
+        expect(nullIfBlankOrZeroInput(key: 'missing_key'))->toBeNull();
+
+        request()->merge(['title' => '']);
+        expect(nullIfBlankOrZeroInput(key: 'title'))->toBeNull();
+
+        request()->merge(['title' => '0.0E-10']);
+        expect(nullIfBlankOrZeroInput(key: 'title'))->toBeNull();
+
+        request()->merge(['title' => 'foobar']);
+        expect(nullIfBlankOrZeroInput(key: 'title'))->toBe('foobar');
+
+        request()->merge(['title' => '']);
+        expect(nullIfBlankOrZeroInput(key: 'title', fallback: 'fallback'))->toBe('fallback');
+
+        request()->merge(['title' => '-.0']);
+        expect(nullIfBlankOrZeroInput(key: 'title', fallback: 'fallback'))->toBe('fallback');
+
+        request()->merge(['title' => 'null']);
+        expect(nullIfBlankOrZeroInput(key: 'title'))->toBeNull();
+
+        $customRequest = new Request();
+        $customRequest->merge(['custom' => '0']);
+        expect(nullIfBlankOrZeroInput(key: 'custom', request: $customRequest))->toBeNull();
+    });
+
     test('unwrapBackedEnum helper', function () {
 
-        expect(unwrapBackedEnum(false))->toBeFalse();
-        expect(unwrapBackedEnum(true))->toBeTrue();
-        expect(unwrapBackedEnum(0))->toBe(0);
-        expect(unwrapBackedEnum(123))->toBe(123);
-        expect(unwrapBackedEnum(123.123))->toBe(123.123);
-        expect(unwrapBackedEnum(null))->toBeNull();
-        expect(unwrapBackedEnum([]))->toBe([]);
-        expect(unwrapBackedEnum([123]))->toBe([123]);
-        expect(unwrapBackedEnum(collect(['123'])))->toEqual(collect(['123']));
+        expect(unwrapBackedEnum(value: 0))->toBe(0);
+        expect(unwrapBackedEnum(value: 123))->toBe(123);
+        expect(unwrapBackedEnum(value: 123.123))->toBe(123.123);
+
+        expect(unwrapBackedEnum(value: ''))->toBe('');
+        expect(unwrapBackedEnum(value: ' '))->toBe(' ');
+        expect(unwrapBackedEnum(value: 'foobar'))->toBe('foobar');
+
+        expect(unwrapBackedEnum(value: false))->toBeFalse();
+        expect(unwrapBackedEnum(value: true))->toBeTrue();
+        expect(unwrapBackedEnum(value: null))->toBeNull();
+
+        expect(unwrapBackedEnum(value: []))->toBe([]);
+        expect(unwrapBackedEnum(value: [123]))->toBe([123]);
+        expect(unwrapBackedEnum(value: collect(['123'])))->toEqual(collect(['123']));
 
         $object = new stdClass;
-        expect(unwrapBackedEnum($object))->toBe($object);
+        expect(unwrapBackedEnum(value: $object))->toBe($object);
 
-        expect(unwrapBackedEnum(WrappedBackedEnum::ACTIVE))->toBe('ACTIVE');
-        expect(unwrapBackedEnum(WrappedBackedEnum::INACTIVE))->toBe('INACTIVE');
+        expect(unwrapBackedEnum(value: WrappedBackedEnum::ACTIVE))->toBe('ACTIVE');
+        expect(unwrapBackedEnum(value: WrappedBackedEnum::INACTIVE))->toBe('INACTIVE');
 
-        expect(unwrapBackedEnum(WrappedPureEnum::ACTIVE))->toBe(WrappedPureEnum::ACTIVE);
+        expect(unwrapBackedEnum(value: WrappedNumberBackedEnum::ONE))->toBe(1);
+        expect(unwrapBackedEnum(value: WrappedNumberBackedEnum::TWO))->toBe(2);
+
+        expect(unwrapBackedEnum(value: WrappedPureEnum::ACTIVE))->toBe(WrappedPureEnum::ACTIVE);
     });
 
     test('mergeArraysByKey helper', function () {
@@ -335,6 +417,12 @@ describe('Helpers unit tests', function () {
         expect(mergeArraysByKey())->toBe([]);
 
         expect(mergeArraysByKey(['foo' => ['a']]))->toBe(['foo' => ['a']]);
+
+        expect(mergeArraysByKey(['key' => null]))->toBe(['key' => [null]]);
+
+        expect(mergeArraysByKey(['key' => []]))->toBe(['key' => []]);
+
+        expect(mergeArraysByKey(['x' => ['a' => 1]], ['x' => ['a' => 2]]))->toBe(['x' => ['a' => 2]]);
 
         $a = ['created' => ['aa', 'bb']];
         $b = ['created' => 'cc', 'updated' => 'gg'];
@@ -349,7 +437,7 @@ describe('Helpers unit tests', function () {
         ]);
     });
 
-    test('removeComma returns string and array value without comma', function () {
+    test('removeComma helper', function () {
 
         expect(removeComma(value: 123))->toBe(123);
         expect(removeComma(value: 123.11))->toBe(123.11);
@@ -365,30 +453,43 @@ describe('Helpers unit tests', function () {
 
         expect(removeComma(value: ['123,123', '123,foobar, ']))->toBe(['123123', '123foobar ']);
         expect(removeComma(value: ['5,000,000', '123,foobar, '], replace: '_'))->toBe(['5_000_000', '123_foobar_ ']);
+
+        expect(removeComma(value: [123, 'abc,def']))->toBe([123, 'abcdef']);
+
+        expect(removeComma(value: [0, 1, 11.11, null, true, false, '123,123']))->toBe([0, 1, 11.11, null, true, false, '123123']);
+
+        expect(removeComma(value: ','))->toBe('');
     });
 
-    test('removeSpace returns string and array value without space', function () {
+    test('removeWhitespace helper', function () {
 
-        expect(removeSpace(value: 12))->toBe(12);
-        expect(removeSpace(value: 12.12))->toBe(12.12);
+        expect(removeWhitespace(value: 12))->toBe(12);
+        expect(removeWhitespace(value: 12.12))->toBe(12.12);
 
-        expect(removeSpace(value: '  '))->toBe('');
-        expect(removeSpace(value: 'foobar'))->toBe('foobar');
-        expect(removeSpace(value: ' foobar'))->toBe('foobar');
-        expect(removeSpace(value: 'foobar '))->toBe('foobar');
-        expect(removeSpace(value: ' foobar '))->toBe('foobar');
-        expect(removeSpace(value: ' 0912 123 1234 '))->toBe('09121231234');
-        expect(removeSpace(value: ' 0912 123 1234 ', replace: "_"))->toBe('_0912_123_1234_');
+        expect(removeWhitespace(value: ''))->toBe('');
+        expect(removeWhitespace(value: '  '))->toBe('');
+        expect(removeWhitespace(value: 'foobar'))->toBe('foobar');
+        expect(removeWhitespace(value: ' foobar'))->toBe('foobar');
+        expect(removeWhitespace(value: 'foobar '))->toBe('foobar');
+        expect(removeWhitespace(value: ' foobar '))->toBe('foobar');
+        expect(removeWhitespace(value: ' 0912 123 1234 '))->toBe('09121231234');
+        expect(removeWhitespace(value: ' 0912 123 1234 ', replace: "_"))->toBe('_0912_123_1234_');
 
-        expect(removeSpace(value: null))->toBe(null);
-        expect(removeSpace(value: true))->toBe(true);
-        expect(removeSpace(value: false))->toBe(false);
+        expect(removeWhitespace(value: null))->toBe(null);
+        expect(removeWhitespace(value: true))->toBe(true);
+        expect(removeWhitespace(value: false))->toBe(false);
 
-        expect(removeSpace(value: [1, ' 0912 123 1234 ']))->toBe(['1', '09121231234']);
-        expect(removeSpace(value: [1, ' 0912 123 1234 '], replace: "_"))->toBe(['1', '_0912_123_1234_']);
+        expect(removeWhitespace(value: [1, ' 0912 123 1234 ']))->toBe([1, '09121231234']);
+        expect(removeWhitespace(value: [1, ' 0912 123 1234 '], replace: "_"))->toBe([1, '_0912_123_1234_']);
+
+        expect(removeWhitespace(value: [0, 1, 11.11, null, true, false, ' 123 123 ']))->toBe([0, 1, 11.11, null, true, false, '123123']);
+
+        expect(removeWhitespace(value: "foo\nbar"))->toBe('foobar');
+        expect(removeWhitespace(value: "foo\tbar"))->toBe('foobar');
+        expect(removeWhitespace(value: ["foo\nbar", "baz\tqux"]))->toBe(['foobar', 'bazqux']);
     });
 
-    test('sanitizeNumber remove space and comma from value',  function () {
+    test('sanitizeNumber helper',  function () {
 
         expect(sanitizeNumber(123))->toBe(123);
         expect(sanitizeNumber(123.123))->toBe(123.123);
@@ -401,52 +502,63 @@ describe('Helpers unit tests', function () {
         expect(sanitizeNumber(true))->toBe(true);
         expect(sanitizeNumber(false))->toBe(false);
 
-        expect(sanitizeNumber([1, '123,123 ', ' 0912 123 1234 ']))->toBe(['1', '123123', '09121231234']);
+        expect(sanitizeNumber([1, '123,123 ', ' 0912 123 1234 ']))->toBe([1, '123123', '09121231234']);
+
+        expect(sanitizeNumber([0, 1, 11.11, null, true, false, ' 1,234 ']))->toBe([0, 1, 11.11, null, true, false, '1234']);
     });
 
-    test('replaceSlashToDash does the replacement when the value is string or array', function () {
+    test('replaceSlashWithDash helper', function () {
 
-        expect(replaceSlashToDash(value: 123))->toBe(123);
-        expect(replaceSlashToDash(value: 123.123))->toBe(123.123);
+        expect(replaceSlashWithDash(value: 123))->toBe(123);
+        expect(replaceSlashWithDash(value: 123.123))->toBe(123.123);
 
-        expect(replaceSlashToDash(value: '2023/01/02'))->toBe('2023-01-02');
-        expect(replaceSlashToDash(value: ''))->toBe('');
-        expect(replaceSlashToDash(value: ' foobar'))->toBe(' foobar');
+        expect(replaceSlashWithDash(value: '2023/01/02'))->toBe('2023-01-02');
+        expect(replaceSlashWithDash(value: ''))->toBe('');
+        expect(replaceSlashWithDash(value: ' foobar'))->toBe(' foobar');
 
-        expect(replaceSlashToDash(value: null))->toBe(null);
-        expect(replaceSlashToDash(value: true))->toBe(true);
-        expect(replaceSlashToDash(value: false))->toBe(false);
+        expect(replaceSlashWithDash(value: null))->toBe(null);
+        expect(replaceSlashWithDash(value: true))->toBe(true);
+        expect(replaceSlashWithDash(value: false))->toBe(false);
 
-        expect(replaceSlashToDash(value: ['hi/hello', '2023/01/02 11:00:00']))->toBe(['hi-hello', '2023-01-02 11:00:00']);
-        expect(replaceSlashToDash(value: [123]))->toBe(['123']);
+        expect(replaceSlashWithDash(value: ['hi/hello', '2023/01/02 11:00:00']))->toBe(['hi-hello', '2023-01-02 11:00:00']);
+        expect(replaceSlashWithDash(value: [123]))->toBe([123]);
+
+        expect(replaceSlashWithDash(value: [0, 1, 11.11, null, true, false, '2023/01/02']))->toBe([0, 1, 11.11, null, true, false, '2023-01-02']);
+
+        expect(replaceSlashWithDash(value: '/'))->toBe('-');
+        expect(replaceSlashWithDash(value: 'a//b'))->toBe('a--b');
     });
 
     test('setUserTimezone and getUserTimezone helper', function () {
 
         expect(config('user-timezone'))->toBeNull();
 
-        setUserTimezone('Asia/Tehran');
+        setUserTimezone(timezone: 'Asia/Tehran');
         expect(config('user-timezone'))->toBe('Asia/Tehran');
         expect(getUserTimezone())->toBe('Asia/Tehran');
 
         config(['user-timezone' => null]);
         expect(getUserTimezone())->toBe('UTC');
+
+        setUserTimezone(timezone: '');
+        expect(config('user-timezone'))->toBe('');
+        expect(getUserTimezone())->toBe('UTC');
     });
 
-    test('setDefaultLocale change app.locale config', function () {
+    test('setDefaultLocale and getDefaultLocale helper', function () {
 
         expect(config('app.locale'))->toBe('en');
+        expect(getDefaultLocale())->toBe('en');
 
         setDefaultLocale(locale: 'fa');
         expect(config('app.locale'))->toBe('fa');
         expect(getDefaultLocale())->toBe('fa');
-    });
-
-    test('getDefaultLocale get default locale from config', function () {
-
-        expect(getDefaultLocale())->toBe('en');
 
         config(['app.locale' => null]);
+        expect(getDefaultLocale())->toBe('fa');
+
+        setDefaultLocale(locale: '');
+        expect(config('app.locale'))->toBe('');
         expect(getDefaultLocale())->toBe('fa');
     });
 
@@ -457,33 +569,111 @@ describe('Helpers unit tests', function () {
         request()->merge(['per_page' => 10]);
         expect(perPage())->toBe(10);
 
+        request()->merge(['per_page' => '10']);
+        expect(perPage())->toBe(10);
+
         request()->merge(['per_page' => 0]);
         expect(perPage())->toBe(FOOINO_PER_PAGE);
 
         request()->merge(['per_page' => 301]);
-        expect(perPage())->toBe(FOOINO_PER_PAGE);
+        expect(perPage())->toBe(FOOINO_MAX_PER_PAGE);
 
         request()->merge(['per_page' => 'abc']);
         expect(perPage())->toBe(FOOINO_PER_PAGE);
+
+        request()->merge(['per_page' => 1.5]);
+        expect(perPage())->toBe(1);
+
+        request()->merge(['per_page' => -5]);
+        expect(perPage())->toBe(FOOINO_PER_PAGE);
+
+        request()->merge(['limit' => 350]);
+        expect(perPage(key: 'limit', maxPerPage: 500))->toBe(350);
 
         request()->merge(['limit' => 50]);
         expect(perPage(key: 'limit', maxPerPage: 100))->toBe(50);
 
         request()->merge(['limit' => 150]);
-        expect(perPage(key: 'limit', maxPerPage: 100))->toBe(FOOINO_PER_PAGE);
+        expect(perPage(key: 'limit', maxPerPage: 100))->toBe(100);
+
+        $customRequest = new Request(['per_page' => '25']);
+        expect(perPage(request: $customRequest))->toBe(25);
     });
 
-    test('currentDate returns current date in Y-m-d format', function () {
+    test('currentDate and currentDateTime helper', function () {
 
         expect(currentDate())->toBe(date('Y-m-d'));
-    });
-
-    test('currentDateTime returns current date in Y-m-d H:i:s format', function () {
-
         expect(currentDateTime())->toBe(date('Y-m-d H:i:s'));
     });
 
-    test('callMethodIfExists call existing method or returns the fallback', function () {
+    test('currentDateTs and currentDateTimeTs helper', function () {
+
+        expect(currentDateTs())->toBe(strtotime(currentDate()));
+        expect(currentDateTimeTs())->toBe(strtotime(currentDateTime()));
+
+        expect(currentDateTs())->toBeInt();
+        expect(currentDateTimeTs())->toBeInt();
+    });
+
+    test('strToDate helper', function () {
+
+        expect(strToDate(str: '2026-06-27'))->toBe('2026-06-27');
+
+        expect(strToDate(str: '2026-06-27 14:30:00'))->toBe('2026-06-27');
+
+        expect(strToDate(str: 'next monday'))->toBe(date(STANDARD_DATE_FORMAT, strtotime('next monday')));
+
+        expect(fn() => strToDate(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidDateString');
+
+        try {
+
+            strToDate(str: 'not a date');
+
+            //
+        } catch (FooinoRuntimeException $e) {
+
+            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidDateString');
+            expect($e->getCode())->toBe(3);
+            expect($e->reportable())->toBeTrue();
+            expect($e->getLevel())->toBe('error');
+            expect($e->getHttpStatusCode())->toBe(500);
+            expect($e->getWith())->toBe([
+                'method' => 'strToDate',
+                'input'  => 'not a date',
+            ]);
+        }
+    });
+
+    test('strToDateTime helper', function () {
+
+        expect(strToDateTime(str: '2026-06-27'))->toBe('2026-06-27 00:00:00');
+
+        expect(strToDateTime(str: '2026-06-27 14:30:00'))->toBe('2026-06-27 14:30:00');
+
+        expect(strToDateTime(str: 'next monday'))->toBe(date(STANDARD_DATE_TIME_FORMAT, strtotime('next monday')));
+
+        expect(fn() => strToDateTime(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidDateString');
+
+        try {
+
+            strToDateTime(str: 'not a date');
+
+            //
+        } catch (FooinoRuntimeException $e) {
+
+            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidDateString');
+            expect($e->getCode())->toBe(3);
+            expect($e->reportable())->toBeTrue();
+            expect($e->getLevel())->toBe('error');
+            expect($e->getHttpStatusCode())->toBe(500);
+            expect($e->getWith())->toBe([
+                'method' => 'strToDateTime',
+                'input'  => 'not a date',
+            ]);
+        }
+    });
+
+    test('callMethodIfExists helper', function () {
 
         expect(callMethodIfExists(object: new CustomClass, method: 'pi', fallback: 'fooino'))->toBe(3.14);
 
@@ -496,32 +686,58 @@ describe('Helpers unit tests', function () {
 
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: 'NOT EXIST'))->toBe('NOT EXIST');
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: fn($a) => $a * $a, methodArgs: ['a' => 5]))->toBe(25);
+
+        expect(callMethodIfExists(object: new CustomClass, method: 'pi'))->toBe(3.14);
+
+        expect(callMethodIfExists(object: new CustomClass, method: 'nonexistent', fallback: 'default'))->toBe('default');
     });
 
-    test('percentageChange method', function () {
+    test('percentageChange helper', function () {
 
         expect(percentageChange(from: 200, to: 50))->toBe('-75');
+        expect(percentageChange(from: 50, to: 200))->toBe('300');
+
         expect(percentageChange(from: 20, to: 40))->toBe('100');
         expect(percentageChange(from: 40, to: 20))->toBe('-50');
+
         expect(percentageChange(from: 10, to: 12))->toBe('20');
+        expect(percentageChange(from: 12, to: 10))->toBe('-16.66');
 
         expect(percentageChange(from: 12, to: 12))->toBe('0');
         expect(percentageChange(from: 12, to: -12))->toBe('-200');
-        expect(percentageChange(from: 12, to: 0))->toBe('-100');
-        expect(percentageChange(from: 0, to: -12))->toBe('100');
         expect(percentageChange(from: -12, to: 12))->toBe('200');
 
         expect(percentageChange(from: 13, to: 14))->toBe('7.69');
         expect(percentageChange(from: 13, to: 14, precision: 12))->toBe('7.6923076923');
 
-        $zeros = array_filter(Datasets::zeros(), 'is_numeric');
-        $lastIndex = count($zeros) - 1;
+        $zeros = array_filter(Datasets::shuffleZeros(), 'is_numeric');
 
-        expect(percentageChange(from: 12, to: $zeros[rand(0, $lastIndex)]))->toBe('-100');
-        expect(percentageChange(from: $zeros[rand(0, $lastIndex)], to: -12))->toBe('100');
+        foreach ($zeros as $zero) {
+
+            expect(percentageChange(from: 12, to: $zero))->toBe('-100');
+            expect(percentageChange(from: $zero, to: 12))->toBe('100');
+
+            expect(percentageChange(from: -12, to: $zero))->toBe('-100');
+            expect(percentageChange(from: $zero, to: -12))->toBe('100');
+
+            expect(percentageChange(from: $zero, to: $zero))->toBe('0');
+        }
+
+        expect(percentageChange(from: 1, to: 3))->toBe('200');
+        expect(percentageChange(from: -12, to: -24))->toBe('-100');
+        expect(percentageChange(from: -24, to: -12))->toBe('50');
+
+        expect(percentageChange(from: 10.5, to: 20.5))->toBe('95.23');
+        expect(percentageChange(from: '10', to: '20'))->toBe('100');
+
+        expect(percentageChange(from: 1000, to: 1001))->toBe('0.1');
+        expect(percentageChange(from: 1001, to: 1000))->toBe('-0.09');
+
+        expect(percentageChange(from: 1000000, to: 2000000))->toBe('100');
+        expect(percentageChange(from: 0.0001, to: 0.0002))->toBe('100');
     });
 
-    test('unitNumberFormat method', function () {
+    test('unitNumberFormat helper', function () {
 
         $trillion = __('msg.trillion');
         $billion = __('msg.billion');
@@ -531,6 +747,10 @@ describe('Helpers unit tests', function () {
         expect(unitNumberFormat(number: 1.e20, unit: 'Persons'))->toBe('100,000,000 ' . $trillion . ' Persons');
 
         expect(unitNumberFormat(number: 10_000_000_000,))->toBe('10 ' . $billion);
+
+        expect(unitNumberFormat(number: -10_000_000_000,))->toBe('-10 ' . $billion);
+
+        expect(unitNumberFormat(number: 1_000_000_000,))->toBe('1 ' . $billion);
 
         expect(unitNumberFormat(number: 123_000_000, unit: '$'))->toBe('123 ' . $million . ' $');
 
@@ -552,7 +772,7 @@ describe('Helpers unit tests', function () {
         expect(unitNumberFormat(number: 0, unit: 'seconds'))->toBe('0 seconds');
     });
 
-    test('unitSizeFormat method', function () {
+    test('unitSizeFormat helper', function () {
 
         expect(unitSizeFormat(bytes: 1099511627776))->toBe('1 TB');
         expect(unitSizeFormat(bytes: 2199023255552))->toBe('2 TB');
@@ -570,87 +790,30 @@ describe('Helpers unit tests', function () {
         expect(unitSizeFormat(bytes: 2048))->toBe('2 KB');
         expect(unitSizeFormat(bytes: 1536))->toBe('1.5 KB');
 
-        expect(unitSizeFormat(bytes: 500))->toBe('500 bytes');
-        expect(unitSizeFormat(bytes: 2))->toBe('2 bytes');
+        expect(unitSizeFormat(bytes: 500))->toBe('500 Bytes');
+        expect(unitSizeFormat(bytes: 2))->toBe('2 Bytes');
 
-        expect(unitSizeFormat(bytes: 1))->toBe('1 byte');
+        expect(unitSizeFormat(bytes: 1))->toBe('1 Byte');
 
-        expect(unitSizeFormat(bytes: 0))->toBe('0 byte');
+        expect(unitSizeFormat(bytes: 0))->toBe('0 Byte');
 
         expect(unitSizeFormat(bytes: -10))->toBe('-10 msg.isInvalid');
 
         expect(unitSizeFormat(bytes: 1234567))->toBe('1.177 MB');
         expect(unitSizeFormat(bytes: 1234567, precision: 5))->toBe('1.17737 MB');
+
+        expect(unitSizeFormat(bytes: 1234567, precision: 0))->toBe('1 MB');
+        expect(unitSizeFormat(bytes: 1536, precision: 0))->toBe('1 KB');
+
+        expect(unitSizeFormat(bytes: '1024'))->toBe('1 KB');
+        expect(unitSizeFormat(bytes: '500'))->toBe('500 Bytes');
+        expect(unitSizeFormat(bytes: '0'))->toBe('0 Byte');
+
+        expect(unitSizeFormat(bytes: 5497558138880))->toBe('5 TB');
+        expect(unitSizeFormat(bytes: 2199023255552, precision: 0))->toBe('2 TB');
     });
 
-    test('datesBetween method', function () {
-
-        expect(datesBetween(from: '2024-01-01', to: '2024-01-05'))->toBe([
-            '2024-01-01',
-            '2024-01-02',
-            '2024-01-03',
-            '2024-01-04',
-            '2024-01-05',
-        ]);
-
-        expect(datesBetween(from: '2024-06-01', to: '2024-06-01'))->toBe(['2024-06-01']);
-
-        expect(datesBetween(from: '2024-01-01', to: '2024-01-03', format: 'Y/m/d'))->toBe([
-            '2024/01/01',
-            '2024/01/02',
-            '2024/01/03',
-        ]);
-
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-02 00:00:00', format: 'Y-m-d H:i:s', interval: 'PT4H'))->toBe([
-            '2024-01-01 00:00:00',
-            '2024-01-01 04:00:00',
-            '2024-01-01 08:00:00',
-            '2024-01-01 12:00:00',
-            '2024-01-01 16:00:00',
-            '2024-01-01 20:00:00',
-            '2024-01-02 00:00:00',
-        ]);
-
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P2DT4H'))->toBe([
-            '2024-01-01 00:00:00',
-            '2024-01-03 04:00:00',
-            '2024-01-05 08:00:00',
-        ]);
-
-        expect(datesBetween(from: '2024-01-01 00:00:00', to: '2024-01-06 00:00:00', format: 'Y-m-d H:i:s', interval: 'P1W'))->toBe(['2024-01-01 00:00:00']);
-
-        expect(datesBetween(from: strtotime('2024-01-01'), to: strtotime('2024-01-03')))->toBe([
-            '2024-01-01',
-            '2024-01-02',
-            '2024-01-03',
-        ]);
-
-        expect(fn() => datesBetween(from: 'foobar', to: '2024-01-05'))->toThrow(CanNotConvertDateException::class);
-        expect(fn() => datesBetween(from: '2024-01-05', to: 'foobar'))->toThrow(CanNotConvertDateException::class);
-
-        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoException::class);
-
-        try {
-
-            datesBetween(from: '2024-06-01', to: '2024-01-01');
-
-            // 
-        } catch (FooinoException $e) {
-
-            expect($e->getMessage())->toBe('msg.invalidPeriodForDateRange');
-            expect($e->getCode())->toBe(1001);
-            expect($e->reportable())->toBeTrue();
-            expect($e->getLevel())->toBe('warning');
-            expect($e->getWith())->toBe([
-                'from'      => '2024-06-01',
-                'to'        => '2024-01-01',
-                'format'    => 'Y-m-d',
-                'interval'  => 'P1D',
-            ]);
-        }
-    });
-
-    test('sanitizeUrl and sanitizeSlug method', function () {
+    test('sanitizeUrl helper', function () {
 
         expect(sanitizeUrl(value: 1))->toBe(1);
         expect(sanitizeUrl(value: 1.1))->toBe(1.1);
@@ -658,12 +821,42 @@ describe('Helpers unit tests', function () {
         expect(sanitizeUrl(value: true))->toBe(true);
         expect(sanitizeUrl(value: false))->toBe(false);
         expect(sanitizeUrl(value: []))->toBe([]);
+        expect(sanitizeUrl(value: ''))->toBe('');
+        expect(sanitizeUrl(value: '0'))->toBe('0');
 
-        expect(sanitizeUrl(value: "test / prettify canonical ? %& $ *"))->toBe("test-/-prettify-canonical-?-%&-");
+        expect(sanitizeUrl(value: "test / prettify canonical ? %& $ *"))->toBe("test / prettify canonical ? %& - -");
 
-        expect(sanitizeUrl(value: "https://google.com/laravel_tips!for-2025"))->toBe("https://google.com/laravel-tips-for-2025");
-        expect(sanitizeUrl(value: ["https://google.com/laravel_tips!for-2025", "https://fooino.com/I am_god"]))->toBe(["https://google.com/laravel-tips-for-2025", "https://fooino.com/I-am-god"]);
+        expect(sanitizeUrl(value: "https://google.com/laravel_tips!for-2025"))->toBe("https://google.com/laravel_tips-for-2025");
+        expect(sanitizeUrl(value: ["https://google.com/laravel_tips!for-2025", "https://fooino.com/I am_god"]))->toBe(["https://google.com/laravel_tips-for-2025", "https://fooino.com/I am_god"]);
 
+        expect(sanitizeUrl(value: "https://example.com/search?q=hello&page=1"))->toBe("https://example.com/search?q=hello&page=1");
+        expect(sanitizeUrl(value: "https://example.com/page#section"))->toBe("https://example.com/page#section");
+        expect(sanitizeUrl(value: "https://user:pass@example.com/path"))->toBe("https://user:pass@example.com/path");
+        expect(sanitizeUrl(value: "https://x.com/test 🎉"))->toBe("https://x.com/test -");
+
+        expect(sanitizeUrl(value: "https://example.com/page;param=value"))->toBe("https://example.com/page-param=value");
+
+        expect(sanitizeUrl(value: "https://example.com/(test)"))->toBe("https://example.com/-test-");
+        expect(sanitizeUrl(value: "https://example.com/'test'"))->toBe("https://example.com/-test-");
+        expect(sanitizeUrl(value: "https://example.com/<test>"))->toBe("https://example.com/-test-");
+
+        expect(sanitizeUrl(value: "foo   bar   baz"))->toBe("foo   bar   baz");
+
+        expect(sanitizeUrl(value: "https://github.com/user/repo_name"))->toBe("https://github.com/user/repo_name");
+        expect(sanitizeUrl(value: "https://en.wikipedia.org/wiki/C_Sharp"))->toBe("https://en.wikipedia.org/wiki/C_Sharp");
+        expect(sanitizeUrl(value: "https://example.com/search?q=foo_bar"))->toBe("https://example.com/search?q=foo_bar");
+
+        expect(sanitizeUrl(value: ["https://example.com/a_b", "https://example.com/c_d"]))->toBe(["https://example.com/a_b", "https://example.com/c_d"]);
+
+        expect(sanitizeUrl(value: "https://example.com/api/v1/../v2/resource"))->toBe("https://example.com/api/v1/../v2/resource");
+        expect(sanitizeUrl(value: "https://example.com/a/../../c"))->toBe("https://example.com/a/../../c");
+
+
+        expect(sanitizeUrl(value: "https://example.com/path with spaces"))->toBe("https://example.com/path with spaces");
+        expect(sanitizeUrl(value: ["https://example.com/a b", "https://example.com/c d"]))->toBe(["https://example.com/a b", "https://example.com/c d"]);
+    });
+
+    test('sanitizeSlug helper', function () {
 
         expect(sanitizeSlug(value: 1))->toBe(1);
         expect(sanitizeSlug(value: 1.1))->toBe(1.1);
@@ -675,6 +868,22 @@ describe('Helpers unit tests', function () {
         expect(sanitizeSlug(value: "test / Prettify slug ? %& $ *"))->toBe('test-prettify-slug');
         expect(sanitizeSlug(value: "Laravel_tips!for-2025"))->toBe('laravel-tips-for-2025');
         expect(sanitizeSlug(value: ["Laravel_tips!for-2025", "I am_god"]))->toBe(["laravel-tips-for-2025", "i-am-god"]);
+
+        expect(sanitizeSlug(value: "café"))->toBe('cafe');
+        expect(sanitizeSlug(value: "straße"))->toBe('strasse');
+        expect(sanitizeSlug(value: "über cool"))->toBe('uber-cool');
+        expect(sanitizeSlug(value: "ñoño"))->toBe('nono');
+        expect(sanitizeSlug(value: "München"))->toBe('munchen');
+
+        expect(sanitizeSlug(value: ["café", "straße"]))->toBe(["cafe", "strasse"]);
+        expect(sanitizeSlug(value: ["über cool", "hello world"]))->toBe(["uber-cool", "hello-world"]);
+
+        expect(sanitizeSlug(value: "café 🎉"))->toBe('cafe');
+        expect(sanitizeSlug(value: "hello 🎉 world"))->toBe('hello-world');
+
+        expect(sanitizeSlug(value: "hello-world"))->toBe('hello-world');
+        expect(sanitizeSlug(value: "foo_bar_baz"))->toBe('foo-bar-baz');
+        expect(sanitizeSlug(value: "test123"))->toBe('test123');
     });
 
     test('jsonAttribute helper', function () {
@@ -699,28 +908,83 @@ describe('Helpers unit tests', function () {
 
         $model->create(['info' => '   ']);
         expect($model->find(1)->info)->toBe([]);
-        expect($model->find(1)->getRawOriginal('info'))->toBeNull();
+        $this->assertDatabaseHas('json_attr_table', ['id' => 1, 'info' => null]);
 
         $data = ['foo' => 'bar', 123];
         $model->create(['info' => $data]);
         expect($model->find(2)->info)->toBe($data);
-        expect($model->find(2)->getRawOriginal('info'))->toBe(json_encode($data));
+        $this->assertDatabaseHas('json_attr_table', ['id' => 2, 'info' => json_encode($data)]);
 
         $model->create(['info' => null]);
         expect($model->find(3)->info)->toBe([]);
-        expect($model->find(3)->getRawOriginal('info'))->toBeNull();
+        $this->assertDatabaseHas('json_attr_table', ['id' => 3, 'info' => null]);
+
+        $model->create(['info' => [0]]);
+        expect($model->find(4)->info)->toBe([0]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 4, 'info' => '[0]']);
+
+        $model->create(['info' => [false]]);
+        expect($model->find(5)->info)->toBe([false]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 5, 'info' => '[false]']);
+
+        $model->create(['info' => [null]]);
+        expect($model->find(6)->info)->toBe([null]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 6, 'info' => '[null]']);
+
+        $model->create(['info' => ['null']]);
+        expect($model->find(7)->info)->toBe(['null']);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 7, 'info' => '["null"]']);
+
+        $model->create(['info' => []]);
+        expect($model->find(8)->info)->toBe([]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 8, 'info' => null]);
+
+        $model->create(['info' => '{"a":1}']);
+        expect($model->find(9)->info)->toBe(['a' => 1]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 9, 'info' => '{"a":1}']);
+
+        $model->create(['info' => '{}']);
+        expect($model->find(10)->info)->toBe([]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 10, 'info' => '{}']);
+
+        $nested = [['a' => 1], ['b' => 2]];
+        $model->create(['info' => $nested]);
+        expect($model->find(11)->info)->toBe($nested);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 11, 'info' => json_encode($nested)]);
+
+        $m = $model->create(['info' => ['a' => 1]]);
+        $m->update(['info' => ['b' => 2]]);
+        expect($m->fresh()->info)->toBe(['b' => 2]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 12, 'info' => '{"b":2}']);
+
+        $m = $model->create(['info' => ['a' => 1, 'b' => 2]]);
+        $m->update(['info' => ['a' => 1, 'b' => 3]]);
+        expect($m->fresh()->info)->toBe(['a' => 1, 'b' => 3]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 13, 'info' => '{"a":1,"b":3}']);
+
+        $m = $model->create(['info' => ['a' => 1, 'b' => 2]]);
+        $m->update(['info' => ['a' => 1]]);
+        expect($m->fresh()->info)->toBe(['a' => 1]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 14, 'info' => '{"a":1}']);
+
+        $m = $model->create(['info' => ['a' => 1]]);
+        $m->update(['info' => ['a' => 1, 'b' => 2]]);
+        expect($m->fresh()->info)->toBe(['a' => 1, 'b' => 2]);
+        $this->assertDatabaseHas('json_attr_table', ['id' => 15, 'info' => '{"a":1,"b":2}']);
     });
 
     test('resolveRequest helper', function () {
 
-        expect(fn() => resolveRequest(request: TestFormRequest::class))
-            ->toThrow(ValidationException::class, 'The name field is required');
+        expect(fn() => resolveRequest(request: TestFormRequest::class))->toThrow(ValidationException::class, 'The name field is required');
 
         $user = new class extends User {};
 
         $resolved = resolveRequest(
             request: TestFormRequest::class,
-            data: ['name' => 'foobar', 'email' => 'foobar@gmail.com'],
+            data: [
+                'name' => 'foobar',
+                'email' => 'foobar@gmail.com'
+            ],
             user: $user,
         );
 
@@ -728,184 +992,59 @@ describe('Helpers unit tests', function () {
         expect($resolved->safe()->name)->toBe('foobar');
         expect($resolved->safe()->email)->toBe('foobar@gmail.com');
         expect($resolved->getUserResolver()())->toBe($user);
+        expect($resolved->user())->toBe($user);
 
         $resolved = resolveRequest(
             request: TestFormRequest::class,
-            data: ['name' => 'foo', 'email' => 'foo@bar.com'],
+            data: [
+                'name' => 'foo',
+                'email' => 'foo@bar.com'
+            ],
         );
 
         expect($resolved)->toBeInstanceOf(TestFormRequest::class);
         expect($resolved->safe()->name)->toBe('foo');
-    });
 
-
-    test('dbTransaction helper', function () {
-
-        Schema::create('tx_users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
-
-        $user = new class extends User {
-            protected $guarded = ['id'];
-            protected $table = 'tx_users';
-        };
-
-        $result = dbTransaction(function () use ($user) {
-            $user->create(['name' => 'foo']);
-            $user->find(1)->update(['name' => 'foobar']);
-
-            return $user->find(1);
-        });
-
-        expect($result)->toBeInstanceOf(User::class);
-        expect($result->name)->toBe('foobar');
-
-        expect(fn() => dbTransaction(function () use ($user) {
-            $user->findOrFail(999);
-        }))->toThrow(TransactionRollBackedException::class);
-    });
-
-    test('userInfo helper', function () {
-
-        Schema::create('ui_blogs', function (Blueprint $table) {
-            $table->id();
-            $table->nullableMorphs('creatorable');
-            $table->timestamps();
-        });
-
-        Schema::create('ui_users', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('country_id')->nullable();
-            $table->string('country_code')->nullable();
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
-            $table->string('full_name')->nullable();
-            $table->string('phone_number')->nullable();
-            $table->timestamps();
-        });
-
-        $blog = new class extends Model {
-
-            protected $guarded = ['id'];
-
-            protected $table = 'ui_blogs';
-
-            public function creatorable(): MorphTo
-            {
-                return $this->morphTo('creatorable');
-            }
-        };
-
-        $user = new class extends User {
-            protected $guarded = ['id'];
-            protected $table = 'ui_users';
-
-            public function objectName()
-            {
-                return ['type' => 'user'];
-            }
-        };
-
-        $user->create([]);
-        $blog->create(['creatorable_type' => get_class($user), 'creatorable_id' => 1]);
-
-        $b = $blog->find(1);
-        expect(userInfo($b, 'creatorable'))->toBe([
-            'id' => 0,
-            'country_id' => 0,
-            'full_name' => '',
-            'country_code' => '',
-            'phone_number' => '',
-            'phone_number_original' => '',
-            'type' => __('msg.unknown'),
-        ]);
-
-        $b = $blog->with('creatorable')->find(1);
-        expect(userInfo($b, 'creatorable'))->toBe([
-            'id' => 1.0,
-            'country_id' => 0.0,
-            'full_name' => '',
-            'country_code' => '',
-            'phone_number' => '',
-            'phone_number_original' => '',
-            'type' => 'user',
-        ]);
-
-        $user->find(1)->delete();
-        $b = $blog->with('creatorable')->find(1);
-        expect(userInfo($b, 'creatorable'))->toBe([
-            'id' => 0,
-            'country_id' => 0,
-            'full_name' => '',
-            'country_code' => '',
-            'phone_number' => '',
-            'phone_number_original' => '',
-            'type' => __('msg.unknown'),
-        ]);
-
-        $user->create(['country_id' => 105, 'country_code' => 'IR', 'first_name' => 'foo', 'last_name' => 'ino', 'phone_number' => '09121231234']);
-        $blog->create(['creatorable_type' => get_class($user), 'creatorable_id' => 2]);
-        $b = $blog->with('creatorable')->find(2);
-        expect(userInfo($b, 'creatorable'))->toBe([
-            'id' => 2.0,
-            'country_id' => 105.0,
-            'full_name' => 'foo ino',
-            'country_code' => 'IR',
-            'phone_number' => '09121231234',
-            'phone_number_original' => '09121231234',
-            'type' => 'user',
-        ]);
-    });
-
-    test('getUserable helper', function () {
-        Schema::create('gu_users', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-
-        expect(getUserable(able: 'removerable'))->toBe([
-            'removerable_type' => null,
-            'removerable_id' => null,
-        ]);
-
-        expect(fn() => getUserable(able: 'removerable', throwException: true))
-            ->toThrow(Exception::class, 'The user is empty');
-
-        $user = new class extends User {
-            protected $guarded = ['id'];
-            protected $table = 'gu_users';
-        };
-
-        expect(getUserable(able: 'removerable', user: $user->find(999)))->toBe([
-            'removerable_type' => null,
-            'removerable_id' => null,
-        ]);
-
-        $user->create();
-
-        expect(getUserable(able: 'removerable', user: $user->find(1)))->toBe([
-            'removerable_type' => get_class($user),
-            'removerable_id' => 1,
-        ]);
-
-        request()->setUserResolver(fn() => $user->find(1));
-
-        expect(getUserable(able: 'removerable'))->toBe([
-            'removerable_type' => get_class($user),
-            'removerable_id' => 1,
-        ]);
-
-        $resolved = resolveRequest(
+        $validated = resolveRequest(
             request: TestFormRequest::class,
-            data: ['name' => 'foobar', 'email' => 'foobar@gmail.com'],
-            user: $user->find(1),
+            data: [
+                'name' => 'hello',
+                'email' => 'hello@test.com'
+            ]
+        )
+            ->validated();
+
+        expect($validated)->toBe([
+            'name' => 'hello',
+            'email' => 'hello@test.com'
+        ]);
+
+        $filtered = resolveRequest(
+            request: TestFormRequest::class,
+            data: [
+                'name' => 'test',
+                'email' => 'test@test.com',
+                'extra' => 'should_be_stripped'
+            ]
+        )
+            ->validated();
+
+        expect($filtered)->toBe([
+            'name' => 'test',
+            'email' => 'test@test.com'
+        ]);
+        expect(isset($filtered['extra']))->toBeFalse();
+
+        expect(fn() => resolveRequest(request: UnauthorizedFormRequest::class, data: ['title' => 'anything']))->toThrow(AuthorizationException::class, 'This action is unauthorized.');
+
+        $noUser = resolveRequest(
+            request: TestFormRequest::class,
+            data: [
+                'name' => 'nouser',
+                'email' => 'nouser@test.com'
+            ]
         );
 
-        expect(getUserable(able: 'removerable', user: $resolved))->toBe([
-            'removerable_type' => get_class($user),
-            'removerable_id' => 1,
-        ]);
+        expect($noUser->user())->toBeNull();
     });
 });

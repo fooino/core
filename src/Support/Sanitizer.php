@@ -6,10 +6,13 @@ use Fooino\Core\Exceptions\InfiniteLoopException;
 
 class Sanitizer
 {
-    private array $attempted = [];
-
     private const int MAX_ATTEMPT = 25;
 
+    private array $attempted = [];
+
+    /**
+     * Accept the initial value and make it available to all sanitizer pipeline methods
+     */
     public function __construct(private string|int|float|null|bool|array|object $value) {}
 
     /**
@@ -38,30 +41,29 @@ class Sanitizer
     {
         $value = $this->value();
 
-        $isJson = isJson(value: $value);
+        $trimmed = is_string($value) ? $this->trimValue(value: $value) : $value;
+
+        $isJson = isJson(value: $value) && !is_numeric($trimmed) && !in_array($trimmed, ['true', 'false', 'null', '{}']);
 
         if ($isJson) {
 
             $decoded = jsonDecode(json: $value);
 
-            if (in_array(gettype($decoded), ['object', 'array'])) {
+            $value = match (true) {
 
-                $value = jsonDecodeToArray(json: $value);
-            }
+                in_array(gettype($decoded), ['object', 'array']) => jsonDecodeToArray(json: $value),
+
+                default                                          => $decoded
+            };
         }
 
         if (is_array($value)) {
 
-            array_walk_recursive($value, fn(&$item) => $item = $this->normalizeValue(value: $item));
+            array_walk_recursive($value, fn(mixed &$item) => $item = $this->normalizeValue(value: $item));
         }
 
-        if (
-            is_string($value) ||
-            is_int($value) ||
-            is_float($value)
-        ) {
-
-            return $this->setValue(value: $this->normalizeValue(value: $value));
+        if (is_string($value)) {
+            $value = $this->normalizeValue(value: $value);
         }
 
         return $this->setValue(value: ($isJson) ? jsonEncode($value) : $value);
@@ -90,6 +92,7 @@ class Sanitizer
                 if ($exclude === $forbidden) {
 
                     unset($forbiddens[$key]);
+                    break;
                 }
             }
         }
@@ -120,6 +123,7 @@ class Sanitizer
                 if ($exclude === $sensitive) {
 
                     unset($sensitives[$key]);
+                    break;
                 }
             }
         }
@@ -198,7 +202,7 @@ class Sanitizer
     /**
      * Trim characters from the beginning and end of the value
      */
-    public function trim(string $char = ' '): static
+    public function trim(string $char = " \n\r\t\v\0"): static
     {
         $value = $this->value();
 
@@ -256,7 +260,7 @@ class Sanitizer
             '_'
         ];
 
-        usort($chars, fn($a, $b) => strlen($b) <=> strlen($a));
+        usort($chars, fn(mixed $a, mixed $b) => strlen($b) <=> strlen($a));
 
         return $chars;
     }
@@ -347,11 +351,32 @@ class Sanitizer
             '.cgi',
             '.pl',
             '.rb',
-            'artisan'
+            'artisan',
+            'Dockerfile',
+            'Makefile',
+            'Procfile',
+            'docker-compose.yml',
+            'docker-compose.yaml',
+            'next.config.js',
+            'next.config.ts',
+            'nginx.conf',
+            'phpstan.neon',
+            'phpstan.neon.dist',
+            'phpunit.xml.dist',
+            'tailwind.config.js',
+            'tailwind.config.ts',
+            'vite.config.js',
+            'vite.config.ts',
+            'yarn.lock',
+            '.dockerignore',
+            '.gitattributes',
+            '.npmrc',
+            '.php-cs-fixer.php',
+            '.php-cs-fixer.dist.php',
+            'makefile'
         ];
 
-
-        usort($files, fn($a, $b) => strlen($b) <=> strlen($a));
+        usort($files, fn(mixed $a, mixed $b) => strlen($b) <=> strlen($a));
 
         return $files;
     }
@@ -363,6 +388,8 @@ class Sanitizer
     private function normalizeValue(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
     {
         if (
+            is_int($value) ||
+            is_float($value) ||
             is_null($value) ||
             is_bool($value) ||
             is_array($value) ||
@@ -370,8 +397,6 @@ class Sanitizer
         ) {
             return $value;
         }
-
-        $type = gettype($value);
 
         // remove ZWNJ, ZWJ, BOM characters
         $value = preg_replace('/[\x{200C}\x{200D}\x{FEFF}]/u', '', $value);
@@ -387,13 +412,14 @@ class Sanitizer
 
         $replaced = strip_tags($replaced, $this->allowedTags());
 
-        $replaced = mb_trim($replaced);
-
-        settype($replaced, $type);
+        $replaced = mb_trim($replaced, " \n\r\t\v\0");
 
         return $replaced;
     }
 
+    /**
+     * Define the set of HTML tags permitted through strip_tags during normalization, preventing dangerous elements
+     */
     private function allowedTags(): array
     {
         return [
@@ -455,19 +481,20 @@ class Sanitizer
      */
     private function replace(string|array $search, string|array $replace, string|array $subject): string|array
     {
-        $this->assertRecursionLimit(method: 'replace');
-
         if (is_string($subject)) {
             return str_replace(search: $search, replace: $replace, subject: $subject);
         }
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replace(search: $search, replace: $replace, subject: $item) : $item, $subject);
+        $this->assertRecursionLimit(method: 'replace');
+
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->replace(search: $search, replace: $replace, subject: $item) : $item, $subject);
     }
 
+    /**
+     * Strip or replace emoji characters from a string or array of strings using Unicode range matching
+     */
     private function replaceEmojiValue(string|array $value, string $replaceWith): string|array
     {
-        $this->assertRecursionLimit(method: 'replaceEmojiValue');
-
         if (is_string($value)) {
 
             $pattern = '/(' .
@@ -496,7 +523,9 @@ class Sanitizer
             return preg_replace(pattern: $pattern, replacement: $replaceWith, subject: $value);
         }
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replaceEmojiValue(value: $item, replaceWith: $replaceWith) : $item, $value);
+        $this->assertRecursionLimit(method: 'replaceEmojiValue');
+
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->replaceEmojiValue(value: $item, replaceWith: $replaceWith) : $item, $value);
     }
 
     /**
@@ -504,13 +533,13 @@ class Sanitizer
      */
     private function toLowercase(string|array $value): string|array
     {
-        $this->assertRecursionLimit(method: 'toLowercase');
-
         if (is_string($value)) {
             return mb_strtolower(string: $value);
         }
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->toLowercase(value: $item) : $item, $value);
+        $this->assertRecursionLimit(method: 'toLowercase');
+
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->toLowercase(value: $item) : $item, $value);
     }
 
     /**
@@ -518,13 +547,13 @@ class Sanitizer
      */
     private function toUppercase(string|array $value): string|array
     {
-        $this->assertRecursionLimit(method: 'toUppercase');
-
         if (is_string($value)) {
             return mb_strtoupper(string: $value);
         }
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->toUppercase(value: $item) : $item, $value);
+        $this->assertRecursionLimit(method: 'toUppercase');
+
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->toUppercase(value: $item) : $item, $value);
     }
 
     /**
@@ -532,8 +561,6 @@ class Sanitizer
      */
     private function collapseValue(string|array $value, string $char): string|array
     {
-        $this->assertRecursionLimit(method: 'collapseValue');
-
         if ($char === '') {
             return $value;
         }
@@ -542,24 +569,29 @@ class Sanitizer
             return preg_replace(pattern: '/' . preg_quote($char, '/') . '+/u', replacement: $char, subject: $value);
         }
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->collapseValue(value: $item, char: $char) : $item, $value);
+        $this->assertRecursionLimit(method: 'collapseValue');
+
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->collapseValue(value: $item, char: $char) : $item, $value);
     }
 
     /**
      * Trim characters from value, handling arrays recursively
      */
-    private function trimValue(string|array $value, string $char): string|array
+    private function trimValue(string|array $value, string $char = " \n\r\t\v\0"): string|array
     {
-        $this->assertRecursionLimit(method: 'trimValue');
-
         if (is_string($value)) {
 
             return mb_trim($value, $char);
         }
 
-        return array_map(fn($item) => is_string($item) || is_array($item) ? $this->trimValue(value: $item, char: $char) : $item, $value);
+        $this->assertRecursionLimit(method: 'trimValue');
+
+        return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->trimValue(value: $item, char: $char) : $item, $value);
     }
 
+    /**
+     * Guard against infinite recursion when processing nested arrays by tracking call depth per method
+     */
     private function assertRecursionLimit(string $method): void
     {
         $this->attempted[$method] ??= 0;
@@ -568,10 +600,11 @@ class Sanitizer
         if ($this->attempted[$method] > self::MAX_ATTEMPT) {
 
             app(InfiniteLoopException::class)
-                ->_10201()
+                ->_252()
                 ->with([
                     'method'    => $method,
                     'attempted' => $this->attempted[$method],
+                    'value'     => $this->value()
                 ])
                 ->throw();
         }
