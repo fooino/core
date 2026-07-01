@@ -10,8 +10,6 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     {
         return [
             CoreServiceProvider::class,
-            // TranslatableServiceProvider::class,
-            // ActivitylogServiceProvider::class
         ];
     }
 }
