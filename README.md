@@ -42,7 +42,7 @@ exit
 
 4. [Helpers](./docs/markdown/HELPERS.md)
 
-5. [Sanitizer](./docs/markdown/SANITIZER.MD)
+5. [Sanitizer](./docs/markdown/SANITIZER.md)
 
 6. [NormalizesInputs trait](./docs/markdown/NORMALIZES_INPUTS.md)
 
