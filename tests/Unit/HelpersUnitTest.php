@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
@@ -76,6 +77,24 @@ class TestFormRequest extends FormRequest
                 'required',
                 'email'
             ]
+        ];
+    }
+}
+
+class UnauthorizedFormRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return false;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'title' => [
+                'required',
+                'string',
+            ],
         ];
     }
 }
@@ -957,14 +976,16 @@ describe('Helpers unit tests', function () {
 
     test('resolveRequest helper', function () {
 
-        expect(fn() => resolveRequest(request: TestFormRequest::class))
-            ->toThrow(ValidationException::class, 'The name field is required');
+        expect(fn() => resolveRequest(request: TestFormRequest::class))->toThrow(ValidationException::class, 'The name field is required');
 
         $user = new class extends User {};
 
         $resolved = resolveRequest(
             request: TestFormRequest::class,
-            data: ['name' => 'foobar', 'email' => 'foobar@gmail.com'],
+            data: [
+                'name' => 'foobar',
+                'email' => 'foobar@gmail.com'
+            ],
             user: $user,
         );
 
@@ -972,184 +993,59 @@ describe('Helpers unit tests', function () {
         expect($resolved->safe()->name)->toBe('foobar');
         expect($resolved->safe()->email)->toBe('foobar@gmail.com');
         expect($resolved->getUserResolver()())->toBe($user);
+        expect($resolved->user())->toBe($user);
 
         $resolved = resolveRequest(
             request: TestFormRequest::class,
-            data: ['name' => 'foo', 'email' => 'foo@bar.com'],
+            data: [
+                'name' => 'foo',
+                'email' => 'foo@bar.com'
+            ],
         );
 
         expect($resolved)->toBeInstanceOf(TestFormRequest::class);
         expect($resolved->safe()->name)->toBe('foo');
-    });
 
-
-    test('dbTransaction helper', function () {
-
-        Schema::create('tx_users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
-
-        $user = new class extends User {
-            protected $guarded = ['id'];
-            protected $table = 'tx_users';
-        };
-
-        $result = dbTransaction(function () use ($user) {
-            $user->create(['name' => 'foo']);
-            $user->find(1)->update(['name' => 'foobar']);
-
-            return $user->find(1);
-        });
-
-        expect($result)->toBeInstanceOf(User::class);
-        expect($result->name)->toBe('foobar');
-
-        expect(fn() => dbTransaction(function () use ($user) {
-            $user->findOrFail(999);
-        }))->toThrow(TransactionRollBackedException::class);
-    });
-
-    test('userInfo helper', function () {
-
-        Schema::create('ui_blogs', function (Blueprint $table) {
-            $table->id();
-            $table->nullableMorphs('creatorable');
-            $table->timestamps();
-        });
-
-        Schema::create('ui_users', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('country_id')->nullable();
-            $table->string('country_code')->nullable();
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
-            $table->string('full_name')->nullable();
-            $table->string('phone_number')->nullable();
-            $table->timestamps();
-        });
-
-        $blog = new class extends Model {
-
-            protected $guarded = ['id'];
-
-            protected $table = 'ui_blogs';
-
-            public function creatorable(): MorphTo
-            {
-                return $this->morphTo('creatorable');
-            }
-        };
-
-        $user = new class extends User {
-            protected $guarded = ['id'];
-            protected $table = 'ui_users';
-
-            public function objectName()
-            {
-                return ['type' => 'user'];
-            }
-        };
-
-        $user->create([]);
-        $blog->create(['creatorable_type' => get_class($user), 'creatorable_id' => 1]);
-
-        $b = $blog->find(1);
-        expect(userInfo($b, 'creatorable'))->toBe([
-            'id' => 0,
-            'country_id' => 0,
-            'full_name' => '',
-            'country_code' => '',
-            'phone_number' => '',
-            'phone_number_original' => '',
-            'type' => __('msg.unknown'),
-        ]);
-
-        $b = $blog->with('creatorable')->find(1);
-        expect(userInfo($b, 'creatorable'))->toBe([
-            'id' => 1.0,
-            'country_id' => 0.0,
-            'full_name' => '',
-            'country_code' => '',
-            'phone_number' => '',
-            'phone_number_original' => '',
-            'type' => 'user',
-        ]);
-
-        $user->find(1)->delete();
-        $b = $blog->with('creatorable')->find(1);
-        expect(userInfo($b, 'creatorable'))->toBe([
-            'id' => 0,
-            'country_id' => 0,
-            'full_name' => '',
-            'country_code' => '',
-            'phone_number' => '',
-            'phone_number_original' => '',
-            'type' => __('msg.unknown'),
-        ]);
-
-        $user->create(['country_id' => 105, 'country_code' => 'IR', 'first_name' => 'foo', 'last_name' => 'ino', 'phone_number' => '09121231234']);
-        $blog->create(['creatorable_type' => get_class($user), 'creatorable_id' => 2]);
-        $b = $blog->with('creatorable')->find(2);
-        expect(userInfo($b, 'creatorable'))->toBe([
-            'id' => 2.0,
-            'country_id' => 105.0,
-            'full_name' => 'foo ino',
-            'country_code' => 'IR',
-            'phone_number' => '09121231234',
-            'phone_number_original' => '09121231234',
-            'type' => 'user',
-        ]);
-    });
-
-    test('getUserable helper', function () {
-        Schema::create('gu_users', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-
-        expect(getUserable(able: 'removerable'))->toBe([
-            'removerable_type' => null,
-            'removerable_id' => null,
-        ]);
-
-        expect(fn() => getUserable(able: 'removerable', throwException: true))
-            ->toThrow(Exception::class, 'The user is empty');
-
-        $user = new class extends User {
-            protected $guarded = ['id'];
-            protected $table = 'gu_users';
-        };
-
-        expect(getUserable(able: 'removerable', user: $user->find(999)))->toBe([
-            'removerable_type' => null,
-            'removerable_id' => null,
-        ]);
-
-        $user->create();
-
-        expect(getUserable(able: 'removerable', user: $user->find(1)))->toBe([
-            'removerable_type' => get_class($user),
-            'removerable_id' => 1,
-        ]);
-
-        request()->setUserResolver(fn() => $user->find(1));
-
-        expect(getUserable(able: 'removerable'))->toBe([
-            'removerable_type' => get_class($user),
-            'removerable_id' => 1,
-        ]);
-
-        $resolved = resolveRequest(
+        $validated = resolveRequest(
             request: TestFormRequest::class,
-            data: ['name' => 'foobar', 'email' => 'foobar@gmail.com'],
-            user: $user->find(1),
+            data: [
+                'name' => 'hello',
+                'email' => 'hello@test.com'
+            ]
+        )
+            ->validated();
+
+        expect($validated)->toBe([
+            'name' => 'hello',
+            'email' => 'hello@test.com'
+        ]);
+
+        $filtered = resolveRequest(
+            request: TestFormRequest::class,
+            data: [
+                'name' => 'test',
+                'email' => 'test@test.com',
+                'extra' => 'should_be_stripped'
+            ]
+        )
+            ->validated();
+
+        expect($filtered)->toBe([
+            'name' => 'test',
+            'email' => 'test@test.com'
+        ]);
+        expect(isset($filtered['extra']))->toBeFalse();
+
+        expect(fn() => resolveRequest(request: UnauthorizedFormRequest::class, data: ['title' => 'anything']))->toThrow(AuthorizationException::class, 'This action is unauthorized.');
+
+        $noUser = resolveRequest(
+            request: TestFormRequest::class,
+            data: [
+                'name' => 'nouser',
+                'email' => 'nouser@test.com'
+            ]
         );
 
-        expect(getUserable(able: 'removerable', user: $resolved))->toBe([
-            'removerable_type' => get_class($user),
-            'removerable_id' => 1,
-        ]);
+        expect($noUser->user())->toBeNull();
     });
 });

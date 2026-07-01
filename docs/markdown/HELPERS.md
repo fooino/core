@@ -339,3 +339,47 @@ $model->metadata = [];               // stored as null, read back as []
 $model->metadata; // ['key' => 'value']
 $model->metadata; // []
 ```
+
+## resolveRequest
+
+Resolve and validate a Laravel `FormRequest` with the given data and optional authenticated user. Useful in tests to prepare a validated request instance and pass its output to commands, actions, or tasks.
+
+The helper creates the form request, merges the data, sets the container and redirector, calls `validateResolved()` (which triggers `prepareForValidation` and authorization), and returns the validated instance.
+
+```php
+use App\Http\Requests\StoreArticleRequest;
+
+$request = resolveRequest(
+    request: StoreArticleRequest::class,
+    data: ['title' => 'My Article', 'body' => 'Content'],
+    user: $user,
+);
+
+$request->validated();   // ['title' => 'My Article', 'body' => 'Content']
+$request->safe();        // ValidatedInput instance
+$request->user();        // the authenticated user passed to the helper
+```
+
+When validation fails, a `ValidationException` is thrown:
+
+```php
+resolveRequest(request: StoreArticleRequest::class);
+// throws ValidationException when required fields are missing
+```
+
+When `authorize()` returns `false`, an `AuthorizationException` is thrown:
+
+```php
+resolveRequest(request: ProtectedRequest::class, data: [...]);
+// throws AuthorizationException when access is denied
+```
+
+Fields not present in the request's `rules()` are silently stripped from the `validated()` output, as per standard Laravel behaviour.
+
+```php
+resolveRequest(
+    request: StoreArticleRequest::class,
+    data: ['title' => 'OK', 'body' => 'OK', 'injected' => 'will be stripped'],
+)->validated();
+// ['title' => 'OK', 'body' => 'OK']   — 'injected' is not in rules
+```

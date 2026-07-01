@@ -801,6 +801,7 @@ if (!function_exists('jsonAttribute')) {
 if (!function_exists('resolveRequest')) {
     /**
      * Resolve and validate a FormRequest with the given data and optional authenticated user
+     * use this helper for api request. it does not handle web redirect when validation or authorziation failed
      */
     function resolveRequest(string $request, array $data = [], User|null $user = null): FormRequest
     {
@@ -820,119 +821,5 @@ if (!function_exists('resolveRequest')) {
             ->validateResolved();
 
         return $req;
-    }
-}
-
-if (!function_exists('dbTransaction')) {
-    /**
-     * Execute a callback within a database transaction, rethrowing any exception as a TransactionRollBackedException
-     */
-    function dbTransaction(callable $callback): mixed
-    {
-        try {
-            DB::beginTransaction();
-
-            $result = $callback();
-
-            DB::commit();
-
-            return $result;
-
-            //
-        } catch (FooinoException | Exception $e) {
-
-            DB::rollBack();
-
-            app(TransactionRollBackedException::class)
-                ->cause($e)
-                ->setMessage($e->getMessage())
-                ->setCode($e->getCode())
-                ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))
-                ->report(callMethodIfExists(object: $e, method: 'reportable', fallback: true))
-                ->setHttpStatusCode(callMethodIfExists(object: $e, method: 'getHttpStatusCode', fallback: 500))
-                ->with(callMethodIfExists(object: $e, method: 'getWith', fallback: []))
-                ->throw();
-        }
-    }
-}
-
-
-if (!function_exists('userInfo')) {
-    /**
-     * Extract user information from a loaded polymorphic relationship
-     */
-    function userInfo(Model $model, string $relation): array
-    {
-
-        if (!$model->relationLoaded($relation)) {
-
-            return [
-                'id'                    => 0,
-                'country_id'            => 0,
-                'full_name'             => '',
-                'country_code'          => '',
-                'phone_number'          => '',
-                'phone_number_original' => '',
-                'type'                  => __(key: 'msg.unknown'),
-            ];
-        }
-
-        $user = $model?->{$relation};
-
-        if (is_null($user)) {
-            return [
-                'id'                    => 0,
-                'country_id'            => 0,
-                'full_name'             => '',
-                'country_code'          => '',
-                'phone_number'          => '',
-                'phone_number_original' => '',
-                'type'                  => __(key: 'msg.unknown'),
-            ];
-        }
-
-        return [
-            'id'                        => (float) ($user?->id ?? 0),
-
-            'country_id'                => (float) ($user?->country_id ?? 0),
-
-            'full_name'                 => (string) ($user?->full_name ?? $user?->name ?? trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? ''))),
-
-            'country_code'              => (string) ($user?->country_code ?? ''),
-
-            'phone_number'              => (string) ($user?->phone_number ?? ''),
-
-            'phone_number_original'     => (string) ($user?->getRawOriginal('phone_number', '') ?? ''),
-
-            'type'                      => callMethodIfExists(object: $user, method: 'objectName', fallback: [])['type'] ?? __(key: 'msg.unknown'),
-        ];
-    }
-}
-
-if (!function_exists('getUserable')) {
-    /**
-     * Resolve the authenticated user into polymorphic relation columns (e.g. creatorable_type, creatorable_id)
-     */
-    function getUserable(string $able, Request|Model|null $user = null, string $guard = 'web', bool $throwException = false): array
-    {
-        $user = match (true) {
-
-            ($user instanceof Request)  => $user->user(guard: $guard),
-
-            ($user instanceof Model)    => $user,
-
-            default                     => request()->user(guard: $guard)
-        };
-
-        $id = $user?->id ?? null;
-
-        if ($throwException && (blank($user) || blank($id))) {
-            throw new Exception('The user is empty');
-        }
-
-        return [
-            ($able . '_type') => (filled($user) && filled($id)) ? get_class($user) : null,
-            ($able . '_id')   => $id,
-        ];
     }
 }
