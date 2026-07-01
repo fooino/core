@@ -462,7 +462,7 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->and(jsonDecodeToArray('5.5'))->toBe([5.5]);
 
         expect(Json::decodeToArray('null'))
-            ->toBe([]) // casting null to array will be empty array
+            ->toBe([]) // casting null to array results in an empty array
             ->and(jsonDecodeToArray('null'))->toBe([]);
 
         expect(Json::decodeToArray('true'))
@@ -478,7 +478,7 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->and(jsonDecodeToArray('[]'))->toBe([]);
 
         expect(Json::decodeToArray('{}'))
-            ->toBe([]) // casting empty object to array will be empty array
+            ->toBe([]) // casting empty object to array results in an empty array
             ->and(jsonDecodeToArray('{}'))->toBe([]);
     });
 
@@ -512,7 +512,7 @@ describe('Json facade using FooinoJsonHandler', function () {
         expect(Json::decodeToArray($object)['foo'])->toBe('bar');
     });
 
-    test('json response return a http response with standarad structure', function () {
+    test('json response returns an HTTP response with standard structure', function () {
 
         expect(Json::respond())->toBeInstanceOf(JsonResponse::class);
         expect(jsonRespond())->toBeInstanceOf(JsonResponse::class);

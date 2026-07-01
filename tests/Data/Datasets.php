@@ -189,7 +189,7 @@ class Datasets
             ['foo.bar', 'foo.bar'],
             ['foo.bar.ino', 'foo.bar.ino'],
             ['-foo.bar.ino', '-foo.bar.ino'],
-            ['abc1E+3xyz', 'abc1E+3xyz'], // contains 1E+3 which is valid Scientific Number but the method must not convert it
+            ['abc1E+3xyz', 'abc1E+3xyz'], // contains 1E+3 which is a valid scientific number but the method must not convert it
             ['test', 'test'],
 
             ['', ''],
@@ -475,7 +475,7 @@ class Datasets
     {
         $set = [
             [0.001, '0.001', null],
-            ['0.00000000000123', '0.000000000001', null],
+            ['0.00000000000123', '0.000000000001', null], // the decimal places far exceed the precision
             [0.001, '0', 2],
 
             ['.44015042', '0.44015042', null],
@@ -514,7 +514,7 @@ class Datasets
     public static function mathNumberFormat(): array
     {
         $set = [
-            [1.1e-20, ',', '0', null], // the decimal numbers is very more than precision
+            [1.1e-20, ',', '0', null], // the decimal places far exceed the precision
 
             [1.1e-8, ',', '0.000000011', null],
             [1.1e+8, ',', '110,000,000', null],

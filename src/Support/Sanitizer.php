@@ -10,6 +10,9 @@ class Sanitizer
 
     private array $attempted = [];
 
+    /**
+     * Accept the initial value and make it available to all sanitizer pipeline methods
+     */
     public function __construct(private string|int|float|null|bool|array|object $value) {}
 
     /**
@@ -414,6 +417,9 @@ class Sanitizer
         return $replaced;
     }
 
+    /**
+     * Define the set of HTML tags permitted through strip_tags during normalization, preventing dangerous elements
+     */
     private function allowedTags(): array
     {
         return [
@@ -484,6 +490,9 @@ class Sanitizer
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->replace(search: $search, replace: $replace, subject: $item) : $item, $subject);
     }
 
+    /**
+     * Strip or replace emoji characters from a string or array of strings using Unicode range matching
+     */
     private function replaceEmojiValue(string|array $value, string $replaceWith): string|array
     {
         if (is_string($value)) {
@@ -580,6 +589,9 @@ class Sanitizer
         return array_map(fn($item) => is_string($item) || is_array($item) ? $this->trimValue(value: $item, char: $char) : $item, $value);
     }
 
+    /**
+     * Guard against infinite recursion when processing nested arrays by tracking call depth per method
+     */
     private function assertRecursionLimit(string $method): void
     {
         $this->attempted[$method] ??= 0;

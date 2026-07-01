@@ -13,6 +13,9 @@ class FooinoRuntimeException extends FooinoException
 
     protected string $level = 'warning';
 
+    /**
+     * Configure the exception for an invalid period range passed to the date-between generator
+     */
     final public function _2(): static
     {
         return $this
@@ -23,6 +26,9 @@ class FooinoRuntimeException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when a date string does not match any recognised format after parsing
+     */
     final public function _3(): static
     {
         return $this
@@ -33,6 +39,9 @@ class FooinoRuntimeException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when code attempts to unserialize a singleton instance, which is forbidden
+     */
     final public function _4(): static
     {
         return $this
@@ -43,6 +52,9 @@ class FooinoRuntimeException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when code attempts to clone a singleton instance, which is forbidden
+     */
     final public function _5(): static
     {
         return $this

@@ -77,7 +77,7 @@ describe('NormalizesInputs trait', function () {
         expect($request->validated())->toBe([
             'title'         => 'علیک سلام',
             'bio'           => null,
-            'slogan'        => null, // the null value be merged to the request
+            'slogan'        => null, // the null value is merged into the request
             'content'       => 'alert(1)',
             'age'           => 29,
             'amount'        => 123.0102,
@@ -92,7 +92,7 @@ describe('NormalizesInputs trait', function () {
         ]);
 
 
-        expect($request->validated()['user']->toArray()['name'])->toBe('عليك سلام'); // it does not effect on object
+        expect($request->validated()['user']->toArray()['name'])->toBe('عليك سلام'); // it does not affect the object
     });
 
     it('does not merge when there are no rules', function () {
@@ -265,7 +265,7 @@ describe('NormalizesInputs trait', function () {
                 request: NormalizesInputsTestFormRequest::class,
                 data: [
                     'title' => "NULL\n",
-                    // I did not passed the slogan but it gets the default value
+                    // I did not pass the slogan but it gets the default value
                 ],
             );
 
@@ -535,7 +535,7 @@ describe('NormalizesInputs trait', function () {
                     'user' => [
                         ['name' => 'عليك سلام'],
                         ['name' => '۰۱۲۳'],
-                        // I did not passed the thrid and fourth name
+                        // I did not pass the third and fourth name
                     ],
                 ],
             );

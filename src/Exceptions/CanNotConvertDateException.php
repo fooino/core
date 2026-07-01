@@ -13,6 +13,9 @@ class CanNotConvertDateException extends FooinoException
 
     protected string $level = 'warning';
 
+    /**
+     * Configure the exception for an invalid timezone that cannot be resolved for date conversion
+     */
     final public function _1001(): static
     {
         return $this
@@ -23,6 +26,9 @@ class CanNotConvertDateException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when an empty date string is provided but a valid date is required
+     */
     final public function _1002(): static
     {
         return $this
@@ -33,6 +39,9 @@ class CanNotConvertDateException extends FooinoException
             ->dontReport();
     }
 
+    /**
+     * Configure the exception when the date string cannot be parsed into a valid date value
+     */
     final public function _1003(): static
     {
         return $this
@@ -43,6 +52,9 @@ class CanNotConvertDateException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when the system default timezone is not UTC, which would produce incorrect conversions
+     */
     final public function _1004(): static
     {
         return $this

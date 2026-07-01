@@ -32,6 +32,9 @@ abstract class DateHandler
 
     protected array $dateTimeZones = [];
 
+    /**
+     * Ensure the system default timezone is UTC, which is required for all calendar conversions to produce correct results
+     */
     public function __construct(protected string $calendarUsage = self::OFFICIAL)
     {
         if (date_default_timezone_get() !== 'UTC') {
@@ -451,7 +454,7 @@ abstract class DateHandler
         ];
 
         if (
-            count(array_filter($parsed, fn($p) => $p !== false)) === 0 // non part of the date is valid
+            count(array_filter($parsed, fn($p) => $p !== false)) === 0 // no part of the date is valid
         ) {
             $this->throwInvalidDateException();
         }

@@ -2,7 +2,6 @@
 
 use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Exceptions\FooinoRuntimeException;
-use Fooino\Core\Exceptions\TransactionRollBackedException;
 
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
@@ -292,7 +291,7 @@ if (!function_exists('notEqual')) {
 
 if (!function_exists('isZero')) {
     /**
-     * Check the value is zero or not
+     * Check whether the value is zero
      */
     function isZero(int|float|string|null|bool|array|object|callable $value): bool
     {
@@ -304,7 +303,7 @@ if (!function_exists('isZero')) {
 
 if (!function_exists('nullIfBlank')) {
     /**
-     * Returns a fallback value when the input is considered "blank" or a null-like string which usually produced by js.
+     * Returns a fallback value when the input is considered "blank" or a null-like string which is usually produced by JS
      */
     function nullIfBlank(int|float|string|null|bool|array|object|callable $value, int|float|string|null|bool|array|object|callable $fallback = null): int|float|string|null|bool|array|object|callable
     {
@@ -699,7 +698,7 @@ if (!function_exists('unitNumberFormat')) {
 
 if (!function_exists('unitSizeFormat')) {
     /**
-     * Format bytes into a human-readable file size string (Bytes, KB, MB, GB, TB). the method followd Binary standard but show the unit in SI standarad
+     * Format bytes into a human-readable file size string (Bytes, KB, MB, GB, TB). The method follows the Binary standard but shows the unit in the SI standard
      */
     function unitSizeFormat(string|int|float $bytes, int $precision = 3): string
     {
@@ -745,7 +744,7 @@ if (!function_exists('normalizeInput')) {
 
 if (!function_exists('sanitizeUrl')) {
     /**
-     * Clean a value for use in URLs base on RFC 3986 by replacing forbidden characters with dashes
+     * Clean a value for use in URLs based on RFC 3986 by replacing forbidden characters with dashes
      */
     function sanitizeUrl(string|int|float|null|bool|array $value): string|int|float|null|bool|array
     {
@@ -801,7 +800,7 @@ if (!function_exists('jsonAttribute')) {
 if (!function_exists('resolveRequest')) {
     /**
      * Resolve and validate a FormRequest with the given data and optional authenticated user
-     * use this helper for api request. it does not handle web redirect when validation or authorziation failed
+     * Use this helper for API requests. It does not handle web redirect when validation or authorization fails
      */
     function resolveRequest(string $request, array $data = [], User|null $user = null): FormRequest
     {

@@ -17,7 +17,7 @@ class FooinoException extends Exception
     protected bool $report = true;
 
     /**
-     * Use current state of message and code(the initial value in class property or already setted by setMessage, setCode methods)
+     * Use current state of message and code (the initial value in class property or already set by setMessage and setCode methods)
      */
     public function __construct(...$args)
     {
@@ -191,6 +191,9 @@ class FooinoException extends Exception
         return $log;
     }
 
+    /**
+     * Wrap an existing exception as a FooinoException, preserving its message, code, and any custom properties for consistent handling
+     */
     public function from(Exception $e, array $with = []): static
     {
         return $this

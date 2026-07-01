@@ -13,6 +13,9 @@ class InfiniteLoopException extends FooinoException
 
     protected string $level = 'critical';
 
+    /**
+     * Configure the exception when the date interval produces no end or would iterate indefinitely
+     */
     final public function _251(): static
     {
         return $this
@@ -23,6 +26,9 @@ class InfiniteLoopException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when a recursive sanitizer operation exceeds the maximum nesting depth
+     */
     final public function _252(): static
     {
         return $this
@@ -33,6 +39,9 @@ class InfiniteLoopException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when the token generator exhausts its uniqueness retry limit
+     */
     final public function _253(): static
     {
         return $this

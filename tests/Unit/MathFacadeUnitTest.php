@@ -559,7 +559,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(fn() => Math::convertScientificNumber(1.1E-322))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidValueError');
             expect(fn() => Math::convertScientificNumber(-1.1E-322))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidValueError');
 
-            // very small number when it cast to string it will be zero. the max exponent php handle CAN BE 324
+            // very small number when cast to string becomes zero. The max exponent PHP can handle is 324
             expect(Math::convertScientificNumber(1.1E-324))->toBe('0');
             expect(Math::convertScientificNumber(-1.1E-324))->toBe('0');
 

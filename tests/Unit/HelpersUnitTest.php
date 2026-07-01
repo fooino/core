@@ -3,7 +3,6 @@
 namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Exceptions\FooinoRuntimeException;
-use Fooino\Core\Exceptions\TransactionRollBackedException;
 use Fooino\Core\Tests\Data\Datasets;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;

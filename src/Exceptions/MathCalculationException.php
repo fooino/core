@@ -13,6 +13,9 @@ class MathCalculationException extends FooinoException
 
     protected string $level = 'error';
 
+    /**
+     * Configure the exception when the configured precision falls outside the allowed range
+     */
     final public function _1101(): static
     {
         return $this
@@ -23,6 +26,9 @@ class MathCalculationException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when too few operands are provided for the requested arithmetic operation
+     */
     final public function _1102(): static
     {
         return $this
@@ -33,6 +39,9 @@ class MathCalculationException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when a non-numeric operand is passed to an arithmetic operation
+     */
     final public function _1103(): static
     {
         return $this
@@ -43,6 +52,9 @@ class MathCalculationException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when division or modulo by zero is attempted
+     */
     final public function _1104(): static
     {
         return $this
@@ -53,6 +65,9 @@ class MathCalculationException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when an operand value is invalid for the requested operation
+     */
     final public function _1105(): static
     {
         return $this
@@ -63,6 +78,9 @@ class MathCalculationException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when an unrecognised bcmath function name is supplied
+     */
     final public function _1106(): static
     {
         return $this

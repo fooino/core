@@ -13,6 +13,9 @@ class TokenGeneratorException extends FooinoException
 
     protected string $level = 'error';
 
+    /**
+     * Configure the exception when the token length is set to zero or a negative value
+     */
     final public function _1201(): static
     {
         return $this
@@ -23,6 +26,9 @@ class TokenGeneratorException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when the token length exceeds the maximum allowed limit
+     */
     final public function _1202(): static
     {
         return $this
@@ -33,6 +39,9 @@ class TokenGeneratorException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when the strong password format requires a minimum length that is not met
+     */
     final public function _1203(): static
     {
         return $this
@@ -43,6 +52,9 @@ class TokenGeneratorException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when the password format requires a minimum length that is not met
+     */
     final public function _1204(): static
     {
         return $this
@@ -53,6 +65,9 @@ class TokenGeneratorException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when a model is configured for uniqueness checking but no field name was provided
+     */
     final public function _1205(): static
     {
         return $this
@@ -63,6 +78,9 @@ class TokenGeneratorException extends FooinoException
             ->shouldReport();
     }
 
+    /**
+     * Configure the exception when the memorable OTP format requires a minimum length that is not met
+     */
     final public function _1206(): static
     {
         return $this
