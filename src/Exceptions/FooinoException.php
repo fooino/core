@@ -6,7 +6,7 @@ use Exception;
 
 class FooinoException extends Exception
 {
-    protected Exception|null $cause = null;
+    protected FooinoException|Exception|null $cause = null;
 
     protected string $level = 'error';
 
@@ -27,7 +27,7 @@ class FooinoException extends Exception
     /**
      * Attach the original exception that triggered this wrapper, preserving its context for the handler
      */
-    public function cause(Exception|null $cause): static
+    public function cause(FooinoException|Exception|null $cause): static
     {
         $this->cause = $cause;
 
@@ -37,7 +37,7 @@ class FooinoException extends Exception
     /**
      * Get the original exception that was wrapped by this FooinoException
      */
-    public function getCause(): Exception|null
+    public function getCause(): FooinoException|Exception|null
     {
         return $this->cause;
     }
@@ -196,17 +196,29 @@ class FooinoException extends Exception
      */
     public function from(Exception $e, array $with = []): static
     {
-        return $this
-            ->cause($e)
-            ->setMessage($e->getMessage())
-            ->setCode($e->getCode())
-            ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))
-            ->setHttpStatusCode(callMethodIfExists(object: $e, method: 'getHttpStatusCode', fallback: 500))
-            ->setReport(callMethodIfExists(object: $e, method: 'reportable', fallback: true))
-            ->with(array_merge(
-                callMethodIfExists(object: $e, method: 'getWith', fallback: []),
-                $with
-            ));
+        if ($e instanceof FooinoException) {
+
+            $e
+                ->setMessage($e->getMessage())
+                ->setCode($e->getCode())
+                ->setLevel($e->getLevel())
+                ->setHttpStatusCode($e->getHttpStatusCode())
+                ->setReport($e->reportable())
+                ->with(array_merge(
+                    $e->getWith(),
+                    $with
+                ));
+        }
+
+        return $this->cause($e);
+    }
+
+    /**
+     * Return contextual data for Laravel's exception reporting pipeline to include in logs
+     */
+    public function context(): array
+    {
+        return $this->getWith();
     }
 
     /**

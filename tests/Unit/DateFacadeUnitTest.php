@@ -8,7 +8,6 @@ use Fooino\Core\Exceptions\InfiniteLoopException;
 
 use Fooino\Core\Facades\Date;
 use DateTimeZone;
-use Exception;
 
 describe('Date facade using FooinoDateHandler', function () {
 
@@ -28,17 +27,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert(date: '2026-01-01', from: 'Asia/Fooino', throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toBe('msg.canNotConvertDateExceptionInvalidTimezone');
-            expect($e->getCode())->toBe(1001);
+            expect($e->getCause()->getMessage())->toBe('msg.canNotConvertDateExceptionInvalidTimezone');
+            expect($e->getCause()->getCode())->toBe(1001);
 
-            expect($e->getLevel())->toBe('error');
-            expect($e->getHttpStatusCode())->toBe(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toBe('error');
+            expect($e->getCause()->getHttpStatusCode())->toBe(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toBe(
+            expect($e->getCause()->getWith())->toBe(
                 [
                     "invalid_timezone"          => "Asia/Fooino",
                     "original_date"             => "2026-01-01",
@@ -56,17 +55,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert(date: '2026-01-01', to: 'Asia/Fooino', throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toBe('msg.canNotConvertDateExceptionInvalidTimezone');
-            expect($e->getCode())->toBe(1001);
+            expect($e->getCause()->getMessage())->toBe('msg.canNotConvertDateExceptionInvalidTimezone');
+            expect($e->getCause()->getCode())->toBe(1001);
 
-            expect($e->getLevel())->toBe('error');
-            expect($e->getHttpStatusCode())->toBe(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toBe('error');
+            expect($e->getCause()->getHttpStatusCode())->toBe(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toBe(
+            expect($e->getCause()->getWith())->toBe(
                 [
                     "invalid_timezone"          => "Asia/Fooino",
                     "original_date"             => "2026-01-01",
@@ -84,17 +83,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert(date: '', throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toBe('msg.canNotConvertDateExceptionDateIsEmpty');
-            expect($e->getCode())->toBe(1002);
+            expect($e->getCause()->getMessage())->toBe('msg.canNotConvertDateExceptionDateIsEmpty');
+            expect($e->getCause()->getCode())->toBe(1002);
 
-            expect($e->getLevel())->toBe('warning');
-            expect($e->getHttpStatusCode())->toBe(500);
-            expect($e->reportable())->toBeFalse();
+            expect($e->getCause()->getLevel())->toBe('warning');
+            expect($e->getCause()->getHttpStatusCode())->toBe(500);
+            expect($e->getCause()->reportable())->toBeFalse();
 
-            expect($e->getWith())->toBe(
+            expect($e->getCause()->getWith())->toBe(
                 [
                     "original_date"             => "",
                     "date"                      => null,
@@ -175,17 +174,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert(date: 'test', to: $iranTz, throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -254,17 +253,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert(date: 'test', from: $iranTz, throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -317,17 +316,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert(date: 'test', from: $tokyoTz, to: $iranTz, throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -372,17 +371,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert(date: 'test', from: $iranTz, to: $tokyoTz, throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -404,17 +403,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert(date: 'test', throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -455,17 +454,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::unofficialCalendar()->convert(date: 'test', to: $UAE, throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -506,17 +505,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::unofficialCalendar()->convert(date: 'test', from: $UAE, throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -570,17 +569,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::unofficialCalendar()->convert(date: 'test', from: $iranTz, to: $riyadh, throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -618,8 +617,8 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::convert('2026-06-22');
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
             expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDefaultTimezone');
             expect($e->getCode())->toEqual(1004);
@@ -703,17 +702,17 @@ describe('Date facade using FooinoDateHandler', function () {
 
             Date::unofficialCalendar()->convert(date: 'test', from: $riyadh, to: $iranTz, throwException: true);
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException $e) {
 
-            expect($e->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
-            expect($e->getCode())->toEqual(1003);
+            expect($e->getCause()->getMessage())->toEqual('msg.canNotConvertDateExceptionInvalidDate');
+            expect($e->getCause()->getCode())->toEqual(1003);
 
-            expect($e->getLevel())->toEqual('error');
-            expect($e->getHttpStatusCode())->toEqual(500);
-            expect($e->reportable())->toBeTrue();
+            expect($e->getCause()->getLevel())->toEqual('error');
+            expect($e->getCause()->getHttpStatusCode())->toEqual(500);
+            expect($e->getCause()->reportable())->toBeTrue();
 
-            expect($e->getWith())->toEqual(
+            expect($e->getCause()->getWith())->toEqual(
                 [
                     "original_date"     => "test",
                     "date"              => "test",
@@ -820,13 +819,13 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(fn() => datesBetween(from: 'foobar', to: '2024-01-05'))->toThrow(CanNotConvertDateException::class);
         expect(fn() => datesBetween(from: '2024-01-05', to: 'foobar'))->toThrow(CanNotConvertDateException::class);
 
-        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoRuntimeException::class);
+        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween');
 
         try {
 
             Date::datesBetween(from: '2024-06-01', to: '2024-01-01');
 
-            // 
+            //
         } catch (FooinoRuntimeException $e) {
 
             expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween');
@@ -841,13 +840,13 @@ describe('Date facade using FooinoDateHandler', function () {
             ]);
         }
 
-        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-12-01', interval: 'P0D'))->toThrow(InfiniteLoopException::class);
+        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-12-01', interval: 'P0D'))->toThrow(InfiniteLoopException::class, 'msg.infiniteLoopExceptionInvalidIntervalForDatesBetween');
 
         try {
 
             Date::datesBetween(from: '2024-06-01', to: '2024-12-01', interval: 'P0D');
 
-            // 
+            //
         } catch (InfiniteLoopException $e) {
 
             expect($e->getMessage())->toBe('msg.infiniteLoopExceptionInvalidIntervalForDatesBetween');
