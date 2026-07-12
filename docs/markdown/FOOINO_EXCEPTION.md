@@ -35,7 +35,7 @@ app(UserNotFoundException::class)
 | `setLevel(string)` | `string` | `'error'` | Set the severity level |
 | `setHttpStatusCode(int)` | `int` | `500` | Set the HTTP status code for the response |
 | `with(array)` | `array` | `[]` | Attach contextual data for debugging |
-| `report(bool)` / `shouldReport()` / `dontReport()` | `bool` | `true` | Control whether the exception is logged |
+| `setReport(bool)` / `shouldReport()` / `dontReport()` | `bool` | `true` | Control whether the exception is logged |
 | `cause(?Exception)` / `getCause()` | `?Exception` | `null` | Attach/retrieve the original non-fooino exception that was wrapped |
 
 ## Wrapping Non-Fooino Exceptions

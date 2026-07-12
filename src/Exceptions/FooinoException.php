@@ -119,7 +119,7 @@ class FooinoException extends Exception
     /**
      * Set whether this exception should be written to the error log
      */
-    public function report(bool $report): static
+    public function setReport(bool $report): static
     {
         $this->report = $report;
 
@@ -139,7 +139,7 @@ class FooinoException extends Exception
      */
     public function dontReport(): static
     {
-        return $this->report(report: false);
+        return $this->setReport(report: false);
     }
 
     /**
@@ -147,7 +147,7 @@ class FooinoException extends Exception
      */
     public function shouldReport(): static
     {
-        return $this->report(report: true);
+        return $this->setReport(report: true);
     }
 
     /**
@@ -162,7 +162,7 @@ class FooinoException extends Exception
             ->setLevel($this->getLevel())
             ->setHttpStatusCode($this->getHttpStatusCode())
             ->with($this->getWith())
-            ->report($this->reportable());
+            ->setReport($this->reportable());
 
         throw $this;
     }
@@ -202,7 +202,7 @@ class FooinoException extends Exception
             ->setCode($e->getCode())
             ->setLevel(callMethodIfExists(object: $e, method: 'getLevel', fallback: 'error'))
             ->setHttpStatusCode(callMethodIfExists(object: $e, method: 'getHttpStatusCode', fallback: 500))
-            ->report(callMethodIfExists(object: $e, method: 'reportable', fallback: true))
+            ->setReport(callMethodIfExists(object: $e, method: 'reportable', fallback: true))
             ->with(array_merge(
                 callMethodIfExists(object: $e, method: 'getWith', fallback: []),
                 $with
