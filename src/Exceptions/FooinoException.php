@@ -14,6 +14,8 @@ class FooinoException extends Exception
 
     protected array $with = [];
 
+    protected array $placeholders = [];
+
     protected bool $report = true;
 
     /**
@@ -117,6 +119,24 @@ class FooinoException extends Exception
     }
 
     /**
+     * Set placeholder values for translation strings passed to Laravel's __() helper
+     */
+    public function setPlaceholders(array $placeholders): static
+    {
+        $this->placeholders = $placeholders;
+
+        return $this;
+    }
+
+    /**
+     * Get the placeholder values for translation strings
+     */
+    public function getPlaceholders(): array
+    {
+        return $this->placeholders;
+    }
+
+    /**
      * Set whether this exception should be written to the error log
      */
     public function setReport(bool $report): static
@@ -162,6 +182,7 @@ class FooinoException extends Exception
             ->setLevel($this->getLevel())
             ->setHttpStatusCode($this->getHttpStatusCode())
             ->with($this->getWith())
+            ->setPlaceholders($this->getPlaceholders())
             ->setReport($this->reportable());
 
         throw $this;
@@ -203,6 +224,7 @@ class FooinoException extends Exception
                 ->setCode($e->getCode())
                 ->setLevel($e->getLevel())
                 ->setHttpStatusCode($e->getHttpStatusCode())
+                ->setPlaceholders($e->getPlaceholders())
                 ->setReport($e->reportable())
                 ->with(array_merge(
                     $e->getWith(),

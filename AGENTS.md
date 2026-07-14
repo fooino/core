@@ -91,4 +91,8 @@ When adding a new error, pick the next unused code in the appropriate range, add
 - **Data providers**: Static methods in `tests/Data/Datasets.php`.
 - **Naming**: Test methods use descriptive lowercase strings: `test('precision getter and setter', function () { ... })`.
 - **Coverage requirements**: Code coverage AND type coverage must both stay above **90%**. Every new or changed source line must have a corresponding test. Do not ship untested code.
-- **Run tests with**: `composer pest` or `./vendor/bin/pest`.
+- **Run tests with**: When running locally in a non-WSL environment: `composer pest` or `./vendor/bin/pest`. When running inside WSL, the docker-based approach is required:
+  ```bash
+  cd ../../laravel-fooino-packages-docker
+  docker exec fooino-php bash -c 'cd /var/www/packages/core && ./vendor/bin/pest --no-coverage'
+  ```
