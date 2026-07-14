@@ -19,6 +19,8 @@ class CustomException extends FooinoException
 
     protected array $with = ['foo' => 'ino'];
 
+    protected array $placeholders = ['name' => 'ino'];
+
     protected bool $report = false;
 }
 
@@ -60,6 +62,9 @@ describe('FooinoException for better error handling', function () {
         expect($e->getWith())->toEqual(['foo' => 'ino']);
         expect($e->with(['foo' => 'bar'])->getWith())->toEqual(['foo' => 'bar']);
 
+        expect($e->getPlaceholders())->toEqual(['name' => 'ino']);
+        expect($e->setPlaceholders(['name' => 'fooino'])->getPlaceholders())->toEqual(['name' => 'fooino']);
+
         expect($e->reportable())->toBeFalse();
         expect($e->shouldReport()->reportable())->toBeTrue();
         expect($e->dontReport()->reportable())->toBeFalse();
@@ -73,7 +78,7 @@ describe('FooinoException for better error handling', function () {
 
         expect($e->log(trace: false))->toEqual('Fooino\Core\Tests\Unit\CustomException|fooino|10|422|fooino|{"foo":"ino"}');
 
-        $e = app(CustomException::class)->setMessage('nasty error')->setCode(100)->alert()->setHttpStatusCode(503)->with(['timestamp' => '123123123'])->shouldReport();
+        $e = app(CustomException::class)->setMessage('nasty error')->setCode(100)->alert()->setHttpStatusCode(503)->with(['timestamp' => '123123123'])->setPlaceholders(['name' => 'John'])->shouldReport();
 
         expect($e->log(trace: false))->toEqual('Fooino\Core\Tests\Unit\CustomException|nasty error|100|503|alert|{"timestamp":"123123123"}');
 
@@ -92,6 +97,7 @@ describe('FooinoException for better error handling', function () {
             expect($e->getLevel())->toEqual('alert');
             expect($e->getHttpStatusCode())->toEqual(503);
             expect(jsonDecodeToArray($e->getWith()))->toEqual(['timestamp' => '123123123']);
+            expect($e->getPlaceholders())->toEqual(['name' => 'John']);
             expect($e->reportable())->toBeTrue();
         }
 
@@ -114,6 +120,7 @@ describe('FooinoException for better error handling', function () {
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
             expect(jsonDecodeToArray($e->getWith()))->toEqual([]);
+            expect($e->getPlaceholders())->toEqual([]);
             expect($e->reportable())->toBeTrue();
         }
 
@@ -125,6 +132,7 @@ describe('FooinoException for better error handling', function () {
                 ->critical()
                 ->setHttpStatusCode(403)
                 ->with(['key' => 'value'])
+                ->setPlaceholders(['foo' => 'bar'])
                 ->shouldReport()
                 ->throw();
 
@@ -137,6 +145,7 @@ describe('FooinoException for better error handling', function () {
             expect($e->getLevel())->toEqual('critical');
             expect($e->getHttpStatusCode())->toEqual(403);
             expect($e->getWith())->toEqual(['key' => 'value']);
+            expect($e->getPlaceholders())->toEqual(['foo' => 'bar']);
             expect($e->reportable())->toBeTrue();
             expect($e->log(trace: false))->toEqual('Fooino\Core\Tests\Unit\EmptyException|custom message|42|403|critical|{"key":"value"}');
         }
