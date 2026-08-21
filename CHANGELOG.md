@@ -2,6 +2,10 @@
 
 All notable changes to `fooino/core` will be documented in this file
 
+## 1.4.0 - 2026-08-21
+
+- Upgrade the pest from version `4.7` to the `5.0`
+
 ## 1.3.0 - 2026-07-14
 
 - Added `setPlaceholders()` / `getPlaceholders()` on `FooinoException` for passing translation replacement parameters to Laravel's `__()` helper
