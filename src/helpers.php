@@ -1,22 +1,18 @@
 <?php
 
-use Fooino\Core\Exceptions\FooinoException;
-use Fooino\Core\Exceptions\FooinoRuntimeException;
-
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
 
 use Fooino\Core\Interfaces\Mathable;
 use Fooino\Core\Support\Sanitizer;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 if (!defined('FOOINO_CORE_CONSTANTS_DEFINED')) {
 
@@ -424,18 +420,18 @@ if (!function_exists('removeWhitespace')) {
     function removeWhitespace(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
         if (is_string($value)) {
-            return str_replace([' ', "\n", "\t"], $replace, $value);
+
+            return str_replace(search: [" ", "\n", "\t"], replace: $replace, subject: $value);
         }
 
         if (is_array($value)) {
 
-            $result = [];
-
             foreach ($value as $key => $item) {
-                $result[$key] = is_string($item) ? str_replace([' ', "\n", "\t"], $replace, $item) : $item;
+
+                $value[$key] = is_string($item) || is_array($item) ? removeWhitespace(value: $item, replace: $replace) : $item;
             }
 
-            return $result;
+            return $value;
         }
 
         return $value;

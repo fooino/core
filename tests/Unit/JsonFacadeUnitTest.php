@@ -319,8 +319,6 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->toBe(json_decode($string))
             ->and(jsonDecode($string))->toBe('foo bar');
 
-
-
         expect(Json::decode($null))
             ->toBe(json_decode($null))
             ->and(jsonDecode($null))->toBe(null);
@@ -492,10 +490,12 @@ describe('Json facade using FooinoJsonHandler', function () {
         expect(Json::decodeToArray('foo bar'))->toBe(['foo bar']);
         expect(Json::decodeToArray(''))->toBe(['']);
         expect(Json::decodeToArray('  '))->toBe(['  ']);
+        expect(jsonDecodeToArray('  '))->toBe(['  ']);
 
         expect(Json::decodeToArray(null))->toBe([]);
         expect(Json::decodeToArray(true))->toBe([true]);
         expect(Json::decodeToArray(false))->toBe([false]);
+        expect(jsonDecodeToArray(false))->toBe([false]);
 
         expect(Json::decodeToArray(['foo' => 'bar']))->toBe(['foo' => 'bar']);
         expect(Json::decodeToArray([0]))->toBe([0]);
@@ -503,6 +503,7 @@ describe('Json facade using FooinoJsonHandler', function () {
         expect(Json::decodeToArray([true]))->toBe([true]);
         expect(Json::decodeToArray([false]))->toBe([false]);
         expect(Json::decodeToArray([]))->toBe([]);
+        expect(jsonDecodeToArray([]))->toBe([]);
 
         expect(Json::decodeToArray(new stdClass))->toBe([]);
 
