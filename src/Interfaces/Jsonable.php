@@ -19,7 +19,7 @@ interface Jsonable
     /**
      * Serialize a value to a human-readable JSON string with HTML-safe escaping for display
      */
-    public function encodePretty(string|array $value): string;
+    public function encodePretty(int|float|string|null|bool|array $value): string;
 
     /**
      * Convert a JSON string back to its original PHP value

@@ -51,7 +51,7 @@ if (!function_exists('jsonEncodePretty')) {
     /**
      * Serialize a value to a human-readable JSON string with HTML-safe escaping for display
      */
-    function jsonEncodePretty(string|array $value): string
+    function jsonEncodePretty(int|float|string|null|bool|array $value): string
     {
         return Json::encodePretty(value: $value);
     }
