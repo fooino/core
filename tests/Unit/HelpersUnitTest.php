@@ -529,6 +529,8 @@ describe('Helpers unit tests', function () {
 
         expect(replaceSlashWithDash(value: '/'))->toBe('-');
         expect(replaceSlashWithDash(value: 'a//b'))->toBe('a--b');
+
+        expect(replaceSlashWithDash(value: ['123', '11/22', '2' => ["33/44\t", 1 => ["44/55\n66", 123, true, false, null]]]))->toBe(['123', '11-22', '2' => ["33-44\t", 1 => ["44-55\n66", 123, true, false, null]]]);
     });
 
     test('setUserTimezone and getUserTimezone helper', function () {

@@ -38,6 +38,7 @@ abstract class DateHandler
     public function __construct(protected string $calendarUsage = self::OFFICIAL)
     {
         if (date_default_timezone_get() !== 'UTC') {
+
             $this->throwInvalidDefaultTimezoneException();
         }
     }
@@ -409,7 +410,7 @@ abstract class DateHandler
      */
     protected function hasTimePart(string $date): bool
     {
-        return !is_null($this->dateParts($date)[1]);
+        return filled($this->dateParts($date)[1]);
     }
 
     /**
@@ -430,7 +431,7 @@ abstract class DateHandler
             $timePart = $this->padZero($hour) . ':' . $this->padZero($minute) . ':' . $this->padZero($second);
         }
 
-        $datePart = $datePart === '00-00-00' ? $this->dateParts(date: $this->nowByTimezone(timezone: $timezone))[0] : $datePart; // the user want to just convert time part, so we make the datePart from now to have Y-m-d H:i:s
+        $datePart = $datePart === '00-00-00' ? $this->dateParts(date: $this->nowByTimezone(timezone: $timezone))[0] : $datePart; // user wants to convert only the time part, so we make the datePart from now to have Y-m-d H:i:s
 
         return trim($datePart . ' ' . $timePart);
     }
@@ -663,7 +664,7 @@ abstract class DateHandler
         $utc = $this->resolveTimezone(timezone: 'UTC');
 
         $start = new DateTime(datetime: $from, timezone: $utc);
-        
+
         $end = new DateTime(datetime: $to, timezone: $utc);
 
         $period = new DatePeriod(
@@ -676,6 +677,7 @@ abstract class DateHandler
         $output = [];
 
         foreach ($period as $value) {
+            
             $output[] = $value->format($format);
         }
 

@@ -455,18 +455,18 @@ if (!function_exists('replaceSlashWithDash')) {
     function replaceSlashWithDash(int|float|string|null|bool|array $value): int|float|string|null|bool|array
     {
         if (is_string($value)) {
-            return str_replace('/', '-', $value);
+
+            return str_replace(search: '/', replace: '-', subject: $value);
         }
 
         if (is_array($value)) {
 
-            $result = [];
-
             foreach ($value as $key => $item) {
-                $result[$key] = is_string($item) ? str_replace('/', '-', $item) : $item;
+
+                $value[$key] = is_string($item) || is_array($item) ? replaceSlashWithDash(value: $item) : $item;
             }
 
-            return $result;
+            return $value;
         }
 
         return $value;
