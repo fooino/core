@@ -395,18 +395,18 @@ if (!function_exists('removeComma')) {
     function removeComma(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
         if (is_string($value)) {
-            return str_replace(',', $replace, $value);
+
+            return str_replace(search: ',', replace: $replace, subject: $value);
         }
 
         if (is_array($value)) {
 
-            $result = [];
-
             foreach ($value as $key => $item) {
-                $result[$key] = is_string($item) ? str_replace(',', $replace, $item) : $item;
+
+                $value[$key] = is_string($item) || is_array($item) ? removeComma(value: $item, replace: $replace) : $item;
             }
 
-            return $result;
+            return $value;
         }
 
         return $value;
@@ -479,7 +479,7 @@ if (!function_exists('setUserTimezone')) {
      */
     function setUserTimezone(string $timezone): void
     {
-        config(['user-timezone' => $timezone]);
+        config(['fooino.user_timezone' => $timezone]);
     }
 }
 
@@ -489,13 +489,13 @@ if (!function_exists('getUserTimezone')) {
      */
     function getUserTimezone(): string
     {
-        return (config(key: 'user-timezone', default: 'UTC')) ?: 'UTC';
+        return (config(key: 'fooino.user_timezone', default: 'UTC')) ?: 'UTC';
     }
 }
 
 if (!function_exists('setDefaultLocale')) {
     /**
-     * Setter for 'app.locale' config
+     * Override the application locale so subsequent translations resolve to the requested language
      */
     function setDefaultLocale(string $locale): void
     {
@@ -505,7 +505,7 @@ if (!function_exists('setDefaultLocale')) {
 
 if (!function_exists('getDefaultLocale')) {
     /**
-     * Getter for 'app.locale' config
+     * Resolve the current application locale, falling back to Persian when unset
      */
     function getDefaultLocale(): string
     {
@@ -523,7 +523,8 @@ if (!function_exists('perPage')) {
 
         $perPage = $request->input($key);
 
-        if (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0) {
+        if (is_null($perPage) || !is_numeric($perPage) || $perPage < 1) {
+
             return FOOINO_PER_PAGE;
         }
 
@@ -533,7 +534,7 @@ if (!function_exists('perPage')) {
 
 if (!function_exists('currentDate')) {
     /**
-     * Return date in 'Y-m-d' format
+     * Get today's date in 'Y-m-d' format
      */
     function currentDate(): string
     {
@@ -543,7 +544,7 @@ if (!function_exists('currentDate')) {
 
 if (!function_exists('currentDateTime')) {
     /**
-     * Return date in 'Y-m-d H:i:s' format
+     * Get today's date in 'Y-m-d H:i:s' format
      */
     function currentDateTime(): string
     {
@@ -574,7 +575,7 @@ if (!function_exists('currentDateTimeTs')) {
 if (!function_exists('strToDate')) {
     /**
      * Convert a date string to the standard date format (Y-m-d)
-     * The helper use php strtotime function to parse $str
+     * The helper uses PHP's strtotime() to parse $str
      *
      * @throws \Fooino\Core\Exceptions\FooinoRuntimeException with code 3
      */
@@ -600,7 +601,7 @@ if (!function_exists('strToDate')) {
 if (!function_exists('strToDateTime')) {
     /**
      * Convert a date string to the standard datetime format (Y-m-d H:i:s)
-     * The helper use php strtotime function to parse $str
+     * The helper uses PHP's strtotime() to parse $str
      *
      * @throws \Fooino\Core\Exceptions\FooinoRuntimeException with code 3
      */

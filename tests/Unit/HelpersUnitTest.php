@@ -7,7 +7,6 @@ use Fooino\Core\Tests\Data\Datasets;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
@@ -18,7 +17,6 @@ use Illuminate\Http\Request;
 
 use stdClass;
 use Stringable;
-use Exception;
 
 class CustomClass
 {
@@ -105,6 +103,7 @@ describe('Helpers unit tests', function () {
         foreach (
             [
                 ...Datasets::zeros(),
+                1e-400,
                 new class implements Stringable {
 
                     public function __toString()
@@ -459,6 +458,8 @@ describe('Helpers unit tests', function () {
         expect(removeComma(value: [0, 1, 11.11, null, true, false, '123,123']))->toBe([0, 1, 11.11, null, true, false, '123123']);
 
         expect(removeComma(value: ','))->toBe('');
+
+        expect(removeComma(value: ['123', '11,22', '2' => ["33,44\t", 1 => ["44,55\n66", 123, true, false, null]]]))->toBe(['123', '1122', '2' => ["3344\t", 1 => ["4455\n66", 123, true, false, null]]]);
     });
 
     test('removeWhitespace helper', function () {
@@ -491,7 +492,7 @@ describe('Helpers unit tests', function () {
         expect(removeWhitespace(value: ['123', '11 22', '2' => ["33 44\t", 1 => ["44 55\n66", 123, true, false, null]]]))->toBe(['123', '1122', '2' => ['3344', 1 => ['445566', 123, true, false, null]]]);
     });
 
-    test('sanitizeNumber helper',  function () {
+    test('sanitizeNumber helper', function () {
 
         expect(sanitizeNumber(123))->toBe(123);
         expect(sanitizeNumber(123.123))->toBe(123.123);
@@ -507,6 +508,8 @@ describe('Helpers unit tests', function () {
         expect(sanitizeNumber([1, '123,123 ', ' 0912 123 1234 ']))->toBe([1, '123123', '09121231234']);
 
         expect(sanitizeNumber([0, 1, 11.11, null, true, false, ' 1,234 ']))->toBe([0, 1, 11.11, null, true, false, '1234']);
+
+        expect(sanitizeNumber(value: ['123', '11,22', '2' => ["33, 44\t", 1 => ["44,55\n66 ", 123, true, false, null]]]))->toBe(['123', '1122', '2' => ["3344", 1 => ["445566", 123, true, false, null]]]);
     });
 
     test('replaceSlashWithDash helper', function () {
@@ -535,17 +538,17 @@ describe('Helpers unit tests', function () {
 
     test('setUserTimezone and getUserTimezone helper', function () {
 
-        expect(config('user-timezone'))->toBeNull();
+        expect(config('fooino.user_timezone'))->toBeNull();
 
         setUserTimezone(timezone: 'Asia/Tehran');
-        expect(config('user-timezone'))->toBe('Asia/Tehran');
+        expect(config('fooino.user_timezone'))->toBe('Asia/Tehran');
         expect(getUserTimezone())->toBe('Asia/Tehran');
 
-        config(['user-timezone' => null]);
+        config(['fooino.user_timezone' => null]);
         expect(getUserTimezone())->toBe('UTC');
 
         setUserTimezone(timezone: '');
-        expect(config('user-timezone'))->toBe('');
+        expect(config('fooino.user_timezone'))->toBe('');
         expect(getUserTimezone())->toBe('UTC');
     });
 
@@ -578,6 +581,12 @@ describe('Helpers unit tests', function () {
 
         request()->merge(['per_page' => 0]);
         expect(perPage())->toBe(FOOINO_PER_PAGE);
+
+        request()->merge(['per_page' => 0.5]);
+        expect(perPage())->toBe(FOOINO_PER_PAGE);
+
+        request()->merge(['per_page' => 1]);
+        expect(perPage())->toBe(1);
 
         request()->merge(['per_page' => 301]);
         expect(perPage())->toBe(FOOINO_MAX_PER_PAGE);
@@ -612,8 +621,8 @@ describe('Helpers unit tests', function () {
 
     test('currentDateTs and currentDateTimeTs helper', function () {
 
-        expect(currentDateTs())->toBe(strtotime(currentDate()));
-        expect(currentDateTimeTs())->toBe(strtotime(currentDateTime()));
+        expect(currentDateTs())->toBe(strtotime(date('Y-m-d')));
+        expect(currentDateTimeTs())->toBe(strtotime(date('Y-m-d H:i:s')));
 
         expect(currentDateTs())->toBeInt();
         expect(currentDateTimeTs())->toBeInt();

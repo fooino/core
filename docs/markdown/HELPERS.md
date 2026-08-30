@@ -65,7 +65,7 @@ Store and retrieve the user timezone in the config, falling back to UTC.
 setUserTimezone(timezone: 'Asia/Tehran');
 getUserTimezone(); // 'Asia/Tehran'
 
-config(['user-timezone' => null]);
+config(['fooino.user_timezone' => null]);
 getUserTimezone(); // 'UTC'
 ```
 
