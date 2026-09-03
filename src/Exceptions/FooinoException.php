@@ -3,6 +3,7 @@
 namespace Fooino\Core\Exceptions;
 
 use Exception;
+use Throwable;
 
 class FooinoException extends Exception
 {
@@ -19,11 +20,15 @@ class FooinoException extends Exception
     protected bool $report = true;
 
     /**
-     * Use current state of message and code (the initial value in class property or already set by setMessage and setCode methods)
+     * Use current state of message and code if they are not set at initialization
      */
-    public function __construct(...$args)
+    public function __construct(string $message = '', int $code = 0, Throwable|null $previous = null)
     {
-        parent::__construct(message: $this->message, code: $this->code);
+        parent::__construct(
+            message: nullIfBlank(value: $message, fallback: $this->message),
+            code: nullIfBlankOrZero(value: $code, fallback: $this->code),
+            previous: $previous
+        );
     }
 
     /**
@@ -171,20 +176,10 @@ class FooinoException extends Exception
     }
 
     /**
-     * Apply all current properties and throw the exception
+     * Throw this exception with its current configuration, halting execution at the throw site
      */
     public function throw(): never
     {
-        $this
-            ->cause($this->getCause())
-            ->setMessage($this->getMessage())
-            ->setCode($this->getCode())
-            ->setLevel($this->getLevel())
-            ->setHttpStatusCode($this->getHttpStatusCode())
-            ->with($this->getWith())
-            ->setPlaceholders($this->getPlaceholders())
-            ->setReport($this->reportable());
-
         throw $this;
     }
 
@@ -213,23 +208,19 @@ class FooinoException extends Exception
     }
 
     /**
-     * Wrap an existing exception as a FooinoException, preserving its message, code, and any custom properties for consistent handling
+     * Attach an exception as the cause of this envelope so handlers can unwrap to the root, merging extra context into FooinoException causes
      */
-    public function from(Exception $e, array $with = []): static
+    public function from(FooinoException|Exception $e, array $with = []): static
     {
         if ($e instanceof FooinoException) {
 
             $e
-                ->setMessage($e->getMessage())
-                ->setCode($e->getCode())
-                ->setLevel($e->getLevel())
-                ->setHttpStatusCode($e->getHttpStatusCode())
-                ->setPlaceholders($e->getPlaceholders())
-                ->setReport($e->reportable())
-                ->with(array_merge(
-                    $e->getWith(),
-                    $with
-                ));
+                ->with(
+                    array_merge(
+                        $e->getWith(),
+                        $with
+                    )
+                );
         }
 
         return $this->cause($e);

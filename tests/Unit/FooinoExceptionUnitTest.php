@@ -4,8 +4,9 @@ namespace Fooino\Core\Tests\Unit;
 
 use Fooino\Core\Exceptions\FooinoException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use RuntimeException;
 
-class EmptyException extends FooinoException {};
+class EmptyException extends FooinoException {}
 
 class CustomException extends FooinoException
 {
@@ -53,6 +54,7 @@ describe('FooinoException for better error handling', function () {
         expect($e->getLevel())->toEqual('fooino');
 
         foreach ($levels as $level) {
+            
             expect($e->{$level}()->getLevel())->toEqual($level);
         }
 
@@ -96,14 +98,14 @@ describe('FooinoException for better error handling', function () {
             expect($e->getCode())->toEqual(100);
             expect($e->getLevel())->toEqual('alert');
             expect($e->getHttpStatusCode())->toEqual(503);
-            expect(jsonDecodeToArray($e->getWith()))->toEqual(['timestamp' => '123123123']);
+            expect($e->getWith())->toEqual(['timestamp' => '123123123']);
             expect($e->getPlaceholders())->toEqual(['name' => 'John']);
             expect($e->reportable())->toBeTrue();
         }
 
         $e = app(EmptyException::class);
 
-        expect($e->log(false))->toEqual("Fooino\Core\Tests\Unit\EmptyException|empty message|0|500|error|[]");
+        expect($e->log(trace: false))->toEqual("Fooino\Core\Tests\Unit\EmptyException|empty message|0|500|error|[]");
 
         expect(fn() => $e->throw())->toThrow(EmptyException::class);
 
@@ -119,7 +121,7 @@ describe('FooinoException for better error handling', function () {
             expect($e->getCode())->toEqual(0);
             expect($e->getLevel())->toEqual('error');
             expect($e->getHttpStatusCode())->toEqual(500);
-            expect(jsonDecodeToArray($e->getWith()))->toEqual([]);
+            expect($e->getWith())->toEqual([]);
             expect($e->getPlaceholders())->toEqual([]);
             expect($e->reportable())->toBeTrue();
         }
@@ -162,7 +164,7 @@ describe('FooinoException for better error handling', function () {
                 //
             } catch (ModelNotFoundException $e) {
 
-                throw app(FooinoException::class)
+                app(FooinoException::class)
                     ->setHttpStatusCode(404)
                     ->setLevel('warning')
                     ->cause($e)
@@ -180,5 +182,101 @@ describe('FooinoException for better error handling', function () {
             expect($cause)->toBeInstanceOf(ModelNotFoundException::class);
             expect($cause->getMessage())->toBe('Row not found');
         }
+    });
+
+    test('constructor accepts message, code and previous exception', function () {
+
+        $previous = new RuntimeException('previous error');
+
+        $e = new CustomException('custom message', 42, $previous);
+
+        expect($e->getMessage())->toBe('custom message');
+        expect($e->getCode())->toBe(42);
+        expect($e->getPrevious())->toBe($previous);
+    });
+
+    test('constructor falls back to class defaults when message or code are not provided', function () {
+
+        $empty = new EmptyException();
+
+        expect($empty->getMessage())->toBe('');
+        expect($empty->getCode())->toBe(0);
+        expect($empty->getPrevious())->toBeNull();
+
+        $custom = new CustomException();
+
+        expect($custom->getMessage())->toBe('fooino');
+        expect($custom->getCode())->toBe(10);
+        expect($custom->getPrevious())->toBeNull();
+
+        $messageOnly = new CustomException('custom message');
+
+        expect($messageOnly->getMessage())->toBe('custom message');
+        expect($messageOnly->getCode())->toBe(10);
+        expect($messageOnly->getPrevious())->toBeNull();
+
+        $blankArgs = new CustomException('', 0);
+
+        expect($blankArgs->getMessage())->toBe('fooino');
+        expect($blankArgs->getCode())->toBe(10);
+        expect($blankArgs->getPrevious())->toBeNull();
+    });
+
+    test('from attaches a fooino exception as the cause and merges context into it', function () {
+
+        $inner = app(CustomException::class)->with(['user_id' => 7]);
+
+        $wrapper = app(FooinoException::class)->from(e: $inner, with: ['request_id' => 'abc']);
+
+        expect($wrapper->getCause())->toBe($inner);
+
+        expect($inner->getWith())->toBe([
+            'user_id'       => 7,
+            'request_id'    => 'abc',
+        ]);
+    });
+
+    test('from attaches a non-fooino exception as the cause without modifying it', function () {
+
+        $previous = new ModelNotFoundException('Row not found');
+
+        $wrapper = app(CustomException::class)->from(e: $previous, with: ['id' => 3]);
+
+        expect($wrapper->getCause())->toBe($previous);
+        expect($previous->getMessage())->toBe('Row not found');
+
+        expect($wrapper->getMessage())->toBe('fooino');
+        expect($wrapper->getCode())->toBe(10);
+        expect($wrapper->getWith())->toBe(['foo' => 'ino']);
+    });
+
+    test('from keeps the wrapper state untouched and leaves the cause state intact', function () {
+
+        $inner = app(CustomException::class)
+            ->setMessage('inner message')
+            ->setCode(20)
+            ->critical()
+            ->setHttpStatusCode(503)
+            ->dontReport()
+            ->with(['user_id' => 7]);
+
+        $wrapper = app(FooinoException::class)
+            ->setMessage('wrapper message')
+            ->setCode(5)
+            ->from(e: $inner, with: ['request_id' => 'abc']);
+
+        expect($wrapper->getMessage())->toBe('wrapper message');
+        expect($wrapper->getCode())->toBe(5);
+        expect($wrapper->getCause())->toBe($inner);
+
+        expect($inner->getMessage())->toBe('inner message');
+        expect($inner->getCode())->toBe(20);
+        expect($inner->getLevel())->toBe('critical');
+        expect($inner->getHttpStatusCode())->toBe(503);
+        expect($inner->reportable())->toBeFalse();
+        expect($inner->getWith())->toBe([
+            'user_id'       => 7,
+            'request_id'    => 'abc',
+        ]);
     });
 });

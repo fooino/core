@@ -40,13 +40,14 @@ app(UserNotFoundException::class)
 
 ## Wrapping Non-Fooino Exceptions
 
-When a helper like `dbTransaction` catches a generic exception (e.g., Laravel's `ModelNotFoundException`), it wraps it into a `FooinoException` so your handler only needs one `instanceof` check:
+When a `try...catch` block catches a generic exception (e.g., Laravel's `ModelNotFoundException`), it wraps it into a `FooinoException` so your handler only needs one `instanceof` check:
 
 ```php
 try {
     // some operation
 } catch (ModelNotFoundException $e) {
-    throw app(FooinoException::class)
+
+     app(FooinoException::class)
         ->setHttpStatusCode(404)
         ->with(['id' => $id])
         ->warning()
@@ -58,25 +59,57 @@ try {
 In the Laravel exception handler:
 
 ```php
-public function report(Throwable $e): void
-{
-    if ($e instanceof FooinoException) {
+    public function report(Throwable $e)
+    {
+        $e = $this->resolveException($e);
 
-        $e = $e->getCause() === null ? $e : $e->getCause();
-        
-        if($e instanceof FooinoException){
-            /**
-             *  the caues root is FooinoException
-             *  so you can easily call log(), getLevel(), getHttpStatusCode()... to handle better
-             *  exception reporting and responsing
-             */
+        if (
+            $e instanceof FooinoException &&
+            $e->reportable() === false
+        ) {
+            return;
+        }
+
+        parent::report($e);
+    }
+
+    public function render($request, Throwable $e)
+    {
+        $e = $this->resolveException($e);
+
+        if ($request->expectsJson()) {
+
+            if ($e instanceof FooinoException) {
+
+                return jsonRespond(
+                    status: $e->getHttpStatusCode(),
+                    message: __(
+                        key: $e->getMessage(),
+                        replace: array_merge(
+                            [
+                                'EXCEPTION_CODE' => $e->getCode()
+                            ],
+                            $e->getPlaceholders()
+                        )
+                    ),
+                );
+            }
+
+            // render other exceptions
         }
     }
 
-    if(!($e instanceof FooinoException)){
-        // handle the laravel or non-fooino exceptions here
+    protected function resolveException(Throwable $e): Throwable
+    {
+        if (
+            $e instanceof FooinoException &&
+            $e->getCause() !== null
+        ) {
+            return $e->getCause();
+        }
+
+        return $e;
     }
-}
 ```
 
 ## Severity Level Shorthands
