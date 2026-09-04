@@ -145,6 +145,26 @@ if (!function_exists('numberFormat')) {
     }
 }
 
+if (!function_exists('convertScientificNumber')) {
+    /**
+     * Expand a number expressed in scientific notation (e.g. 1.5E+4) into its full numeric string representation
+     */
+    function convertScientificNumber(string|int|float|array $number): string|array
+    {
+        return Math::convertScientificNumber(number: $number);
+    }
+}
+
+if (!function_exists('trimTrailingZeros')) {
+    /**
+     * Remove all trailing zeros after the decimal point from a number, returning a clean numeric string
+     */
+    function trimTrailingZeros(string|int|float $number): string
+    {
+        return Math::trimTrailingZeros(number: $number);
+    }
+}
+
 if (!function_exists('sum')) {
     /**
      * Add a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
@@ -197,7 +217,7 @@ if (!function_exists('remainder')) {
 
 if (!function_exists('roundUp')) {
     /**
-     * Round a number up to the next integer (ceiling), away from zero
+     * Round a number up to the next integer (ceiling), toward positive infinity
      */
     function roundUp(string|int|float|array $number): string|array
     {
@@ -207,7 +227,7 @@ if (!function_exists('roundUp')) {
 
 if (!function_exists('roundDown')) {
     /**
-     * Round a number down to the previous integer (floor), toward zero
+     * Round a number down to the previous integer (floor), toward negative infinity
      */
     function roundDown(string|int|float|array $number): string|array
     {

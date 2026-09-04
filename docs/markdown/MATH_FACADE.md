@@ -145,7 +145,7 @@ Math::sqrt(-1);                          // throws MathCalculationException
 
 ## Rounding
 
-### Round up (ceiling, away from zero)
+### Round up (ceiling, toward positive infinity)
 
 ```php
 Math::roundUp(1.1);                      // '2'
@@ -156,7 +156,7 @@ Math::roundUp([0.01, -0.01, 1.1]);       // ['1', '0', '2']
 roundUp(1.999099);                       // '2' — global helper
 ```
 
-### Round down (floor, toward zero)
+### Round down (floor, toward negative infinity)
 
 ```php
 Math::roundDown(1.1);                    // '1'

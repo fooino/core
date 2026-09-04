@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string trimTrailingZeros(string|int|float $number)
  * @method static int countDecimalPlaces(string|int|float $number)
  * 
- * @method static string|array number(string|int|float|array ...$number) 
+ * @method static string|array number(string|int|float|array ...$number)
  * @method static string numberFormat(string|int|float $number, string $thousandsSeparator = ',')
  * 
  * @method static string sum(string|int|float|array ...$operand)
@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Facade;
  * 
  * @method static string|array roundUp(string|int|float|array $number)
  * @method static string|array roundDown(string|int|float|array $number)
- * @method static string|array roundClose(string|int|float|array $number , int $precision = 0, \RoundingMode $mode = \RoundingMode::HalfAwayFromZero)
+ * @method static string|array roundClose(string|int|float|array $number, int $precision = 0, \RoundingMode $mode = \RoundingMode::HalfAwayFromZero)
  * 
  * @method static bool greaterThan(string|int|float $num1, string|int|float $num2)
  * @method static bool greaterThanOrEqual(string|int|float $num1, string|int|float $num2)

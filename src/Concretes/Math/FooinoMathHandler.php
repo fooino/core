@@ -17,21 +17,15 @@ class FooinoMathHandler implements Mathable
     private const array ONE_OPERAND_FUNCTIONS = ['bcpow', 'bcsqrt', 'bcceil', 'bcfloor', 'bcround'];
 
     /**
-     * Difference Between BC_SCALE and $precision
-     * 
-     * All bc functions must use BC_SCALE for calculations
-     * The $precision is just for returning truncated number(not rounded) and It will not used in calculations
-     * 
-     * Truncated number is good for each country policy
-     * for example 1000.01 is not valid in Iran since 0.01 is worthless
-     * but in other countries like USA it means cent.
-     * So we use $precision = 0 For Iran and $precision = 2 for USA
-     * 
+     * The difference between BC_SCALE and precision
+     *
+     * All bc functions must use BC_SCALE for calculations. Precision is only used for returning the truncated number (not rounded) and is never used in calculations.
+     *
+     * A truncated number suits each country's policy: for example, 1000.01 is invalid in Iran because 0.01 is worthless, but in other countries like the USA it means a cent. So we use precision = 0 for Iran and precision = 2 for the USA.
+     *
      * Example: Math::setPrecision(precision: 0)->number(Math::sum(5.599, 5.499)));
-     * 
-     * Base on BC_SCALE the result is 11.098. if we assumed BC_SCALE = $precision = 0 the result was 10 which is wrong
-     * To output number we use $precision = 0 and the result is 11
-     * For calculations we use BC_SCALE which is a high and enough number to not lose precision
+     *
+     * Based on BC_SCALE, the result is 11.098. If we assumed BC_SCALE = precision = 0, the result would be 10, which is wrong. To output the number we use precision = 0 and the result is 11. For calculations we use BC_SCALE, which is high enough not to lose precision.
      *
      * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1101 when precision is out of valid range
      */
@@ -58,10 +52,9 @@ class FooinoMathHandler implements Mathable
      */
     public function setPrecision(int $precision): Mathable
     {
-        /**  
-         * Facade in laravel use singleton design pattern and we need new fresh instance by $precision
-         * Do not chain setPrecision with setPrecision like Math::setPrecision(2)->setPrecision(3)
-         * It can increase memory usage
+        /**
+         * The facade resolves a singleton manager, so setPrecision must return a fresh instance per precision value.
+         * Do not chain setPrecision with setPrecision (e.g. Math::setPrecision(2)->setPrecision(3)); it can increase memory usage.
          */
         return self::$instances[$precision] ??= new static(precision: $precision);
     }
@@ -69,7 +62,7 @@ class FooinoMathHandler implements Mathable
     /**
      * Expand a number expressed in scientific notation (e.g. 1.5E+4) into its full numeric string representation
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1105 when the number is infinite or the exponent exceeds the allowable range
+     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1105 when the number is infinite, NaN, or the exponent exceeds the allowable range
      */
     public function convertScientificNumber(string|int|float|array $number): string|array
     {
@@ -78,7 +71,13 @@ class FooinoMathHandler implements Mathable
             $this->throwInvalidValueErrorException(method: 'convertScientificNumber', operand: $number);
         }
 
+        if (is_float($number) && is_nan($number)) {
+            // casting NAN to string throws a raw error, so reject it before the string conversion
+            $this->throwInvalidValueErrorException(method: 'convertScientificNumber', operand: $number);
+        }
+
         if (!is_numeric($number)) {
+
             return $number;
         }
 
@@ -116,6 +115,7 @@ class FooinoMathHandler implements Mathable
 
         // If mantissa is zero, the whole number is zero like 0.0E+8
         if ($digits === '') {
+
             return '0';
         }
 
@@ -149,7 +149,7 @@ class FooinoMathHandler implements Mathable
             }
         }
 
-        return $sign . $result;
+        return rtrim($sign . $result, '.'); // when all shifted digits are zeros, no decimal point is needed
     }
 
     /**
@@ -161,7 +161,7 @@ class FooinoMathHandler implements Mathable
     }
 
     /**
-     * Strip trailing zeros from a numeric string after the decimal point, optionally expanding scientific notation first
+     * Strip trailing zeros from a numeric string after the decimal point, optionally expanding scientific notation first or skip converting when you know the number has already converted
      */
     private function _trimTrailingZeros(string|int|float $number, bool $expandScientific = false): string
     {
@@ -206,20 +206,23 @@ class FooinoMathHandler implements Mathable
         $numbers = $wasArray ? $number[0] : $number;
 
         if (count($numbers) === 0) {
+
             $this->throwInvalidArgumentsCountException(method: 'number', operand: $numbers);
         }
 
         foreach ($numbers as $key => $value) {
 
             if ($expandScientific) {
+
                 $value = $this->convertScientificNumber(number: $value);
             }
 
             if (!is_numeric($value)) {
+
                 $this->throwInvalidArgumentTypeException(method: 'number', operand: $numbers);
             }
 
-            $numbers[$key] = $this->_trimTrailingZeros(number: $this->assembleNumber(number: $value, precision: $this->getPrecision()));
+            $numbers[$key] = $this->_trimTrailingZeros(number: $this->assembleNumber(number: $value, precision: $this->getPrecision()), expandScientific: false);
         }
 
         return $wasArray || count($numbers) !== 1 ? $numbers : $numbers[0];
@@ -237,16 +240,17 @@ class FooinoMathHandler implements Mathable
 
         if (in_array($sanitized[0] ?? '', ['-', '+'])) {
 
-            $sign = $sanitized[0]; // the number can be -2-000-000.001 which is negtive number with - thousandsSeparator
+            $sign = $sanitized[0]; // the number can be -2-000-000.001 which is a negative number using '-' as the thousands separator
 
             $sanitized = substr($sanitized, 1);
         }
 
-        $sanitized = str_replace(array_unique([$thousandsSeparator, ',']), '', $sanitized);
+        $sanitized = str_replace(search: array_unique([$thousandsSeparator, ',']), replace: '', subject: $sanitized);
 
         $sanitized = $this->convertScientificNumber(number: $sanitized);
 
         if (!is_numeric($sanitized)) {
+
             $this->throwInvalidArgumentTypeException(method: 'numberFormat', operand: $number);
         }
 
@@ -264,7 +268,7 @@ class FooinoMathHandler implements Mathable
      */
     public function sum(string|int|float|array ...$operand): string
     {
-        return $this->calc(method: 'bcadd', operand: $this->resolveVariadicParameter($operand));
+        return $this->calc(method: 'bcadd', operand: $this->resolveVariadicParameter(parameter: $operand));
     }
 
     /**
@@ -272,7 +276,7 @@ class FooinoMathHandler implements Mathable
      */
     public function subtract(string|int|float|array ...$operand): string
     {
-        return $this->calc(method: 'bcsub', operand: $this->resolveVariadicParameter($operand));
+        return $this->calc(method: 'bcsub', operand: $this->resolveVariadicParameter(parameter: $operand));
     }
 
     /**
@@ -280,7 +284,7 @@ class FooinoMathHandler implements Mathable
      */
     public function multiply(string|int|float|array ...$operand): string
     {
-        return $this->calc(method: 'bcmul', operand: $this->resolveVariadicParameter($operand));
+        return $this->calc(method: 'bcmul', operand: $this->resolveVariadicParameter(parameter: $operand));
     }
 
     /**
@@ -288,7 +292,7 @@ class FooinoMathHandler implements Mathable
      */
     public function divide(string|int|float|array ...$operand): string
     {
-        return $this->calc(method: 'bcdiv', operand: $this->resolveVariadicParameter($operand));
+        return $this->calc(method: 'bcdiv', operand: $this->resolveVariadicParameter(parameter: $operand));
     }
 
     /**
@@ -296,7 +300,7 @@ class FooinoMathHandler implements Mathable
      */
     public function remainder(string|int|float|array ...$operand): string
     {
-        return $this->calc(method: 'bcmod', operand: $this->resolveVariadicParameter($operand));
+        return $this->calc(method: 'bcmod', operand: $this->resolveVariadicParameter(parameter: $operand));
     }
 
     /**
@@ -316,7 +320,7 @@ class FooinoMathHandler implements Mathable
     }
 
     /**
-     * Round a number up to the next integer (ceiling), away from zero
+     * Round a number up to the next integer (ceiling), toward positive infinity
      */
     public function roundUp(string|int|float|array $number): string|array
     {
@@ -324,7 +328,7 @@ class FooinoMathHandler implements Mathable
     }
 
     /**
-     * Round a number down to the previous integer (floor), toward zero
+     * Round a number down to the previous integer (floor), toward negative infinity
      */
     public function roundDown(string|int|float|array $number): string|array
     {
@@ -434,7 +438,7 @@ class FooinoMathHandler implements Mathable
 
         $assembled = $integer . '.' . $decimal;
 
-        $sign = ((is_numeric($assembled) && $sign === '+') || isZero($assembled)) ? '' : $sign; // when the number is zero or positive: make it empty string
+        $sign = ((is_numeric($assembled) && $sign === '+') || isZero($assembled)) ? '' : $sign; // when the number is zero or positive: make it empty string to standarize numbers
 
         return [
             $sign,
@@ -598,6 +602,7 @@ class FooinoMathHandler implements Mathable
             count($numbers) === 0 ||
             (count($numbers) < 2 && in_array($method, self::TWO_OPERAND_FUNCTIONS))
         ) {
+
             $this->throwInvalidArgumentsCountException(method: $method, operand: $operand, args: $args);
         }
 
@@ -663,6 +668,7 @@ class FooinoMathHandler implements Mathable
             !is_numeric($num1) ||
             !is_numeric($num2)
         ) {
+            
             $this->throwInvalidArgumentTypeException(method: 'bccomp', operand: [$num1, $num2]);
         }
 

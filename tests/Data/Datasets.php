@@ -360,9 +360,15 @@ class Datasets
             ['000.000', '0'],
             ['000123.12', '123.12'],
             ['0001.1e+2', '110'],
+
+            ['1.00E+0', '1'],
+            ['-1.00E+0', '-1'],
+            ['10.00E-1', '1'],
+            ['0.0010000E+4', '10'],
+            ['1.00100000E+5', '100100'],
         ];
 
-        return array_merge(self::shuffleZeros(20), $set);
+        return array_merge(self::shuffleZeros(), $set);
     }
 
     public static function mathTrimTrailingZeros(): array
