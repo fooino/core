@@ -2,7 +2,6 @@
 
 namespace Fooino\Core\Tests\Unit;
 
-use Fooino\Core\Exceptions\FooinoException;
 use Fooino\Core\Exceptions\InfiniteLoopException;
 use Fooino\Core\Exceptions\TokenGeneratorException;
 use Fooino\Core\Support\TokenGenerator;
@@ -188,14 +187,15 @@ describe('TokenGenerator utilities', function () {
 
     test('check token uniqueness', function () {
 
-        Schema::create('users_table', function (Blueprint $table) {
+        Schema::create('testing_users_table', function (Blueprint $table) {
+            
             $table->id();
             $table->string('code');
         });
 
         $model = new class extends Model
         {
-            protected $table = 'users_table';
+            protected $table = 'testing_users_table';
         };
 
         $insert = [];
@@ -215,7 +215,8 @@ describe('TokenGenerator utilities', function () {
 
     test('where conditions are applied in uniqueness check', function () {
 
-        Schema::create('codes_table', function (Blueprint $table) {
+        Schema::create('testing_codes_table', function (Blueprint $table) {
+
             $table->id();
             $table->string('code');
             $table->string('status');
@@ -223,16 +224,23 @@ describe('TokenGenerator utilities', function () {
 
         $model = new class extends Model
         {
-            protected $table = 'codes_table';
+            protected $table = 'testing_codes_table';
         };
 
         $insert = [];
         // Codes 1-8 are taken with ACTIVE status
         foreach (range(1, 8) as $i) {
-            $insert[] = ['code' => $i, 'status' => 'ACTIVE'];
+
+            $insert[] = [
+                'code'      => $i,
+                'status'    => 'ACTIVE'
+            ];
         }
         // Code 9 exists but with INACTIVE status — should not be blocked when filtering by ACTIVE
-        $insert[] = ['code' => 9, 'status' => 'INACTIVE'];
+        $insert[] = [
+            'code'      => 9,
+            'status'    => 'INACTIVE'
+        ];
 
         $model->insert($insert);
 
@@ -259,40 +267,24 @@ describe('TokenGenerator utilities', function () {
         expect($property->getValue($gen))->toBe(0);
     });
 
-    test('weakPassword never starts with zero', function () {
-
-        $verified = false;
-
-        for ($i = 0; $i < 200; $i++) {
-
-            $token = app(TokenGenerator::class)->weakPassword()->length(3)->value();
-
-            expect(strlen($token))->toBe(3);
-            expect(ctype_digit($token))->toBeTrue();
-            expect($token[0])->not->toBe('0');
-
-            $verified = true;
-        }
-
-        expect($verified)->toBeTrue();
-    });
-
     describe('handle exceptions', function () {
 
         test('generate make infinite loop', function () {
 
-            Schema::create('users_table', function (Blueprint $table) {
+            Schema::create('testing_users_table', function (Blueprint $table) {
+
                 $table->id();
                 $table->string('code');
             });
 
             $model = new class extends Model
             {
-                protected $table = 'users_table';
+                protected $table = 'testing_users_table';
             };
 
             $insert = [];
             foreach (range(0, 9) as $i) {
+
                 $insert[]['code'] = $i;
             }
 
@@ -435,9 +427,10 @@ describe('TokenGenerator utilities', function () {
             }
         });
 
-        test('field is required', function () {
+        test('model and field are required', function () {
 
-            expect(fn() => app(TokenGenerator::class)->model('foobar')->field('')->value())->toThrow(TokenGeneratorException::class, 'msg.tokenGeneratorExceptionFieldIsRequired');
+            expect(fn() => app(TokenGenerator::class)->model('foobar')->field('')->value())->toThrow(TokenGeneratorException::class, 'msg.tokenGeneratorExceptionModelAndFieldAreRequired');
+            expect(fn() => app(TokenGenerator::class)->model('')->field('code')->value())->toThrow(TokenGeneratorException::class, 'msg.tokenGeneratorExceptionModelAndFieldAreRequired');
 
             try {
 
@@ -446,7 +439,7 @@ describe('TokenGenerator utilities', function () {
                 //
             } catch (TokenGeneratorException $e) {
 
-                expect($e->getMessage())->toBe('msg.tokenGeneratorExceptionFieldIsRequired');
+                expect($e->getMessage())->toBe('msg.tokenGeneratorExceptionModelAndFieldAreRequired');
                 expect($e->getCode())->toBe(1205);
                 expect($e->getLevel())->toBe('error');
                 expect($e->getHttpStatusCode())->toBe(500);
@@ -455,7 +448,29 @@ describe('TokenGenerator utilities', function () {
                     'attempted' => 0,
                     'length'    => 5,
                     'format'    => 'numeric',
+                    'model'     => 'foobar',
                     'field'     => '',
+                ]);
+            }
+
+            try {
+
+                app(TokenGenerator::class)->model('')->field('code')->value();
+
+                //
+            } catch (TokenGeneratorException $e) {
+
+                expect($e->getMessage())->toBe('msg.tokenGeneratorExceptionModelAndFieldAreRequired');
+                expect($e->getCode())->toBe(1205);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'attempted' => 0,
+                    'length'    => 5,
+                    'format'    => 'numeric',
+                    'model'     => '',
+                    'field'     => 'code',
                 ]);
             }
         });

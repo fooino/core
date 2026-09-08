@@ -82,7 +82,7 @@ app(TokenGenerator::class)
     ->model(Coupon::class)
     ->field('code')
     ->where(['status', 'ACTIVE'])
-    ->alphanumeric()
+    ->alphaNumeric()
     ->length(8)
     ->value();
 ```

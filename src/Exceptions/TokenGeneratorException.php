@@ -71,7 +71,7 @@ class TokenGeneratorException extends FooinoException
     final public function _1205(): static
     {
         return $this
-            ->setMessage('msg.tokenGeneratorExceptionFieldIsRequired')
+            ->setMessage('msg.tokenGeneratorExceptionModelAndFieldAreRequired')
             ->setCode(1205)
             ->error()
             ->setHttpStatusCode(500)
