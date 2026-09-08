@@ -636,7 +636,7 @@ describe('Helpers unit tests', function () {
 
         expect(strToDate(str: 'next monday'))->toBe(date(STANDARD_DATE_FORMAT, strtotime('next monday')));
 
-        expect(fn() => strToDate(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidDateString');
+        expect(fn() => strToDate(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRuntimeExceptionInvalidDateString');
 
         try {
 
@@ -645,7 +645,7 @@ describe('Helpers unit tests', function () {
             //
         } catch (FooinoRuntimeException $e) {
 
-            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidDateString');
+            expect($e->getMessage())->toBe('msg.fooinoRuntimeExceptionInvalidDateString');
             expect($e->getCode())->toBe(3);
             expect($e->reportable())->toBeTrue();
             expect($e->getLevel())->toBe('error');
@@ -665,7 +665,7 @@ describe('Helpers unit tests', function () {
 
         expect(strToDateTime(str: 'next monday'))->toBe(date(STANDARD_DATE_TIME_FORMAT, strtotime('next monday')));
 
-        expect(fn() => strToDateTime(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidDateString');
+        expect(fn() => strToDateTime(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRuntimeExceptionInvalidDateString');
 
         try {
 
@@ -674,7 +674,7 @@ describe('Helpers unit tests', function () {
             //
         } catch (FooinoRuntimeException $e) {
 
-            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidDateString');
+            expect($e->getMessage())->toBe('msg.fooinoRuntimeExceptionInvalidDateString');
             expect($e->getCode())->toBe(3);
             expect($e->reportable())->toBeTrue();
             expect($e->getLevel())->toBe('error');

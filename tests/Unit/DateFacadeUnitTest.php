@@ -822,7 +822,7 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(fn() => datesBetween(from: 'foobar', to: '2024-01-05'))->toThrow(CanNotConvertDateException::class);
         expect(fn() => datesBetween(from: '2024-01-05', to: 'foobar'))->toThrow(CanNotConvertDateException::class);
 
-        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween');
+        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRuntimeExceptionInvalidPeriodForDatesBetween');
 
         try {
 
@@ -831,7 +831,7 @@ describe('Date facade using FooinoDateHandler', function () {
             //
         } catch (FooinoRuntimeException $e) {
 
-            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween');
+            expect($e->getMessage())->toBe('msg.fooinoRuntimeExceptionInvalidPeriodForDatesBetween');
             expect($e->getCode())->toBe(2);
             expect($e->reportable())->toBeTrue();
             expect($e->getLevel())->toBe('warning');

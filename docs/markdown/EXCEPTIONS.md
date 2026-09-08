@@ -17,15 +17,15 @@ All exceptions extend `FooinoException` which extends PHP's `Exception`. The bas
 
 ## `FooinoRuntimeException` (codes 1–249)
 
-Default message key: `msg.fooinoRunTimeException`
+Default message key: `msg.fooinoRuntimeException`
 
 | Code | Method | Message Key | Level | HTTP Status | Logged |
 |---|---|---|---|---|---|
-| 1 | Default | `msg.fooinoRunTimeException` | `warning` | 500 | Yes |
-| 2 | `_2()` | `msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween` | `warning` | 500 | Yes |
-| 3 | `_3()` | `msg.fooinoRunTimeExceptionInvalidDateString` | `error` | 500 | Yes |
-| 4 | `_4()` | `msg.fooinoRunTimeExceptionCannotUnserializeSingleton` | `critical` | 500 | Yes |
-| 5 | `_5()` | `msg.fooinoRunTimeExceptionCannotCloneSingleton` | `critical` | 500 | Yes |
+| 1 | Default | `msg.fooinoRuntimeException` | `warning` | 500 | Yes |
+| 2 | `_2()` | `msg.fooinoRuntimeExceptionInvalidPeriodForDatesBetween` | `warning` | 500 | Yes |
+| 3 | `_3()` | `msg.fooinoRuntimeExceptionInvalidDateString` | `error` | 500 | Yes |
+| 4 | `_4()` | `msg.fooinoRuntimeExceptionCannotUnserializeSingleton` | `critical` | 500 | Yes |
+| 5 | `_5()` | `msg.fooinoRuntimeExceptionCannotCloneSingleton` | `critical` | 500 | Yes |
 
 **Usage:**
 
