@@ -44,7 +44,7 @@ Default message key: `msg.infiniteLoopException`
 |---|---|---|---|---|---|
 | 250 | Default | `msg.infiniteLoopException` | `critical` | 500 | Yes |
 | 251 | `_251()` | `msg.infiniteLoopExceptionInvalidIntervalForDatesBetween` | `critical` | 500 | Yes |
-| 252 | `_252()` | `msg.infiniteLoopExceptionSanitizerRecursionLimit` | `critical` | 500 | Yes |
+| 252 | `_252()` | `msg.infiniteLoopExceptionSanitizerDepthLimit` | `critical` | 500 | Yes |
 | 253 | `_253()` | `msg.infiniteLoopExceptionInTokenGenerator` | `critical` | 500 | Yes |
 
 **Usage:**

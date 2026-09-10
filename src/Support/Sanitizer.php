@@ -3,17 +3,22 @@
 namespace Fooino\Core\Support;
 
 use Fooino\Core\Exceptions\InfiniteLoopException;
+use Fooino\Core\Tasks\GetAllowedHTMLTagsTask;
+use Fooino\Core\Tasks\GetForbiddenCharactersTask;
+use Fooino\Core\Tasks\GetForbiddenFilesTask;
 
 class Sanitizer
 {
-    private const int MAX_ATTEMPT = 25;
-
-    private array $attempted = [];
+    private const int MAX_DEPTH = 25;
 
     /**
-     * Accept the initial value and make it available to all sanitizer pipeline methods
+     * Accept the initial value and make it available to all sanitizer pipeline methods,
+     * validating its nesting depth up front so deeply nested arrays fail before any recursive walk
      */
-    public function __construct(private string|int|float|null|bool|array|object $value) {}
+    public function __construct(private string|int|float|null|bool|array|object $value)
+    {
+        $this->validateValue(value: $value);
+    }
 
     /**
      * Get the current value
@@ -37,9 +42,11 @@ class Sanitizer
      * Normalize the input by converting Persian/Arabic digits and letters,
      * removing zero-width non-joiners, stripping XSS vectors, and trimming whitespace
      */
-    public function normalizeInput(): static
+    public function normalizeInput(array $includeHTMLTags = []): static
     {
         $value = $this->value();
+
+        $allowedTags = array_merge(GetAllowedHTMLTagsTask::instance()->run(), $includeHTMLTags);
 
         $trimmed = is_string($value) ? $this->trimValue(value: $value) : $value;
 
@@ -55,80 +62,69 @@ class Sanitizer
 
                 default                                          => $decoded
             };
+
+            $this->validateValue(value: $value); // check again the depth of value when is decoded to array
         }
 
         if (is_array($value)) {
 
-            array_walk_recursive($value, fn(mixed &$item) => $item = $this->normalizeValue(value: $item));
+            array_walk_recursive($value, fn(mixed &$item) => $item = $this->normalizeValue(value: $item, allowedTags: $allowedTags));
         }
 
         if (is_string($value)) {
-            $value = $this->normalizeValue(value: $value);
+
+            $value = $this->normalizeValue(value: $value, allowedTags: $allowedTags);
         }
 
         return $this->setValue(value: ($isJson) ? jsonEncode($value) : $value);
     }
 
     /**
-     * Remove or replace forbidden characters from the value
+     * Remove or replace forbidden or harmful characters from the value
      */
     public function replaceForbiddenCharacters(array $excludes = [], string $replaceWith = ''): static
     {
-        $value = $this->value();
+        if ($this->valueIsSanitizable() === false) {
 
-        if (
-            (!is_string($value) && !is_array($value)) ||
-            $value === '' || $value === []
-        ) {
             return $this;
         }
 
-        $forbiddens = $this->forbiddenCharacters();
+        $forbiddens = $this->excludeFromSet(
+            set: GetForbiddenCharactersTask::instance()->run(),
+            excludes: $excludes
+        );
 
-        foreach ($excludes as $exclude) {
+        $value = $this->replace(
+            search: $forbiddens,
+            replace: $replaceWith,
+            subject: $this->value()
+        );
 
-            foreach ($forbiddens as $key => $forbidden) {
-
-                if ($exclude === $forbidden) {
-
-                    unset($forbiddens[$key]);
-                    break;
-                }
-            }
-        }
-
-        return $this->setValue(value: $this->replace(search: $forbiddens, replace: $replaceWith, subject: $value));
+        return $this->setValue(value: $value);
     }
 
     /**
-     * Remove or replace sensitive file names and extensions from the value
+     * Remove or replace forbidden or sensitive file names and extensions from the value
      */
-    public function replaceSensitiveFiles(array $excludes = [], string $replaceWith = ''): static
+    public function replaceForbiddenFiles(array $excludes = [], string $replaceWith = ''): static
     {
-        $value = $this->value();
+        if ($this->valueIsSanitizable() === false) {
 
-        if (
-            (!is_string($value) && !is_array($value)) ||
-            $value === '' || $value === []
-        ) {
             return $this;
         }
 
-        $sensitives = $this->sensitiveFiles();
+        $forbiddens = $this->excludeFromSet(
+            set: GetForbiddenFilesTask::instance()->run(),
+            excludes: $excludes
+        );
 
-        foreach ($excludes as $exclude) {
+        $value = $this->replace(
+            search: $forbiddens,
+            replace: $replaceWith,
+            subject: $this->value()
+        );
 
-            foreach ($sensitives as $key => $sensitive) {
-
-                if ($exclude === $sensitive) {
-
-                    unset($sensitives[$key]);
-                    break;
-                }
-            }
-        }
-
-        return $this->setValue(value: $this->replace(search: $sensitives, replace: $replaceWith, subject: $value));
+        return $this->setValue(value: $value);
     }
 
     /**
@@ -136,16 +132,12 @@ class Sanitizer
      */
     public function replaceEmoji(string $replaceWith = ''): static
     {
-        $value = $this->value();
+        if ($this->valueIsSanitizable() === false) {
 
-        if (
-            (!is_string($value) && !is_array($value)) ||
-            $value === '' || $value === []
-        ) {
             return $this;
         }
 
-        return $this->setValue(value: $this->replaceEmojiValue(value: $value, replaceWith: $replaceWith));
+        return $this->setValue(value: $this->replaceEmojiValue(value: $this->value(), replaceWith: $replaceWith));
     }
 
     /**
@@ -153,16 +145,12 @@ class Sanitizer
      */
     public function lowercase(): static
     {
-        $value = $this->value();
+        if ($this->valueIsSanitizable() === false) {
 
-        if (
-            (!is_string($value) && !is_array($value)) ||
-            $value === '' || $value === []
-        ) {
             return $this;
         }
 
-        return $this->setValue(value: $this->toLowercase(value: $value));
+        return $this->setValue(value: $this->toLowercase(value: $this->value()));
     }
 
     /**
@@ -170,16 +158,12 @@ class Sanitizer
      */
     public function uppercase(): static
     {
-        $value = $this->value();
+        if ($this->valueIsSanitizable() === false) {
 
-        if (
-            (!is_string($value) && !is_array($value)) ||
-            $value === '' || $value === []
-        ) {
             return $this;
         }
 
-        return $this->setValue(value: $this->toUppercase(value: $value));
+        return $this->setValue(value: $this->toUppercase(value: $this->value()));
     }
 
     /**
@@ -187,16 +171,12 @@ class Sanitizer
      */
     public function collapse(string $char): static
     {
-        $value = $this->value();
+        if ($this->valueIsSanitizable() === false) {
 
-        if (
-            (!is_string($value) && !is_array($value)) ||
-            $value === '' || $value === []
-        ) {
             return $this;
         }
 
-        return $this->setValue(value: $this->collapseValue(value: $value, char: $char));
+        return $this->setValue(value: $this->collapseValue(value: $this->value(), char: $char));
     }
 
     /**
@@ -204,188 +184,19 @@ class Sanitizer
      */
     public function trim(string $char = " \n\r\t\v\0"): static
     {
-        $value = $this->value();
+        if ($this->valueIsSanitizable() === false) {
 
-        if (
-            (!is_string($value) && !is_array($value)) ||
-            $value === '' || $value === []
-        ) {
             return $this;
         }
 
-        return $this->setValue(value: $this->trimValue(value: $value, char: $char));
-    }
-
-    /**
-     * Default set of characters considered forbidden or harmful
-     */
-    private function forbiddenCharacters(): array
-    {
-        $chars = [
-            ' ',
-            '-',
-            '.',
-            '!',
-            '@',
-            '#',
-            '$',
-            '%',
-            '^',
-            '&',
-            '*',
-            '(',
-            ')',
-            '=',
-            '+',
-            '{',
-            '}',
-            ':',
-            ';',
-            '"',
-            "'",
-            '?',
-            '؟',
-            '<',
-            '>',
-            ',',
-            '|',
-            '`',
-            '/',
-            '\\',
-            '[',
-            ']',
-            '~',
-            '°',
-            '../',
-            '_'
-        ];
-
-        usort($chars, fn(mixed $a, mixed $b) => strlen($b) <=> strlen($a));
-
-        return $chars;
-    }
-
-    /**
-     * Default set of sensitive file names and extensions to remove or replace
-     */
-    private function sensitiveFiles(): array
-    {
-        $files = [
-            'oauth-private.key',
-            'oauth-public.key',
-            'package-lock.json',
-            'package.json',
-            'composer.json',
-            'composer.lock',
-            '.gitlab-ci.yml',
-            '.gitlab-ci.yaml',
-            '.env.example',
-            '.env.testing',
-            '.env.local',
-            '.env.production',
-            '.env.staging',
-            '.env.development',
-            '.env.encrypted',
-            '.env.decrypted',
-            '.env.old',
-            '.env.backup',
-            '.env',
-            'index.php',
-            'supervisor.log',
-            'phpunit.xml',
-            'error_log',
-            '.gitignore',
-            '.gitkeep',
-            'laravel.logs',
-            'laravel.log',
-            'api-docs.json',
-            '.editorconfig',
-            '.htaccess',
-            '.htpasswd',
-            '.key',
-            '.pem',
-            '.crt',
-            '.logs',
-            '.log',
-            '.php',
-            '.phtml',
-            '.phar',
-            '.pht',
-            '.php3',
-            '.php4',
-            '.php5',
-            '.php7',
-            '.php8',
-            '.shtml',
-            '.shtm',
-            '.git',
-            '.sql',
-            '.sqlite',
-            '.json',
-            '.zip',
-            '.rar',
-            '.js',
-            '.css',
-            '.html',
-            '.xml',
-            '.yml',
-            '.yaml',
-            '.md',
-            '.blade',
-            '.stub',
-            '.bak',
-            '.swp',
-            '.swo',
-            '.old',
-            '.orig',
-            '.py',
-            '.pyc',
-            '.bat',
-            '.bash',
-            '.sh',
-            '.exe',
-            '.cmd',
-            '.asp',
-            '.aspx',
-            '.jsp',
-            '.cgi',
-            '.pl',
-            '.rb',
-            'artisan',
-            'Dockerfile',
-            'Makefile',
-            'Procfile',
-            'docker-compose.yml',
-            'docker-compose.yaml',
-            'next.config.js',
-            'next.config.ts',
-            'nginx.conf',
-            'phpstan.neon',
-            'phpstan.neon.dist',
-            'phpunit.xml.dist',
-            'tailwind.config.js',
-            'tailwind.config.ts',
-            'vite.config.js',
-            'vite.config.ts',
-            'yarn.lock',
-            '.dockerignore',
-            '.gitattributes',
-            '.npmrc',
-            '.php-cs-fixer.php',
-            '.php-cs-fixer.dist.php',
-            'makefile'
-        ];
-
-        usort($files, fn(mixed $a, mixed $b) => strlen($b) <=> strlen($a));
-
-        return $files;
+        return $this->setValue(value: $this->trimValue(value: $this->value(), char: $char));
     }
 
     /**
      * Normalize a scalar value: convert digits, replace Arabic letters,
      * remove half-spaces, strip XSS vectors from allowed tags, and trim
      */
-    private function normalizeValue(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
+    private function normalizeValue(string|int|float|null|bool|array|object $value, array $allowedTags = []): string|int|float|null|bool|array|object
     {
         if (
             is_int($value) ||
@@ -410,70 +221,11 @@ class Sanitizer
         $persianLetters = ['ی', 'ک'];
         $replaced = str_replace($arabicLetters, $persianLetters, $replaced);
 
-        $replaced = strip_tags($replaced, $this->allowedTags());
+        $replaced = strip_tags($replaced, $allowedTags);
 
-        $replaced = mb_trim($replaced, " \n\r\t\v\0");
+        $replaced = $this->trimValue(value: $replaced);
 
         return $replaced;
-    }
-
-    /**
-     * Define the set of HTML tags permitted through strip_tags during normalization, preventing dangerous elements
-     */
-    private function allowedTags(): array
-    {
-        return [
-            '<b>',
-            '<strong>',
-            '<em>',
-            '<i>',
-            '<u>',
-            '<s>',
-            '<sub>',
-            '<sup>',
-            '<p>',
-            '<br>',
-            '<hr>',
-            '<pre>',
-            '<code>',
-            '<img>',
-            '<button>',
-            '<div>',
-            '<span>',
-            '<h1>',
-            '<h2>',
-            '<h3>',
-            '<h4>',
-            '<h5>',
-            '<h6>',
-            '<table>',
-            '<caption>',
-            '<col>',
-            '<colgroup>',
-            '<td>',
-            '<tr>',
-            '<th>',
-            '<thead>',
-            '<tbody>',
-            '<ul>',
-            '<ol>',
-            '<li>',
-            '<dl>',
-            '<dt>',
-            '<dd>',
-            '<blockquote>',
-            '<q>',
-            '<figure>',
-            '<figcaption>',
-            '<mark>',
-            '<small>',
-            '<del>',
-            '<ins>',
-            '<abbr>',
-            '<cite>',
-            '<a>',
-            '<picture>'
-        ];
     }
 
     /**
@@ -482,10 +234,9 @@ class Sanitizer
     private function replace(string|array $search, string|array $replace, string|array $subject): string|array
     {
         if (is_string($subject)) {
+
             return str_replace(search: $search, replace: $replace, subject: $subject);
         }
-
-        $this->assertRecursionLimit(method: 'replace');
 
         return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->replace(search: $search, replace: $replace, subject: $item) : $item, $subject);
     }
@@ -523,8 +274,6 @@ class Sanitizer
             return preg_replace(pattern: $pattern, replacement: $replaceWith, subject: $value);
         }
 
-        $this->assertRecursionLimit(method: 'replaceEmojiValue');
-
         return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->replaceEmojiValue(value: $item, replaceWith: $replaceWith) : $item, $value);
     }
 
@@ -534,10 +283,9 @@ class Sanitizer
     private function toLowercase(string|array $value): string|array
     {
         if (is_string($value)) {
+
             return mb_strtolower(string: $value);
         }
-
-        $this->assertRecursionLimit(method: 'toLowercase');
 
         return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->toLowercase(value: $item) : $item, $value);
     }
@@ -548,10 +296,9 @@ class Sanitizer
     private function toUppercase(string|array $value): string|array
     {
         if (is_string($value)) {
+
             return mb_strtoupper(string: $value);
         }
-
-        $this->assertRecursionLimit(method: 'toUppercase');
 
         return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->toUppercase(value: $item) : $item, $value);
     }
@@ -562,14 +309,14 @@ class Sanitizer
     private function collapseValue(string|array $value, string $char): string|array
     {
         if ($char === '') {
+
             return $value;
         }
 
         if (is_string($value)) {
+
             return preg_replace(pattern: '/' . preg_quote($char, '/') . '+/u', replacement: $char, subject: $value);
         }
-
-        $this->assertRecursionLimit(method: 'collapseValue');
 
         return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->collapseValue(value: $item, char: $char) : $item, $value);
     }
@@ -581,32 +328,96 @@ class Sanitizer
     {
         if (is_string($value)) {
 
-            return mb_trim($value, $char);
+            return mb_trim(string: $value, characters: $char);
         }
-
-        $this->assertRecursionLimit(method: 'trimValue');
 
         return array_map(fn(mixed $item) => is_string($item) || is_array($item) ? $this->trimValue(value: $item, char: $char) : $item, $value);
     }
 
     /**
-     * Guard against infinite recursion when processing nested arrays by tracking call depth per method
+     * Abort when an array value is nested deeper than the allowed limit, since every recursive
+     * pipeline walk follows the full depth and an overly deep input would exhaust the PHP stack
      */
-    private function assertRecursionLimit(string $method): void
+    private function validateValue(string|int|float|null|bool|array|object $value): void
     {
-        $this->attempted[$method] ??= 0;
-        $this->attempted[$method] += 1;
+        if (!is_array($value)) {
 
-        if ($this->attempted[$method] > self::MAX_ATTEMPT) {
+            return;
+        }
+
+        $depth = $this->valueDepth(value: $value);
+
+        if ($depth > self::MAX_DEPTH) {
 
             app(InfiniteLoopException::class)
                 ->_252()
                 ->with([
-                    'method'    => $method,
-                    'attempted' => $this->attempted[$method],
-                    'value'     => $this->value()
+                    'depth' => $depth,
+                    'value' => $value
                 ])
                 ->throw();
         }
+    }
+
+    /**
+     * Compute the deepest array nesting level of the value, stopping as soon as the allowed limit is exceeded
+     */
+    private function valueDepth(array $value, int $depth = 1): int
+    {
+        $maxDepth = $depth;
+
+        foreach ($value as $item) {
+
+            if (!is_array($item)) {
+
+                continue;
+            }
+
+            if ($depth + 1 > self::MAX_DEPTH) {
+
+                return self::MAX_DEPTH + 1;
+            }
+
+            $maxDepth = max($maxDepth, $this->valueDepth(value: $item, depth: $depth + 1));
+        }
+
+        return $maxDepth;
+    }
+
+    /**
+     * Determine whether the current value is worth processing, skipping scalars and empty values that sanitizing would not change
+     */
+    private function valueIsSanitizable(): bool
+    {
+        $value = $this->value();
+
+        if (
+            (!is_string($value) && !is_array($value)) ||
+            $value === '' || $value === []
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Remove the given entries from the set so callers can keep specific characters or file names untouched
+     */
+    private function excludeFromSet(array $set, array $excludes): array
+    {
+        foreach ($excludes as $exclude) {
+
+            foreach ($set as $key => $value) {
+
+                if ($exclude === $value) {
+
+                    unset($set[$key]);
+                    break;
+                }
+            }
+        }
+
+        return $set;
     }
 }

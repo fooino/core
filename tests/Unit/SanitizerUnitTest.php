@@ -245,6 +245,17 @@ describe('Sanitizer utilities', function () {
         expect(sanitizer($deep)->normalizeInput()->value())->toBe(['level1' => ['level2' => ['level3' => ['level4' => ['level5' => 'foo0123bar']]]]]);
     });
 
+    test('normalizeInput accepts extra allowed html tags', function () {
+
+        expect((new Sanitizer(value: 'hello <custom>world</custom>'))->normalizeInput()->value())->toBe('hello world');
+
+        expect((new Sanitizer(value: 'hello <custom>world</custom>'))->normalizeInput(includeHTMLTags: ['<custom>'])->value())->toBe('hello <custom>world</custom>');
+
+        expect((new Sanitizer(value: '<custom>a</custom><unknown>b</unknown><b>c</b>'))->normalizeInput(includeHTMLTags: ['<custom>'])->value())->toBe('<custom>a</custom>b<b>c</b>');
+
+        expect((new Sanitizer(value: ['foo <x-foo>bar</x-foo>', 'plain']))->normalizeInput(includeHTMLTags: ['<x-foo>'])->value())->toBe(['foo <x-foo>bar</x-foo>', 'plain']);
+    });
+
     test('replaceForbiddenCharacters method', function () {
 
         expect((new Sanitizer(value: 1))->replaceForbiddenCharacters()->value())->toBe(1);
@@ -452,38 +463,38 @@ describe('Sanitizer utilities', function () {
         expect((new Sanitizer(value: 'üüfooüü'))->trim(char: 'ü')->value())->toBe('foo');
     });
 
-    test('replaceSensitiveFiles method', function () {
+    test('replaceForbiddenFiles method', function () {
 
-        expect((new Sanitizer(value: 1))->replaceSensitiveFiles()->value())->toBe(1);
-        expect((new Sanitizer(value: 1.1))->replaceSensitiveFiles()->value())->toBe(1.1);
-        expect((new Sanitizer(value: null))->replaceSensitiveFiles()->value())->toBe(null);
-        expect((new Sanitizer(value: true))->replaceSensitiveFiles()->value())->toBe(true);
-        expect((new Sanitizer(value: false))->replaceSensitiveFiles()->value())->toBe(false);
-        expect((new Sanitizer(value: ''))->replaceSensitiveFiles()->value())->toBe('');
-        expect((new Sanitizer(value: ' '))->replaceSensitiveFiles()->value())->toBe(' ');
-        expect((new Sanitizer(value: []))->replaceSensitiveFiles()->value())->toBe([]);
-        expect((new Sanitizer(value: [123]))->replaceSensitiveFiles()->value())->toBe([123]);
+        expect((new Sanitizer(value: 1))->replaceForbiddenFiles()->value())->toBe(1);
+        expect((new Sanitizer(value: 1.1))->replaceForbiddenFiles()->value())->toBe(1.1);
+        expect((new Sanitizer(value: null))->replaceForbiddenFiles()->value())->toBe(null);
+        expect((new Sanitizer(value: true))->replaceForbiddenFiles()->value())->toBe(true);
+        expect((new Sanitizer(value: false))->replaceForbiddenFiles()->value())->toBe(false);
+        expect((new Sanitizer(value: ''))->replaceForbiddenFiles()->value())->toBe('');
+        expect((new Sanitizer(value: ' '))->replaceForbiddenFiles()->value())->toBe(' ');
+        expect((new Sanitizer(value: []))->replaceForbiddenFiles()->value())->toBe([]);
+        expect((new Sanitizer(value: [123]))->replaceForbiddenFiles()->value())->toBe([123]);
 
-        expect((new Sanitizer(value: 'hello world'))->replaceSensitiveFiles()->value())->toBe('hello world');
+        expect((new Sanitizer(value: 'hello world'))->replaceForbiddenFiles()->value())->toBe('hello world');
 
-        expect((new Sanitizer(value: 'config/database.php'))->replaceSensitiveFiles()->value())->toBe('config/database');
-        expect((new Sanitizer(value: 'storage/logs/laravel.log'))->replaceSensitiveFiles()->value())->toBe('storage/logs/');
-        expect((new Sanitizer(value: '.env'))->replaceSensitiveFiles()->value())->toBe('');
-        expect((new Sanitizer(value: '/.git/config'))->replaceSensitiveFiles()->value())->toBe('//config');
+        expect((new Sanitizer(value: 'config/database.php'))->replaceForbiddenFiles()->value())->toBe('config/database');
+        expect((new Sanitizer(value: 'storage/logs/laravel.log'))->replaceForbiddenFiles()->value())->toBe('storage/logs/');
+        expect((new Sanitizer(value: '.env'))->replaceForbiddenFiles()->value())->toBe('');
+        expect((new Sanitizer(value: '/.git/config'))->replaceForbiddenFiles()->value())->toBe('//config');
 
-        expect((new Sanitizer(value: '.env.backup'))->replaceSensitiveFiles()->value())->toBe('');
-        expect((new Sanitizer(value: '/.env.backup'))->replaceSensitiveFiles()->value())->toBe('/');
-        expect((new Sanitizer(value: '/path/.env.example'))->replaceSensitiveFiles()->value())->toBe('/path/');
+        expect((new Sanitizer(value: '.env.backup'))->replaceForbiddenFiles()->value())->toBe('');
+        expect((new Sanitizer(value: '/.env.backup'))->replaceForbiddenFiles()->value())->toBe('/');
+        expect((new Sanitizer(value: '/path/.env.example'))->replaceForbiddenFiles()->value())->toBe('/path/');
 
-        expect((new Sanitizer(value: '/path/composer.json'))->replaceSensitiveFiles()->value())->toBe('/path/');
+        expect((new Sanitizer(value: '/path/composer.json'))->replaceForbiddenFiles()->value())->toBe('/path/');
 
-        expect((new Sanitizer(value: 'config/database.php'))->replaceSensitiveFiles(excludes: ['.php'])->value())->toBe('config/database.php');
-        expect((new Sanitizer(value: '/path/.env'))->replaceSensitiveFiles(excludes: ['.env'])->value())->toBe('/path/.env');
+        expect((new Sanitizer(value: 'config/database.php'))->replaceForbiddenFiles(excludes: ['.php'])->value())->toBe('config/database.php');
+        expect((new Sanitizer(value: '/path/.env'))->replaceForbiddenFiles(excludes: ['.env'])->value())->toBe('/path/.env');
 
-        expect((new Sanitizer(value: 'config/database.php'))->replaceSensitiveFiles(replaceWith: '[REMOVED]')->value())->toBe('config/database[REMOVED]');
-        expect((new Sanitizer(value: '.env'))->replaceSensitiveFiles(replaceWith: '[HIDDEN]')->value())->toBe('[HIDDEN]');
+        expect((new Sanitizer(value: 'config/database.php'))->replaceForbiddenFiles(replaceWith: '[REMOVED]')->value())->toBe('config/database[REMOVED]');
+        expect((new Sanitizer(value: '.env'))->replaceForbiddenFiles(replaceWith: '[HIDDEN]')->value())->toBe('[HIDDEN]');
 
-        expect((new Sanitizer(value: [1, 1.1, null, true, false, 'config/database.php', [1, 1.1, null, true, false, '.env']]))->replaceSensitiveFiles()->value())->toBe([1, 1.1, null, true, false, 'config/database', [1, 1.1, null, true, false, '']]);
+        expect((new Sanitizer(value: [1, 1.1, null, true, false, 'config/database.php', [1, 1.1, null, true, false, '.env']]))->replaceForbiddenFiles()->value())->toBe([1, 1.1, null, true, false, 'config/database', [1, 1.1, null, true, false, '']]);
     });
 
     test('replaceEmoji method', function () {
@@ -531,20 +542,22 @@ describe('Sanitizer utilities', function () {
 
     describe('handle exceptions', function () {
 
-        test('flat array with many items does not trigger false recursion limit', function () {
+        test('wide arrays with many sibling arrays do not trigger the depth limit', function () {
 
-            $flat = array_map(fn($i) => "item-$i", range(1, 30));
+            $rows = array_map(fn($i) => ["item-$i", ['meta' => ['id' => $i]]], range(1, 30));
 
-            expect(fn() => (new Sanitizer(value: $flat))->lowercase()->value())->not->toThrow(InfiniteLoopException::class);
-            expect(fn() => (new Sanitizer(value: $flat))->uppercase()->value())->not->toThrow(InfiniteLoopException::class);
-            expect(fn() => (new Sanitizer(value: $flat))->replaceForbiddenCharacters()->value())->not->toThrow(InfiniteLoopException::class);
-            expect(fn() => (new Sanitizer(value: $flat))->replaceSensitiveFiles()->value())->not->toThrow(InfiniteLoopException::class);
-            expect(fn() => (new Sanitizer(value: $flat))->replaceEmoji()->value())->not->toThrow(InfiniteLoopException::class);
-            expect(fn() => (new Sanitizer(value: $flat))->collapse(char: '-')->value())->not->toThrow(InfiniteLoopException::class);
-            expect(fn() => (new Sanitizer(value: $flat))->trim(char: '-')->value())->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows)))->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows))->normalizeInput()->value())->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows))->lowercase()->value())->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows))->uppercase()->value())->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows))->replaceForbiddenCharacters()->value())->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows))->replaceForbiddenFiles()->value())->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows))->replaceEmoji()->value())->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows))->collapse(char: '-')->value())->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $rows))->trim(char: '-')->value())->not->toThrow(InfiniteLoopException::class);
         });
 
-        test('recursion limit throws before exceeding max depth', function () {
+        test('values nested deeper than the allowed limit throw at construction', function () {
 
             $nested = ['trigger'];
 
@@ -552,26 +565,48 @@ describe('Sanitizer utilities', function () {
                 $nested = [$nested];
             }
 
-            expect(fn() => (new Sanitizer(value: $nested))->lowercase()->value())->toThrow(InfiniteLoopException::class, 'msg.infiniteLoopExceptionSanitizerRecursionLimit');
+            expect(fn() => new Sanitizer(value: $nested))->toThrow(InfiniteLoopException::class, 'msg.infiniteLoopExceptionSanitizerDepthLimit');
 
             try {
 
-                (new Sanitizer(value: $nested))->lowercase()->value();
+                new Sanitizer(value: $nested);
 
                 //
             } catch (InfiniteLoopException $e) {
 
-                expect($e->getMessage())->toBe('msg.infiniteLoopExceptionSanitizerRecursionLimit');
+                expect($e->getMessage())->toBe('msg.infiniteLoopExceptionSanitizerDepthLimit');
                 expect($e->getCode())->toBe(252);
                 expect($e->getLevel())->toBe('critical');
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'    => 'toLowercase',
-                    'attempted' => 26,
-                    'value'     => $nested
+                    'depth' => 26,
+                    'value' => $nested
                 ]);
             }
+        });
+
+        test('values nested exactly at the allowed limit are accepted', function () {
+
+            $nested = ['trigger'];
+
+            for ($i = 0; $i < 24; $i++) {
+                $nested = [$nested];
+            }
+
+            expect(fn() => new Sanitizer(value: $nested))->not->toThrow(InfiniteLoopException::class);
+            expect(fn() => (new Sanitizer(value: $nested))->lowercase()->value())->not->toThrow(InfiniteLoopException::class);
+        });
+
+        test('deep json strings are rejected when decoded inside normalizeInput', function () {
+
+            $deep = ['trigger'];
+
+            for ($i = 0; $i < 25; $i++) {
+                $deep = [$deep];
+            }
+
+            expect(fn() => (new Sanitizer(value: jsonEncode($deep)))->normalizeInput())->toThrow(InfiniteLoopException::class, 'msg.infiniteLoopExceptionSanitizerDepthLimit');
         });
     });
 });

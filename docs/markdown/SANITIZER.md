@@ -19,7 +19,7 @@ This is the primary sanitization method — designed for `prepareForValidation` 
 - Converts Arabic digits (`٠١٢٣٤٥٦٧٨٩`) to English (`0123456789`)
 - Replaces Arabic letters `ي` and `ك` with Persian `ی` and `ک`
 - Removes Zero-Width Non-Joiner (U+200C), Zero-Width Joiner (U+200D), and BOM (U+FEFF)
-- Strips HTML tags not in the allowed list (see `allowedTags()` below) for XSS reduction
+- Strips HTML tags not in the allowed list (see [Allowed HTML Tags](#allowed-html-tags) below) for XSS reduction
 - Trims leading/trailing whitespace
 
 **For arrays:** Recursively normalizes all string values at every nesting level.
@@ -79,6 +79,18 @@ These tags are preserved by `normalizeInput`. All other tags are stripped (their
 
 > **Note:** `strip_tags` does not remove event handler attributes (e.g., `onclick`, `onerror`) inside allowed tags. This method reduces XSS vector surface but is not a complete XSS sanitizer.
 
+#### `includeHTMLTags` parameter
+
+`normalizeInput(array $includeHTMLTags = [])` merges extra tags into the default list for that single call, preserving them on top of the built-in set:
+
+```php
+sanitizer('<my-tag>hi</my-tag>')->normalizeInput()->value();
+// 'hi'  → <my-tag> is stripped by default
+
+sanitizer('<my-tag>hi</my-tag>')->normalizeInput(includeHTMLTags: ['<my-tag>'])->value();
+// '<my-tag>hi</my-tag>'  → preserved for this call only
+```
+
 ---
 
 ## replaceForbiddenCharacters
@@ -109,20 +121,20 @@ Multi-character patterns like `../` are matched before their individual characte
 
 ---
 
-## replaceSensitiveFiles
+## replaceForbiddenFiles
 
 Remove or replace known sensitive file names and extensions. Operates on strings and arrays recursively.
 
 ```php
-sanitizer('config/database.php')->replaceSensitiveFiles()->value();       // 'config/database'
-sanitizer('.env')->replaceSensitiveFiles()->value();                       // ''
+sanitizer('config/database.php')->replaceForbiddenFiles()->value();       // 'config/database'
+sanitizer('.env')->replaceForbiddenFiles()->value();                       // ''
 
 // Keep specific extensions
-sanitizer('config/database.php')->replaceSensitiveFiles(excludes: ['.php'])->value();
+sanitizer('config/database.php')->replaceForbiddenFiles(excludes: ['.php'])->value();
 // 'config/database.php'
 
 // Custom replacement
-sanitizer('.env')->replaceSensitiveFiles(replaceWith: '[REDACTED]')->value();
+sanitizer('.env')->replaceForbiddenFiles(replaceWith: '[REDACTED]')->value();
 // '[REDACTED]'
 ```
 
@@ -239,4 +251,14 @@ normalizeInput(['foo' => 'عليك']);    // ['foo' => 'علیک']
 
 ## Recursion Safety
 
-All methods that operate on arrays recursively use an internal recursion counter per method. If the same method recurses more than 25 levels deep, an `InfiniteLoopException` (code 252) is thrown to prevent stack overflow. This guards against accidental infinite recursion from deeply nested arrays, while flat arrays with many items process correctly.
+Every pipeline method walks nested arrays recursively, so the value's nesting depth is validated **once up front**: the constructor throws an `InfiniteLoopException` (code 252) when an array value is nested deeper than 25 levels. The same check runs inside `normalizeInput` on JSON strings after decoding, since a deep JSON payload can expand into a deep array.
+
+Only the nesting **depth** is limited — wide arrays with many items or many shallow sibling arrays are processed normally.
+
+```php
+// Depth 26 → throws InfiniteLoopException (252) at construction
+sanitizer([[[ ... 26 levels of nesting ... ['x']]]]);
+
+// Wide but shallow → fine
+sanitizer(array_map(fn ($i) => ["item-$i"], range(1, 1000)));
+```
