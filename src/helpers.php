@@ -696,6 +696,7 @@ if (!function_exists('unitNumberFormat')) {
         };
 
         if ($threshold === null) {
+
             return trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit);
         }
 
@@ -733,7 +734,7 @@ if (!function_exists('unitSizeFormat')) {
 
             greaterThanOrEqual($bytes, '0')               => $bytes . ' Byte',
 
-            default                                       => $bytes . ' ' . __('msg.isInvalid'),
+            default                                       => $bytes . ' ' . __('msg.invalid'),
         };
     }
 }
@@ -753,9 +754,9 @@ if (!function_exists('normalizeInput')) {
      * Normalize the input by converting Persian/Arabic digits and letters,
      * removing zero-width non-joiners, stripping XSS vectors, and trimming whitespace
      */
-    function normalizeInput(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
+    function normalizeInput(string|int|float|null|bool|array|object $value, array $includeHTMLTags = []): string|int|float|null|bool|array|object
     {
-        return sanitizer(value: $value)->normalizeInput()->value();
+        return sanitizer(value: $value)->normalizeInput(includeHTMLTags: $includeHTMLTags)->value();
     }
 }
 
@@ -826,6 +827,7 @@ if (!function_exists('resolveRequest')) {
         $req->merge($data);
 
         if (!is_null($user)) {
+            
             $req->setUserResolver(fn() => $user);
         }
 

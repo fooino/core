@@ -810,7 +810,7 @@ describe('Helpers unit tests', function () {
 
         expect(unitSizeFormat(bytes: 0))->toBe('0 Byte');
 
-        expect(unitSizeFormat(bytes: -10))->toBe('-10 msg.isInvalid');
+        expect(unitSizeFormat(bytes: -10))->toBe('-10 msg.invalid');
 
         expect(unitSizeFormat(bytes: 1234567))->toBe('1.177 MB');
         expect(unitSizeFormat(bytes: 1234567, precision: 5))->toBe('1.17737 MB');
@@ -998,7 +998,7 @@ describe('Helpers unit tests', function () {
         $resolved = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'foobar',
+                'name'  => 'foobar',
                 'email' => 'foobar@gmail.com'
             ],
             user: $user,
@@ -1013,7 +1013,7 @@ describe('Helpers unit tests', function () {
         $resolved = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'foo',
+                'name'  => 'foo',
                 'email' => 'foo@bar.com'
             ],
         );
@@ -1024,21 +1024,21 @@ describe('Helpers unit tests', function () {
         $validated = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'hello',
+                'name'  => 'hello',
                 'email' => 'hello@test.com'
             ]
         )
             ->validated();
 
         expect($validated)->toBe([
-            'name' => 'hello',
+            'name'  => 'hello',
             'email' => 'hello@test.com'
         ]);
 
         $filtered = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'test',
+                'name'  => 'test',
                 'email' => 'test@test.com',
                 'extra' => 'should_be_stripped'
             ]
@@ -1046,7 +1046,7 @@ describe('Helpers unit tests', function () {
             ->validated();
 
         expect($filtered)->toBe([
-            'name' => 'test',
+            'name'  => 'test',
             'email' => 'test@test.com'
         ]);
         expect(isset($filtered['extra']))->toBeFalse();
@@ -1056,7 +1056,7 @@ describe('Helpers unit tests', function () {
         $noUser = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'nouser',
+                'name'  => 'nouser',
                 'email' => 'nouser@test.com'
             ]
         );

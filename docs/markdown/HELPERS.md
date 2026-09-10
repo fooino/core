@@ -275,7 +275,7 @@ unitSizeFormat(bytes: 1536);                         // '1.5 KB'
 unitSizeFormat(bytes: 500);                          // '500 Bytes'
 unitSizeFormat(bytes: 1);                            // '1 byte'
 unitSizeFormat(bytes: 0);                            // '0 byte'
-unitSizeFormat(bytes: -10);                          // '-10 msg.isInvalid'
+unitSizeFormat(bytes: -10);                          // '-10 msg.invalid'
 unitSizeFormat(bytes: 1234567);                      // '1.177 MB'
 unitSizeFormat(bytes: 1234567, precision: 5);        // '1.17737 MB'
 ```

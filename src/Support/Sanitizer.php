@@ -63,7 +63,7 @@ class Sanitizer
                 default                                          => $decoded
             };
 
-            $this->validateValue(value: $value); // check again the depth of value when is decoded to array
+            $this->validateValue(value: $value); // check again the depth of value after decoding to an array
         }
 
         if (is_array($value)) {
