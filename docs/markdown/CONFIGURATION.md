@@ -40,6 +40,8 @@ The locale defaults to Persian (`fa`) in `getDefaultLocale()`. Override it at ru
 setDefaultLocale('en'); // or any supported locale
 ```
 
+The value is stored in Laravel's `app.locale` config key.
+
 ### 3. User Timezone
 
 Store and retrieve the current user's timezone for date formatting:
@@ -49,7 +51,16 @@ setUserTimezone('Asia/Tehran');
 $tz = getUserTimezone(); // falls back to 'UTC'
 ```
 
-No config file is published by this package. These values are stored directly in Laravel's config using `config()`.
+The value is stored in the `fooino.user_timezone` config key, keeping it namespaced away from the application's own keys.
+
+### Config Keys
+
+No config file is published by this package. These values are stored directly in Laravel's config using `config()`:
+
+| Key | Set by | Fallback |
+|---|---|---|
+| `fooino.user_timezone` | `setUserTimezone()` | `'UTC'` |
+| `app.locale` | `setDefaultLocale()` | `'fa'` |
 
 ---
 

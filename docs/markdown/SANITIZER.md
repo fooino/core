@@ -239,13 +239,35 @@ sanitizer(['-foo-', ['-bar-']])->trim(char: '-')->value();
 
 ## Helper Function
 
-The global `normalizeInput` helper provides a shorthand for creating a Sanitizer, calling `normalizeInput`, and retrieving the value:
+The global `normalizeInput` helper provides a shorthand for creating a Sanitizer, calling `normalizeInput`, and retrieving the value. It accepts the same `includeHTMLTags` argument:
 
 ```php
-normalizeInput('۰۱۲۳');              // '0123'
-normalizeInput('<script>XSS</script>'); // 'XSS'
-normalizeInput(['foo' => 'عليك']);    // ['foo' => 'علیک']
+normalizeInput('۰۱۲۳');                                // '0123'
+normalizeInput('<script>XSS</script>');                // 'XSS'
+normalizeInput(['foo' => 'عليك']);                     // ['foo' => 'علیک']
+normalizeInput('<my-tag>hi</my-tag>');                 // 'hi'
+normalizeInput('<my-tag>hi</my-tag>', includeHTMLTags: ['<my-tag>']); // '<my-tag>hi</my-tag>'
 ```
+
+---
+
+## Data Sources
+
+The allowed tags and the forbidden character/file lists are provided by cached tasks built on `SingletonableTask`, so each list is computed at most once per process:
+
+| Task | Provides |
+|---|---|
+| `GetAllowedHTMLTagsTask` | Tags preserved by `normalizeInput` |
+| `GetForbiddenCharactersTask` | Characters removed by `replaceForbiddenCharacters` (ordered longest-first) |
+| `GetForbiddenFilesTask` | File names and extensions removed by `replaceForbiddenFiles` (ordered longest-first) |
+
+```php
+use Fooino\Core\Tasks\GetForbiddenCharactersTask;
+
+$characters = GetForbiddenCharactersTask::instance()->run();
+```
+
+In long-running workers where the process outlives a request, clear the cached lists with `GetForbiddenCharactersTask::flush()` (see [SingletonableTask](./SINGLETONABLE_TASK.md)).
 
 ---
 

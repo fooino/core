@@ -98,6 +98,13 @@ Input `['users' => [['name' => 'عليك'], ['name' => '']]]` becomes `['users' 
 
 When the parent value is not an array, the wildcard is safely skipped and no merge occurs for that key.
 
+### Wildcard rules
+
+- The config key must match the rule key **exactly**, including the wildcard pattern (`'users.*.name'`).
+- Every wildcard rule on the same parent is applied — `users.*.name` and `users.*.email` both normalize their own field.
+- When a specific rule and a wildcard rule target the same field, the specific rule wins regardless of their order in `rules()`. The wildcard pipeline skips fields that an earlier rule already prepared.
+- Fields that are not covered by any rule keep their original value; merging is done deeply, so unruled sibling keys inside the same parent are never lost.
+
 ---
 
 ## Config Options
@@ -108,6 +115,14 @@ Skip the `normalizeInput` step. Use this for inputs that must keep their raw val
 
 ```php
 'raw' => ['skipNormalize' => true]
+```
+
+### includeHTMLTags
+
+Extra HTML tags to preserve for this input, merged on top of the default allowed list for the `normalizeInput` step. Ignored when `skipNormalize` is set.
+
+```php
+'content' => ['includeHTMLTags' => ['<custom>', '<x-foo>']]
 ```
 
 ### keepBlank

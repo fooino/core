@@ -25,7 +25,7 @@ Each format sets the character set and generation algorithm for the token.
 | `numeric()` | `0-9` | 5 | First digit is never `0` |
 | `alphaNumeric()` | `0-9`, `a-z`, `A-Z` | 5 | |
 | `alphabet()` | `a-z`, `A-Z` | 5 | |
-| `weakPassword()` | `0-9` | 5 | First digit is never `0` (same guarantee as `numeric`) |
+| `weakPassword()` | `0-9` | 5 | Delegates to the numeric generator (identical behavior to `numeric`) |
 | `password()` | `0-9`, `a-z`, `A-Z` | 5 | Minimum length: 8 |
 | `strongPassword()` | `0-9`, `a-z`, `A-Z`, symbols | 5 | Minimum length: 12 |
 | `uuid4()` | UUID v4 format | 36 (fixed) | Length setting is ignored — always 36 chars |
@@ -50,7 +50,7 @@ app(TokenGenerator::class)->memorableOtp()->length(6)->value(); // '247719'
 
 ### length(int $length)
 
-Set the token length. Must be between 1 and 255 (inclusive). Format-specific minimums apply.
+Set the token length. Must be between 1 and 255 (inclusive). Format-specific minimums apply — `password` and `strongPassword` minimums are also exposed as the `MIN_PASSWORD_LENGTH` (8) and `MIN_STRONG_PASSWORD_LENGTH` (12) constants on `TokenGenerator`.
 
 ```php
 app(TokenGenerator::class)->length(8)->numeric()->value();    // 8 digits
@@ -116,7 +116,7 @@ The attempt counter is reset after each successful `value()` call, so the same i
 | 1202 | `TokenGeneratorException` | Length > 255 |
 | 1203 | `TokenGeneratorException` | `strongPassword` length < 12 |
 | 1204 | `TokenGeneratorException` | `password` length < 8 |
-| 1205 | `TokenGeneratorException` | `model` set but `field` is empty |
+| 1205 | `TokenGeneratorException` | Only one of `model` or `field` is set — both are required |
 | 1206 | `TokenGeneratorException` | `memorableOtp` length < 2 |
 | 253 | `InfiniteLoopException` | Uniqueness retry exhausted (100 attempts) |
 

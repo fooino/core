@@ -1,5 +1,7 @@
 # Fooino Core Helpers
 
+Global helper functions grouped by purpose. Facade-backed helpers (`math()`, `number()`, `jsonEncode()`, `dateConvert()`, …) are documented alongside their facades: [Math](./MATH_FACADE.md), [Json](./JSON_FACADE.md), [Date](./DATE_FACADE.md), and [Sanitizer](./SANITIZER.md).
+
 ## unwrapBackedEnum
 
 Normalize a value to its primitive form by extracting the scalar value from BackedEnum instances.
@@ -21,21 +23,23 @@ mergeArraysByKey(['x' => ['k' => 1]], ['x' => ['k' => 2]]); // ['x' => ['k' => 2
 
 ## removeComma
 
-Normalize strings by stripping commas, for sanitizing numeric input and text from external sources.
+Normalize strings by stripping commas, for sanitizing numeric input and text from external sources. Operates on strings and arrays recursively.
 
 ```php
 removeComma(value: '12,345,678');           // '12345678'
 removeComma(value: '1,2,3', replace: '.');  // '1.2.3'
+removeComma(value: ['1,000', ['2,000']]);   // ['1000', ['2000']]
 ```
 
 ## removeWhitespace
 
-Strip all whitespace characters from strings, for cleaning user input and formatted text.
+Strip all whitespace characters from strings, for cleaning user input and formatted text. Operates on strings and arrays recursively.
 
 ```php
 removeWhitespace(value: ' 0912 123 1234 ');                  // '09121231234'
 removeWhitespace(value: ' 0912 123 1234 ', replace: '_');    // '_0912_123_1234_'
 removeWhitespace(value: "foo\nbar\tbaz");                     // 'foobarbaz'
+removeWhitespace(value: ['a b', ['c d']]);                    // ['ab', ['cd']]
 ```
 
 ## sanitizeNumber
@@ -49,12 +53,13 @@ sanitizeNumber(value: ' 1,222 333,444');    // '1222333444'
 
 ## replaceSlashWithDash
 
-Normalize date strings by converting slashes to dashes.
+Normalize date strings by converting slashes to dashes. Operates on strings and arrays recursively.
 
 ```php
 replaceSlashWithDash(value: '2023/01/02');                  // '2023-01-02'
 replaceSlashWithDash(value: 'a//b');                        // 'a--b'
 replaceSlashWithDash(value: ['2023/01/02', 'hi/hello']);    // ['2023-01-02', 'hi-hello']
+replaceSlashWithDash(value: ['a/b', ['c/d']]);              // ['a-b', ['c-d']]
 ```
 
 ## setUserTimezone / getUserTimezone
@@ -155,6 +160,12 @@ callMethodIfExists(object: CustomClass::class, method: 'getPrecision', construct
 callMethodIfExists(object: new CustomClass, method: 'nonexistent', fallback: 'default');                        // 'default'
 ```
 
+Notes:
+
+- When a class name is passed, the class is instantiated with `$constructorArgs` before the call.
+- `$methodArgs` are forwarded to both the method and a closure fallback.
+- Only public methods are supported — the helper checks that the method exists, not that it is public.
+
 ## isZero
 
 Check whether a value is numerically zero, supporting numeric strings and Stringable objects.
@@ -239,7 +250,7 @@ percentageChange(from: 13, to: 14, precision: 12);  // '7.6923076923'
 
 ## unitNumberFormat
 
-Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions). Supports Laravel pluralization via the `count` parameter.
+Format a number with a unit and abbreviate large numbers (thousands, millions, billions, trillions). The unit label is resolved with Laravel's `trans_choice()` using a count of `1` (singular) or `2` (plural).
 
 define translations as
 
@@ -273,8 +284,8 @@ unitSizeFormat(bytes: 1610612736);                   // '1.5 GB'
 unitSizeFormat(bytes: 1572864);                      // '1.5 MB'
 unitSizeFormat(bytes: 1536);                         // '1.5 KB'
 unitSizeFormat(bytes: 500);                          // '500 Bytes'
-unitSizeFormat(bytes: 1);                            // '1 byte'
-unitSizeFormat(bytes: 0);                            // '0 byte'
+unitSizeFormat(bytes: 1);                            // '1 Byte'
+unitSizeFormat(bytes: 0);                            // '0 Byte'
 unitSizeFormat(bytes: -10);                          // '-10 msg.invalid'
 unitSizeFormat(bytes: 1234567);                      // '1.177 MB'
 unitSizeFormat(bytes: 1234567, precision: 5);        // '1.17737 MB'

@@ -34,10 +34,11 @@ Values that are already valid JSON strings pass through without double-encoding.
 
 ```php
 Json::encodePretty(value: ['foo' => 'bar']);  // HTML-safe pretty-printed JSON
+Json::encodePretty(value: 5);                 // '5' — scalars are accepted too
 jsonEncodePretty(value: ['foo' => 'bar']);    // global helper
 ```
 
-Returns the value formatted with `JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE` and HTML-escaped via `htmlspecialchars` with `ENT_QUOTES`.
+Accepts `string`, `int`, `float`, `bool`, `null`, and `array` values. Returns the value formatted with `JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE` and HTML-escaped via `htmlspecialchars` with `ENT_QUOTES`.
 
 ### Decode from JSON
 

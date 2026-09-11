@@ -707,7 +707,7 @@ if (!function_exists('unitNumberFormat')) {
         return trim(
             math(precision: $precision)->numberFormat($divided)
                 . ' '
-                . __($unitKey, ['count' => $count])
+                . trans_choice($unitKey, $count)
                 . ' '
                 . $unit
         );

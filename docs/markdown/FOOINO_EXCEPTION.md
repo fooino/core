@@ -26,6 +26,15 @@ app(UserNotFoundException::class)
     ->throw();
 ```
 
+The constructor follows the standard exception signature — `$message`, `$code`, and `$previous` are honoured, and each falls back to the value declared on the class when omitted:
+
+```php
+new UserNotFoundException();                              // 'User not found' / 1404
+new UserNotFoundException('Custom message');               // 'Custom message' / 1404
+new UserNotFoundException('Custom message', 1500);         // 'Custom message' / 1500
+new UserNotFoundException('Custom message', 1500, $prev);  // with previous exception chained
+```
+
 ## Fluent Setters
 
 | Setter | Type | Default | Description |
@@ -34,9 +43,11 @@ app(UserNotFoundException::class)
 | `setCode(int)` | `int` | `0` | Set the unique error code |
 | `setLevel(string)` | `string` | `'error'` | Set the severity level |
 | `setHttpStatusCode(int)` | `int` | `500` | Set the HTTP status code for the response |
-| `with(array)` | `array` | `[]` | Attach contextual data for debugging |
+| `with(array)` | `array` | `[]` | Attach contextual data for debugging and logging |
+| `setPlaceholders(array)` / `getPlaceholders()` | `array` | `[]` | Translation replacements for `__()` (e.g. `':EXCEPTION_CODE'`) |
 | `setReport(bool)` / `shouldReport()` / `dontReport()` | `bool` | `true` | Control whether the exception is logged |
-| `cause(?Exception)` / `getCause()` | `?Exception` | `null` | Attach/retrieve the original non-fooino exception that was wrapped |
+| `cause(?Exception)` / `getCause()` | `?Exception` | `null` | Attach/retrieve the original exception that was wrapped |
+| `context()` | `array` | `[]` | Context Laravel's report pipeline logs automatically (returns `with()`) |
 
 ## Wrapping Non-Fooino Exceptions
 
@@ -56,7 +67,26 @@ try {
 }
 ```
 
-In the Laravel exception handler:
+### Wrapping with `from()`
+
+When the caught exception is already a `FooinoException` and you want to add context while keeping the original error data, use `from()`. The wrapper stays a thin **envelope**: it keeps its own message, code, level, and status, while `from()` attaches the original as the cause and merges the extra context into that cause:
+
+```php
+try {
+    // some operation
+} catch (FooinoException $e) {
+
+    app(CanNotConvertDateException::class)
+        ->from(e: $e, with: ['input' => $input])
+        ->throw();
+}
+```
+
+Handlers should unwrap the envelope to the root cause when the cause is itself a `FooinoException`; otherwise the wrapper carries the error data.
+
+## Laravel Exception Handler
+
+A single handler covers every fooino exception:
 
 ```php
     public function report(Throwable $e)
@@ -94,9 +124,9 @@ In the Laravel exception handler:
                     ),
                 );
             }
-
-            // render other exceptions
         }
+
+        return parent::render($request, $e);
     }
 
     protected function resolveException(Throwable $e): Throwable
