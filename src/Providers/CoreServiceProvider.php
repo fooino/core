@@ -22,7 +22,7 @@ class CoreServiceProvider extends ServiceProvider
     /**
      * Register singleton files
      */
-    protected function registerSingletons(): self
+    protected function registerSingletons(): static
     {
         $this->app->singleton(abstract: 'fooino-json-facade', concrete: fn(Application $app) => new JsonManager($app));
 

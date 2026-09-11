@@ -146,6 +146,20 @@ describe('NormalizesInputs trait', function () {
         expect($request->all()['extra'])->toBe(' untouched۱۲۳ ');
     });
 
+    it('uses default empty inputConfigs when not overridden', function () {
+
+        NormalizesInputsDefaultConfigFormRequest::$testRules = [
+            'title' => 'nullable',
+        ];
+
+        $request = resolveRequest(
+            request: NormalizesInputsDefaultConfigFormRequest::class,
+            data: ['title' => ''],
+        );
+
+        expect($request->validated()['title'])->toBeNull();
+    });
+
     describe('config options', function () {
 
         it('skipNormalize', function () {
@@ -470,8 +484,9 @@ describe('NormalizesInputs trait', function () {
             ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
-                'user.attributes.id'        => ['nullOnZero' => true],
-                'user.attributes.email'     => ['default'    => 'FOO@INO.COM', 'pipe' => fn($value, $request) => strtolower($value)]
+                'user.content'              => ['includeHTMLTags'   => ['<custom>']],
+                'user.attributes.id'        => ['nullOnZero'        => true],
+                'user.attributes.email'     => ['default'           => 'FOO@INO.COM', 'pipe' => fn($value, $request) => strtolower($value)]
             ];
 
             $request = resolveRequest(
@@ -480,7 +495,7 @@ describe('NormalizesInputs trait', function () {
                     'user' => [
                         'name'          => 'عليك سلام',
                         'bio'           => 'null ',
-                        'content'       => '<script>alert(1)</script>',
+                        'content'       => '<script>alert(1)</script><custom>I am a custom tag</custom>',
                         'age'           => 29,
                         'phone_number'  => '۰۱۲۳٤٥٦۷۸۹',
                         'remember_me'   => true,
@@ -495,7 +510,7 @@ describe('NormalizesInputs trait', function () {
                 'user' => [
                     'name'          => 'علیک سلام',
                     'bio'           => null,
-                    'content'       => 'alert(1)',
+                    'content'       => 'alert(1)<custom>I am a custom tag</custom>',
                     'age'           => 29,
                     'phone_number'  => '0123456789',
                     'remember_me'   => true,
@@ -673,6 +688,94 @@ describe('NormalizesInputs trait', function () {
                     ['name' => 'FOOINO MAGIC'],
                     ['name' => 'Guest'],
                 ],
+            ]);
+        });
+
+        it('applies multiple wildcard rules on the same parent', function () {
+
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.name'  => 'nullable',
+                'users.*.email' => 'nullable',
+            ];
+
+            $request = resolveRequest(
+                request: NormalizesInputsTestFormRequest::class,
+                data: [
+                    'users' => [
+                        [
+                            'name'  => 'عليك سلام',
+                            'email' => '۰۱۲۳',
+                            'note'  => 'untouched'
+                        ],
+                    ],
+                ],
+            );
+
+            expect($request->validated()['users'])->toBe([
+                [
+                    'name'  => 'علیک سلام',
+                    'email' => '0123',
+                ],
+            ]);
+
+            expect($request->all()['users'])->toBe([
+                [
+                    'name'  => 'علیک سلام',
+                    'email' => '0123',
+                    'note'  => 'untouched',
+                ],
+            ]);
+        });
+
+        it('applies multiple wildcard rules on the same parent regardless of rules order', function () {
+
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.*.email' => 'nullable',
+                'users.*.name'  => 'nullable',
+            ];
+
+            $request = resolveRequest(
+                request: NormalizesInputsTestFormRequest::class,
+                data: [
+                    'users' => [
+                        ['name' => 'عليك سلام', 'email' => '۰۱۲۳'],
+                    ],
+                ],
+            );
+
+            $user = $request->validated()['users'][0];
+
+            expect($user['name'])->toBe('علیک سلام');
+            expect($user['email'])->toBe('0123');
+        });
+
+        it('lets a specific rule win over a matching wildcard pipeline', function () {
+
+            NormalizesInputsTestFormRequest::$testRules = [
+                'users.1.name'  => 'nullable',
+                'users.*.name'  => 'nullable',
+            ];
+
+            NormalizesInputsTestFormRequest::$testConfigs = [
+                'users.1.name'  => ['default' => 'fooino magic', 'pipe' => fn($value) => strtoupper($value)],
+                'users.*.name'  => ['default' => 'Guest', 'pipe' => fn($value) => strtolower($value)],
+            ];
+
+            $request = resolveRequest(
+                request: NormalizesInputsTestFormRequest::class,
+                data: [
+                    'users' => [
+                        ['name' => 'Ali'],
+                        ['name' => null],
+                        ['name' => 'BOB'],
+                    ],
+                ],
+            );
+
+            expect($request->all()['users'])->toBe([
+                ['name' => 'ali'],
+                ['name' => 'FOOINO MAGIC'],
+                ['name' => 'bob'],
             ]);
         });
 
@@ -1032,19 +1135,5 @@ describe('NormalizesInputs trait', function () {
 
             expect($validated['metadata']['nested'])->toBe(['deep' => ['deeper' => 'علیک سلام']]);
         });
-    });
-
-    it('uses default empty inputConfigs when not overridden (line 283)', function () {
-
-        NormalizesInputsDefaultConfigFormRequest::$testRules = [
-            'title' => 'nullable',
-        ];
-
-        $request = resolveRequest(
-            request: NormalizesInputsDefaultConfigFormRequest::class,
-            data: ['title' => ''],
-        );
-
-        expect($request->validated()['title'])->toBeNull();
     });
 });

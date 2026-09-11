@@ -18,12 +18,12 @@ use Illuminate\Support\ServiceProvider;
 describe('Arch tests', function () {
 
     // arch('Actions')
-    //     ->expect('Fooino\Core\*\Actions')
+    //     ->expect('Fooino\Core\Actions')
     //     ->toHaveSuffix('Action');
 
-    // arch('Tasks')
-    //     ->expect('Fooino\Core\*\Tasks')
-    //     ->toHaveSuffix('Task');
+    arch('Tasks')
+        ->expect('Fooino\Core\Tasks')
+        ->toHaveSuffix('Task');
 
     arch('Enums')
         ->expect('Fooino\Core\Enums')
@@ -50,9 +50,10 @@ describe('Arch tests', function () {
         ->expect('Fooino\Core\Providers\CoreServiceProvider')
         ->toExtend(ServiceProvider::class);
 
-    arch('no debug calls')
+    arch('No debug calls')
         ->expect(['dd', 'dump', 'var_dump', 'ray'])
-        ->not->toBeUsed();
+        ->not
+        ->toBeUsed();
 
     arch('Documented')
         ->expect('Fooino\Core')
