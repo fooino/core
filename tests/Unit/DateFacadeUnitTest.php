@@ -362,7 +362,10 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::convert(date: '15:30:00',  format: 'H:i:s',                        to: $newYorkTz))->toBeIn(['11:30:00', '10:30:00']);
         expect(Date::convert(date: '15:30',     format: 'H:i:s',                        to: $newYorkTz))->toBeIn(['11:30:00', '10:30:00']);
         expect(Date::convert(date: '15',        format: 'H:i:s',                        to: $newYorkTz))->toBeIn(['20:00:15', '19:00:15']);
-        expect(Date::convert(date: '02:00:10',  format: STANDARD_DATE_TIME_FORMAT,      to: $newYorkTz))->toBeIn([date(STANDARD_DATE_FORMAT, strtotime('yesterday')) . ' 22:00:10', date(STANDARD_DATE_FORMAT, strtotime('yesterday')) . ' 21:00:10']);
+        expect(Date::convert(date: '02:00:10',  format: STANDARD_DATE_TIME_FORMAT,      to: $newYorkTz))->toBeIn([
+            date(STANDARD_DATE_FORMAT, strtotime('yesterday')) . ' 22:00:10',
+            date(STANDARD_DATE_FORMAT, strtotime('yesterday')) . ' 21:00:10'
+        ]);
         expect(Date::convert(date: '15:30',     format: 'H:i:s',                        from: $iranTz, to: $newYorkTz))->toBeIn(['08:00:00', '07:00:00']);
 
         expect(fn() => Date::convert(date: 'test', from: $iranTz, to: $tokyoTz, throwException: true))->toThrow(CanNotConvertDateException::class);
@@ -611,11 +614,11 @@ describe('Date facade using FooinoDateHandler', function () {
 
         date_default_timezone_set('Asia/Tehran');
 
-        expect(fn() => Date::convert('2026-06-22'))->toThrow(CanNotConvertDateException::class);
+        expect(fn() => Date::convert(date: '2026-06-22'))->toThrow(CanNotConvertDateException::class);
 
         try {
 
-            Date::convert('2026-06-22');
+            Date::convert(date: '2026-06-22');
 
             //
         } catch (CanNotConvertDateException $e) {
@@ -731,7 +734,7 @@ describe('Date facade using FooinoDateHandler', function () {
         $baghdad = 'Asia/Baghdad'; // +3:00
         $bahrain = 'Asia/Bahrain'; // +3:00
         $kuwait = 'Asia/Kuwait';
-        $beriut = 'Asia/Beirut';
+        $beirut = 'Asia/Beirut';
         $damascus = 'Asia/Damascus';
         $aden = 'Asia/Aden';
         $amman = 'Asia/Amman';
@@ -754,8 +757,8 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $kuwait))->toBe('1447-12-16 15:30:08');
         expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $kuwait))->toBe('2026-06-02 12:30:08');
 
-        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $beriut))->toBe('1447-12-16 15:30:08');
-        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $beriut))->toBe('2026-06-02 12:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $beirut))->toBe('1447-12-16 15:30:08');
+        expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $beirut))->toBe('2026-06-02 12:30:08');
 
         expect(Date::unofficialCalendar()->convert(date: '2026-06-02 12:30:08',     format: STANDARD_DATE_TIME_FORMAT,      to: $damascus))->toBe('1447-12-16 15:30:08');
         expect(Date::unofficialCalendar()->convert(date: '1447-12-16 15:30:08',     format: STANDARD_DATE_TIME_FORMAT,      from: $damascus))->toBe('2026-06-02 12:30:08');
@@ -819,7 +822,7 @@ describe('Date facade using FooinoDateHandler', function () {
         expect(fn() => datesBetween(from: 'foobar', to: '2024-01-05'))->toThrow(CanNotConvertDateException::class);
         expect(fn() => datesBetween(from: '2024-01-05', to: 'foobar'))->toThrow(CanNotConvertDateException::class);
 
-        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween');
+        expect(fn() => datesBetween(from: '2024-06-01', to: '2024-01-01'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRuntimeExceptionInvalidPeriodForDatesBetween');
 
         try {
 
@@ -828,7 +831,7 @@ describe('Date facade using FooinoDateHandler', function () {
             //
         } catch (FooinoRuntimeException $e) {
 
-            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween');
+            expect($e->getMessage())->toBe('msg.fooinoRuntimeExceptionInvalidPeriodForDatesBetween');
             expect($e->getCode())->toBe(2);
             expect($e->reportable())->toBeTrue();
             expect($e->getLevel())->toBe('warning');

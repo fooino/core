@@ -16,7 +16,7 @@ class MathManager extends Manager
     }
 
     /**
-     * Create fooino driver.
+     * Create the fooino math driver.
      */
     public function createFooinoMathHandlerDriver(): Mathable
     {

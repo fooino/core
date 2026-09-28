@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-    <title>Fooino Core API Documentation</title>
+    <title>Core API Documentation</title>
     <parser>
         <target>docs/phpdoc/cache</target>
     </parser>

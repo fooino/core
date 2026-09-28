@@ -17,15 +17,15 @@ All exceptions extend `FooinoException` which extends PHP's `Exception`. The bas
 
 ## `FooinoRuntimeException` (codes 1–249)
 
-Default message key: `msg.fooinoRunTimeException`
+Default message key: `msg.fooinoRuntimeException`
 
 | Code | Method | Message Key | Level | HTTP Status | Logged |
 |---|---|---|---|---|---|
-| 1 | Default | `msg.fooinoRunTimeException` | `warning` | 500 | Yes |
-| 2 | `_2()` | `msg.fooinoRunTimeExceptionInvalidPeriodForDatesBetween` | `warning` | 500 | Yes |
-| 3 | `_3()` | `msg.fooinoRunTimeExceptionInvalidDateString` | `error` | 500 | Yes |
-| 4 | `_4()` | `msg.fooinoRunTimeExceptionCannotUnserializeSingleton` | `critical` | 500 | Yes |
-| 5 | `_5()` | `msg.fooinoRunTimeExceptionCannotCloneSingleton` | `critical` | 500 | Yes |
+| 1 | Default | `msg.fooinoRuntimeException` | `warning` | 500 | Yes |
+| 2 | `_2()` | `msg.fooinoRuntimeExceptionInvalidPeriodForDatesBetween` | `warning` | 500 | Yes |
+| 3 | `_3()` | `msg.fooinoRuntimeExceptionInvalidDateString` | `error` | 500 | Yes |
+| 4 | `_4()` | `msg.fooinoRuntimeExceptionCannotUnserializeSingleton` | `critical` | 500 | Yes |
+| 5 | `_5()` | `msg.fooinoRuntimeExceptionCannotCloneSingleton` | `critical` | 500 | Yes |
 
 **Usage:**
 
@@ -44,13 +44,13 @@ Default message key: `msg.infiniteLoopException`
 |---|---|---|---|---|---|
 | 250 | Default | `msg.infiniteLoopException` | `critical` | 500 | Yes |
 | 251 | `_251()` | `msg.infiniteLoopExceptionInvalidIntervalForDatesBetween` | `critical` | 500 | Yes |
-| 252 | `_252()` | `msg.infiniteLoopExceptionSanitizerRecursionLimit` | `critical` | 500 | Yes |
+| 252 | `_252()` | `msg.infiniteLoopExceptionSanitizerDepthLimit` | `critical` | 500 | Yes |
 | 253 | `_253()` | `msg.infiniteLoopExceptionInTokenGenerator` | `critical` | 500 | Yes |
 
 **Usage:**
 
 - **Code 251** — Thrown by `DateHandler::throwInvalidIntervalForDatesBetweenException()` when the `DateInterval` has all zero properties (would iterate infinitely).
-- **Code 252** — Thrown by `Sanitizer::assertRecursionLimit()` when a recursive sanitizer operation exceeds the maximum nesting depth of 25.
+- **Code 252** — Thrown by `Sanitizer::validateValue()` when an array value is nested deeper than 25 levels, either at construction or after a JSON string is decoded inside `normalizeInput()`.
 - **Code 253** — Thrown by `TokenGenerator::throwInfiniteLoopException()` when the uniqueness retry limit of 100 is exhausted.
 
 ---
@@ -96,7 +96,7 @@ Default message key: `msg.mathCalculationException`
 - **Code 1102** — Thrown by `FooinoMathHandler::throwInvalidArgumentsCountException()` when an insufficient number of operands is provided for the operation.
 - **Code 1103** — Thrown by `FooinoMathHandler::throwInvalidArgumentTypeException()` when a non-numeric operand is passed to an arithmetic operation.
 - **Code 1104** — Thrown by `FooinoMathHandler::throwDivisionByZeroException()` when division or modulo by zero is attempted.
-- **Code 1105** — Thrown by `FooinoMathHandler::throwInvalidValueErrorException()` when an operand value is invalid (e.g., `INF`, exponent overflow in scientific notation).
+- **Code 1105** — Thrown by `FooinoMathHandler::throwInvalidValueErrorException()` when an operand value is invalid (e.g., `INF`, `NaN`, exponent overflow in scientific notation, or a negative square root).
 - **Code 1106** — Thrown by `FooinoMathHandler::throwUnsupportedFunctionException()` when an unrecognised bcmath function name is provided.
 
 ---
@@ -121,5 +121,5 @@ Default message key: `msg.tokenGeneratorException`
 - **Code 1202** — Thrown by `TokenGenerator::throwBigLengthNumberException()` when length exceeds the maximum of 255.
 - **Code 1203** — Thrown when `strongPassword` format is used with length less than 12.
 - **Code 1204** — Thrown when `password` format is used with length less than 8.
-- **Code 1205** — Thrown when a model is configured for uniqueness checking but no field name was provided.
+- **Code 1205** — Thrown when exactly one of `model` or `field` is configured — both must be set for uniqueness checking.
 - **Code 1206** — Thrown when `memorableOtp` format is used with length less than 2.

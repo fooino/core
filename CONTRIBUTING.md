@@ -1,4 +1,4 @@
-# Contributing to Fooino Core
+# Contributing to Fooino Core Package
 
 Thanks for contributing! Here's how to get started.
 

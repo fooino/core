@@ -26,13 +26,13 @@ class FooinoJsonHandler implements Jsonable
     /**
      * Format a value as human-readable JSON with HTML-safe escaping, suitable for display or debugging
      */
-    public function encodePretty(string|array $value): string
+    public function encodePretty(int|float|string|null|bool|array $value): string
     {
         if (is_null(nullIfBlank(value: $value))) {
             return '';
         }
 
-        $input = $this->is(value: $value) ? $this->decodeToArray(json: $value) : $value;
+        $input = (array) ($this->is(value: $value) ? $this->decodeToArray(json: $value) : $value);
 
         $encoded = $this->encode(value: $input, flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 

@@ -145,7 +145,7 @@ Math::sqrt(-1);                          // throws MathCalculationException
 
 ## Rounding
 
-### Round up (ceiling, away from zero)
+### Round up (ceiling, toward positive infinity)
 
 ```php
 Math::roundUp(1.1);                      // '2'
@@ -156,7 +156,7 @@ Math::roundUp([0.01, -0.01, 1.1]);       // ['1', '0', '2']
 roundUp(1.999099);                       // '2' — global helper
 ```
 
-### Round down (floor, toward zero)
+### Round down (floor, toward negative infinity)
 
 ```php
 Math::roundDown(1.1);                    // '1'
@@ -334,7 +334,22 @@ Math::convertScientificNumber('1.1E+9999');  // throws MathCalculationException
 Math::convertScientificNumber('1.1E-324');   // throws MathCalculationException
 ```
 
-INF and -INF also throw (code `1105`).
+`INF`, `-INF`, and `NaN` also throw (code `1105`), including when passed to other math methods:
+
+```php
+Math::convertScientificNumber(INF);          // throws MathCalculationException
+Math::number(NAN);                           // throws MathCalculationException
+Math::sum(NAN, 1);                           // throws MathCalculationException
+```
+
+`numberFormat()` is the exception — it casts the input to a string first, so `INF` throws 1103 (`InvalidArgumentType`) instead of 1105.
+
+Global helper:
+
+```php
+convertScientificNumber(1.1e+8);             // '110000000'
+convertScientificNumber('312.12E-2');        // '3.1212'
+```
 
 ### Trim trailing zeros
 
@@ -348,6 +363,11 @@ Math::trimTrailingZeros(-11.000001000);       // '-11.000001'
 
 // Non-numeric strings pass through:
 Math::trimTrailingZeros('test');              // 'test'
+
+// Global helper:
+trimTrailingZeros(11.001100);                 // '11.0011'
+trimTrailingZeros('1100.001100');             // '1100.0011'
+trimTrailingZeros('1.00100000E+5');           // '100100'
 ```
 
 ### Count decimal places
@@ -386,7 +406,7 @@ try {
 | `1102` | `error` | `number`, `sum`, `subtract`, `multiply`, `divide`, `remainder`, `power`, `sqrt`, `roundUp`, `roundDown`, `roundClose` | Insufficient operands |
 | `1103` | `error` | all methods that accept numeric input | Non-numeric operand provided |
 | `1104` | `critical` | `divide`, `remainder`, `power` | Division / modulo by zero |
-| `1105` | `critical` | `convertScientificNumber`, `sqrt` | Value out of allowed range (INF, exponent > 99, negative sqrt) |
+| `1105` | `critical` | `convertScientificNumber`, `sqrt`, operand-normalizing methods (`numberFormat` excluded) | Value out of allowed range (NaN, INF, exponent > 99, negative sqrt) |
 | `1106` | `critical` | internal | Unrecognised bcmath function (should not occur in normal use) |
 
 ### Exception context

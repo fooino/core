@@ -42,17 +42,25 @@ abstract class SingletonableTask
     }
 
     /**
+     * Clear all cached singleton instances so the next call to instance() rebuilds them.
+     */
+    public static function flush(): void
+    {
+        self::$instances = [];
+    }
+
+    /**
      * Execute the task and return the cached result.
      */
     public function run(): mixed
     {
-        return $this->setData();
+        return $this->memoize();
     }
 
     /**
-     * Lazily load and cache data via getData.
+     * Memoize the task data so the computation runs once per cycle and is reused on subsequent calls.
      */
-    protected function setData(): mixed
+    protected function memoize(): mixed
     {
         if ($this->dataLoaded === false) {
 

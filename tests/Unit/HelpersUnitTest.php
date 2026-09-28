@@ -7,7 +7,6 @@ use Fooino\Core\Tests\Data\Datasets;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
@@ -18,7 +17,6 @@ use Illuminate\Http\Request;
 
 use stdClass;
 use Stringable;
-use Exception;
 
 class CustomClass
 {
@@ -105,6 +103,7 @@ describe('Helpers unit tests', function () {
         foreach (
             [
                 ...Datasets::zeros(),
+                1e-400,
                 new class implements Stringable {
 
                     public function __toString()
@@ -459,6 +458,8 @@ describe('Helpers unit tests', function () {
         expect(removeComma(value: [0, 1, 11.11, null, true, false, '123,123']))->toBe([0, 1, 11.11, null, true, false, '123123']);
 
         expect(removeComma(value: ','))->toBe('');
+
+        expect(removeComma(value: ['123', '11,22', '2' => ["33,44\t", 1 => ["44,55\n66", 123, true, false, null]]]))->toBe(['123', '1122', '2' => ["3344\t", 1 => ["4455\n66", 123, true, false, null]]]);
     });
 
     test('removeWhitespace helper', function () {
@@ -487,9 +488,11 @@ describe('Helpers unit tests', function () {
         expect(removeWhitespace(value: "foo\nbar"))->toBe('foobar');
         expect(removeWhitespace(value: "foo\tbar"))->toBe('foobar');
         expect(removeWhitespace(value: ["foo\nbar", "baz\tqux"]))->toBe(['foobar', 'bazqux']);
+
+        expect(removeWhitespace(value: ['123', '11 22', '2' => ["33 44\t", 1 => ["44 55\n66", 123, true, false, null]]]))->toBe(['123', '1122', '2' => ['3344', 1 => ['445566', 123, true, false, null]]]);
     });
 
-    test('sanitizeNumber helper',  function () {
+    test('sanitizeNumber helper', function () {
 
         expect(sanitizeNumber(123))->toBe(123);
         expect(sanitizeNumber(123.123))->toBe(123.123);
@@ -505,6 +508,8 @@ describe('Helpers unit tests', function () {
         expect(sanitizeNumber([1, '123,123 ', ' 0912 123 1234 ']))->toBe([1, '123123', '09121231234']);
 
         expect(sanitizeNumber([0, 1, 11.11, null, true, false, ' 1,234 ']))->toBe([0, 1, 11.11, null, true, false, '1234']);
+
+        expect(sanitizeNumber(value: ['123', '11,22', '2' => ["33, 44\t", 1 => ["44,55\n66 ", 123, true, false, null]]]))->toBe(['123', '1122', '2' => ["3344", 1 => ["445566", 123, true, false, null]]]);
     });
 
     test('replaceSlashWithDash helper', function () {
@@ -527,21 +532,23 @@ describe('Helpers unit tests', function () {
 
         expect(replaceSlashWithDash(value: '/'))->toBe('-');
         expect(replaceSlashWithDash(value: 'a//b'))->toBe('a--b');
+
+        expect(replaceSlashWithDash(value: ['123', '11/22', '2' => ["33/44\t", 1 => ["44/55\n66", 123, true, false, null]]]))->toBe(['123', '11-22', '2' => ["33-44\t", 1 => ["44-55\n66", 123, true, false, null]]]);
     });
 
     test('setUserTimezone and getUserTimezone helper', function () {
 
-        expect(config('user-timezone'))->toBeNull();
+        expect(config('fooino.user_timezone'))->toBeNull();
 
         setUserTimezone(timezone: 'Asia/Tehran');
-        expect(config('user-timezone'))->toBe('Asia/Tehran');
+        expect(config('fooino.user_timezone'))->toBe('Asia/Tehran');
         expect(getUserTimezone())->toBe('Asia/Tehran');
 
-        config(['user-timezone' => null]);
+        config(['fooino.user_timezone' => null]);
         expect(getUserTimezone())->toBe('UTC');
 
         setUserTimezone(timezone: '');
-        expect(config('user-timezone'))->toBe('');
+        expect(config('fooino.user_timezone'))->toBe('');
         expect(getUserTimezone())->toBe('UTC');
     });
 
@@ -574,6 +581,12 @@ describe('Helpers unit tests', function () {
 
         request()->merge(['per_page' => 0]);
         expect(perPage())->toBe(FOOINO_PER_PAGE);
+
+        request()->merge(['per_page' => 0.5]);
+        expect(perPage())->toBe(FOOINO_PER_PAGE);
+
+        request()->merge(['per_page' => 1]);
+        expect(perPage())->toBe(1);
 
         request()->merge(['per_page' => 301]);
         expect(perPage())->toBe(FOOINO_MAX_PER_PAGE);
@@ -608,8 +621,8 @@ describe('Helpers unit tests', function () {
 
     test('currentDateTs and currentDateTimeTs helper', function () {
 
-        expect(currentDateTs())->toBe(strtotime(currentDate()));
-        expect(currentDateTimeTs())->toBe(strtotime(currentDateTime()));
+        expect(currentDateTs())->toBe(strtotime(date('Y-m-d')));
+        expect(currentDateTimeTs())->toBe(strtotime(date('Y-m-d H:i:s')));
 
         expect(currentDateTs())->toBeInt();
         expect(currentDateTimeTs())->toBeInt();
@@ -623,7 +636,7 @@ describe('Helpers unit tests', function () {
 
         expect(strToDate(str: 'next monday'))->toBe(date(STANDARD_DATE_FORMAT, strtotime('next monday')));
 
-        expect(fn() => strToDate(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidDateString');
+        expect(fn() => strToDate(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRuntimeExceptionInvalidDateString');
 
         try {
 
@@ -632,7 +645,7 @@ describe('Helpers unit tests', function () {
             //
         } catch (FooinoRuntimeException $e) {
 
-            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidDateString');
+            expect($e->getMessage())->toBe('msg.fooinoRuntimeExceptionInvalidDateString');
             expect($e->getCode())->toBe(3);
             expect($e->reportable())->toBeTrue();
             expect($e->getLevel())->toBe('error');
@@ -652,7 +665,7 @@ describe('Helpers unit tests', function () {
 
         expect(strToDateTime(str: 'next monday'))->toBe(date(STANDARD_DATE_TIME_FORMAT, strtotime('next monday')));
 
-        expect(fn() => strToDateTime(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRunTimeExceptionInvalidDateString');
+        expect(fn() => strToDateTime(str: 'not a date'))->toThrow(FooinoRuntimeException::class, 'msg.fooinoRuntimeExceptionInvalidDateString');
 
         try {
 
@@ -661,7 +674,7 @@ describe('Helpers unit tests', function () {
             //
         } catch (FooinoRuntimeException $e) {
 
-            expect($e->getMessage())->toBe('msg.fooinoRunTimeExceptionInvalidDateString');
+            expect($e->getMessage())->toBe('msg.fooinoRuntimeExceptionInvalidDateString');
             expect($e->getCode())->toBe(3);
             expect($e->reportable())->toBeTrue();
             expect($e->getLevel())->toBe('error');
@@ -797,7 +810,7 @@ describe('Helpers unit tests', function () {
 
         expect(unitSizeFormat(bytes: 0))->toBe('0 Byte');
 
-        expect(unitSizeFormat(bytes: -10))->toBe('-10 msg.isInvalid');
+        expect(unitSizeFormat(bytes: -10))->toBe('-10 msg.invalid');
 
         expect(unitSizeFormat(bytes: 1234567))->toBe('1.177 MB');
         expect(unitSizeFormat(bytes: 1234567, precision: 5))->toBe('1.17737 MB');
@@ -888,9 +901,12 @@ describe('Helpers unit tests', function () {
 
     test('jsonAttribute helper', function () {
 
-        Schema::create('json_attr_table', function (Blueprint $table) {
+        Schema::create('testing_json_table', function (Blueprint $table) {
+
             $table->id();
+
             $table->json('info')->nullable();
+
             $table->timestamps();
         });
 
@@ -898,7 +914,7 @@ describe('Helpers unit tests', function () {
 
             protected $guarded = ['id'];
 
-            protected $table = 'json_attr_table';
+            protected $table = 'testing_json_table';
 
             public function info(): Attribute
             {
@@ -908,69 +924,69 @@ describe('Helpers unit tests', function () {
 
         $model->create(['info' => '   ']);
         expect($model->find(1)->info)->toBe([]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 1, 'info' => null]);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 1, 'info' => null]);
 
         $data = ['foo' => 'bar', 123];
         $model->create(['info' => $data]);
         expect($model->find(2)->info)->toBe($data);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 2, 'info' => json_encode($data)]);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 2, 'info' => json_encode($data)]);
 
         $model->create(['info' => null]);
         expect($model->find(3)->info)->toBe([]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 3, 'info' => null]);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 3, 'info' => null]);
 
         $model->create(['info' => [0]]);
         expect($model->find(4)->info)->toBe([0]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 4, 'info' => '[0]']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 4, 'info' => '[0]']);
 
         $model->create(['info' => [false]]);
         expect($model->find(5)->info)->toBe([false]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 5, 'info' => '[false]']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 5, 'info' => '[false]']);
 
         $model->create(['info' => [null]]);
         expect($model->find(6)->info)->toBe([null]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 6, 'info' => '[null]']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 6, 'info' => '[null]']);
 
         $model->create(['info' => ['null']]);
         expect($model->find(7)->info)->toBe(['null']);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 7, 'info' => '["null"]']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 7, 'info' => '["null"]']);
 
         $model->create(['info' => []]);
         expect($model->find(8)->info)->toBe([]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 8, 'info' => null]);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 8, 'info' => null]);
 
         $model->create(['info' => '{"a":1}']);
         expect($model->find(9)->info)->toBe(['a' => 1]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 9, 'info' => '{"a":1}']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 9, 'info' => '{"a":1}']);
 
         $model->create(['info' => '{}']);
         expect($model->find(10)->info)->toBe([]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 10, 'info' => '{}']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 10, 'info' => '{}']);
 
         $nested = [['a' => 1], ['b' => 2]];
         $model->create(['info' => $nested]);
         expect($model->find(11)->info)->toBe($nested);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 11, 'info' => json_encode($nested)]);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 11, 'info' => json_encode($nested)]);
 
         $m = $model->create(['info' => ['a' => 1]]);
         $m->update(['info' => ['b' => 2]]);
         expect($m->fresh()->info)->toBe(['b' => 2]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 12, 'info' => '{"b":2}']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 12, 'info' => '{"b":2}']);
 
         $m = $model->create(['info' => ['a' => 1, 'b' => 2]]);
         $m->update(['info' => ['a' => 1, 'b' => 3]]);
         expect($m->fresh()->info)->toBe(['a' => 1, 'b' => 3]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 13, 'info' => '{"a":1,"b":3}']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 13, 'info' => '{"a":1,"b":3}']);
 
         $m = $model->create(['info' => ['a' => 1, 'b' => 2]]);
         $m->update(['info' => ['a' => 1]]);
         expect($m->fresh()->info)->toBe(['a' => 1]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 14, 'info' => '{"a":1}']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 14, 'info' => '{"a":1}']);
 
         $m = $model->create(['info' => ['a' => 1]]);
         $m->update(['info' => ['a' => 1, 'b' => 2]]);
         expect($m->fresh()->info)->toBe(['a' => 1, 'b' => 2]);
-        $this->assertDatabaseHas('json_attr_table', ['id' => 15, 'info' => '{"a":1,"b":2}']);
+        $this->assertDatabaseHas('testing_json_table', ['id' => 15, 'info' => '{"a":1,"b":2}']);
     });
 
     test('resolveRequest helper', function () {
@@ -982,7 +998,7 @@ describe('Helpers unit tests', function () {
         $resolved = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'foobar',
+                'name'  => 'foobar',
                 'email' => 'foobar@gmail.com'
             ],
             user: $user,
@@ -997,7 +1013,7 @@ describe('Helpers unit tests', function () {
         $resolved = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'foo',
+                'name'  => 'foo',
                 'email' => 'foo@bar.com'
             ],
         );
@@ -1008,21 +1024,21 @@ describe('Helpers unit tests', function () {
         $validated = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'hello',
+                'name'  => 'hello',
                 'email' => 'hello@test.com'
             ]
         )
             ->validated();
 
         expect($validated)->toBe([
-            'name' => 'hello',
+            'name'  => 'hello',
             'email' => 'hello@test.com'
         ]);
 
         $filtered = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'test',
+                'name'  => 'test',
                 'email' => 'test@test.com',
                 'extra' => 'should_be_stripped'
             ]
@@ -1030,7 +1046,7 @@ describe('Helpers unit tests', function () {
             ->validated();
 
         expect($filtered)->toBe([
-            'name' => 'test',
+            'name'  => 'test',
             'email' => 'test@test.com'
         ]);
         expect(isset($filtered['extra']))->toBeFalse();
@@ -1040,7 +1056,7 @@ describe('Helpers unit tests', function () {
         $noUser = resolveRequest(
             request: TestFormRequest::class,
             data: [
-                'name' => 'nouser',
+                'name'  => 'nouser',
                 'email' => 'nouser@test.com'
             ]
         );

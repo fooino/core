@@ -29,8 +29,8 @@
     },
     "require-dev": {
         "orchestra/testbench": "^11.0",
-        "pestphp/pest": "^4.7",
-        "pestphp/pest-plugin-type-coverage": "^4.0"
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-type-coverage": "^5.0"
     },
     "autoload": {
         "psr-4": {
@@ -59,6 +59,7 @@
     },
     "scripts": {
         "pest": "./vendor/bin/pest",
+        "pest:fast": "./vendor/bin/pest --parallel --tia",
         "pest:coverage": "./vendor/bin/pest --coverage",
         "pest:coverage:html": "./vendor/bin/pest --coverage-html coverage",
         "pest:coverage:type": "./vendor/bin/pest --type-coverage"

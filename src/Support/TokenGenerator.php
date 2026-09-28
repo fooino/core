@@ -29,6 +29,10 @@ class TokenGenerator
 
     public const int MAX_LENGTH = 255;
 
+    public const int MIN_PASSWORD_LENGTH = 8;
+
+    public const int MIN_STRONG_PASSWORD_LENGTH = 12;
+
     /**
      * Generate and return the token. This is the entry point that triggers validation,
      * generation, and optional uniqueness check against the database.
@@ -136,11 +140,11 @@ class TokenGenerator
     }
 
     /**
-     * Numeric format like 12345. Make OTP code
+     * Numeric format like 12345, for OTP codes
      */
     public function numeric(): static
     {
-        return $this->setFormat('numeric');
+        return $this->setFormat(format: 'numeric');
     }
 
     /**
@@ -148,7 +152,7 @@ class TokenGenerator
      */
     public function alphaNumeric(): static
     {
-        return $this->setFormat('alphaNumeric');
+        return $this->setFormat(format: 'alphaNumeric');
     }
 
     /**
@@ -156,7 +160,7 @@ class TokenGenerator
      */
     public function alphabet(): static
     {
-        return $this->setFormat('alphabet');
+        return $this->setFormat(format: 'alphabet');
     }
 
     /**
@@ -164,7 +168,7 @@ class TokenGenerator
      */
     public function weakPassword(): static
     {
-        return $this->setFormat('weakPassword');
+        return $this->setFormat(format: 'weakPassword');
     }
 
     /**
@@ -173,7 +177,7 @@ class TokenGenerator
      */
     public function password(): static
     {
-        return $this->setFormat('password');
+        return $this->setFormat(format: 'password');
     }
 
     /**
@@ -182,7 +186,7 @@ class TokenGenerator
      */
     public function strongPassword(): static
     {
-        return $this->setFormat('strongPassword');
+        return $this->setFormat(format: 'strongPassword');
     }
 
     /**
@@ -190,7 +194,7 @@ class TokenGenerator
      */
     public function uuid4(): static
     {
-        return $this->setFormat('uuid4');
+        return $this->setFormat(format: 'uuid4');
     }
 
     /**
@@ -198,7 +202,7 @@ class TokenGenerator
      */
     public function uuid7(): static
     {
-        return $this->setFormat('uuid7');
+        return $this->setFormat(format: 'uuid7');
     }
 
     /**
@@ -207,7 +211,7 @@ class TokenGenerator
      */
     public function memorableOtp(): static
     {
-        return $this->setFormat('memorableOtp');
+        return $this->setFormat(format: 'memorableOtp');
     }
 
     /**
@@ -233,7 +237,7 @@ class TokenGenerator
      */
     public function lowercase(): static
     {
-        return $this->pipeline('strtolower');
+        return $this->addPipeline(method: 'strtolower');
     }
 
     /**
@@ -241,14 +245,14 @@ class TokenGenerator
      */
     public function uppercase(): static
     {
-        return $this->pipeline('strtoupper');
+        return $this->addPipeline(method: 'strtoupper');
     }
 
     /**
      * Append a transformation method to the pipeline.
      * Pipeline transformations are applied sequentially after token generation.
      */
-    protected function pipeline(string $method): static
+    protected function addPipeline(string $method): static
     {
         $this->pipeline = array_merge($this->getPipeline(), [$method]);
 
@@ -281,7 +285,7 @@ class TokenGenerator
 
         if (
             $this->getFormat() === 'strongPassword' &&
-            $this->getLength() < 12
+            $this->getLength() < self::MIN_STRONG_PASSWORD_LENGTH
         ) {
 
             $this->throwSmallLengthNumberForStrongPasswordException();
@@ -289,18 +293,18 @@ class TokenGenerator
 
         if (
             $this->getFormat() === 'password' &&
-            $this->getLength() < 8
+            $this->getLength() < self::MIN_PASSWORD_LENGTH
         ) {
 
             $this->throwSmallLengthNumberForPasswordException();
         }
 
         if (
-            filled($this->getModel()) &&
-            blank($this->getField())
+            (filled($this->getModel()) && blank($this->getField())) ||
+            (blank($this->getModel()) && filled($this->getField()))
         ) {
 
-            $this->throwFieldIsRequiredException();
+            $this->throwModelAndFieldAreRequiredException();
         }
 
         if (
@@ -321,7 +325,7 @@ class TokenGenerator
      */
     protected function generate(): static
     {
-        $this->attempted();
+        $this->attempts();
 
         $token = $this->{('generate' . ucfirst($this->getFormat()))}();
 
@@ -389,18 +393,12 @@ class TokenGenerator
     }
 
     /**
-     * Generate a weak password (digits only) using Laravel's string password helper.
+     * Generate a weak password (digits only).
      * Guarantees the first digit is never 0 to match numeric() behaviour.
      */
     protected function generateWeakPassword(): string
     {
-        $token = str()->password(length: $this->getLength(), letters: false, numbers: true, symbols: false);
-
-        if ($token[0] === '0') {
-            $token[0] = (string) random_int(1, 9);
-        }
-
-        return $token;
+        return $this->generateNumeric();
     }
 
     /**
@@ -490,7 +488,7 @@ class TokenGenerator
      * Increment the attempt counter and throw an InfiniteLoopException if
      * the maximum number of retries (100) is exceeded.
      */
-    protected function attempted(): void
+    protected function attempts(): void
     {
         $this->attempted++;
 
@@ -509,7 +507,7 @@ class TokenGenerator
     {
         app(TokenGeneratorException::class)
             ->_1201()
-            ->with($this->fooinoExceptionWith())
+            ->with($this->exceptionContext())
             ->throw();
     }
 
@@ -522,7 +520,7 @@ class TokenGenerator
     {
         app(TokenGeneratorException::class)
             ->_1202()
-            ->with($this->fooinoExceptionWith())
+            ->with($this->exceptionContext())
             ->throw();
     }
 
@@ -535,7 +533,7 @@ class TokenGenerator
     {
         app(TokenGeneratorException::class)
             ->_1203()
-            ->with($this->fooinoExceptionWith())
+            ->with($this->exceptionContext())
             ->throw();
     }
 
@@ -548,20 +546,28 @@ class TokenGenerator
     {
         app(TokenGeneratorException::class)
             ->_1204()
-            ->with($this->fooinoExceptionWith())
+            ->with($this->exceptionContext())
             ->throw();
     }
 
     /**
-     * Abort execution when the model is configured but the field is empty
+     * Abort execution when only one of model or field is present
      *
      * @throws \Fooino\Core\Exceptions\TokenGeneratorException  with 1205
      */
-    private function throwFieldIsRequiredException(): never
+    private function throwModelAndFieldAreRequiredException(): never
     {
         app(TokenGeneratorException::class)
             ->_1205()
-            ->with(array_merge($this->fooinoExceptionWith(), ['field' => $this->getField()]))
+            ->with(
+                array_merge(
+                    $this->exceptionContext(),
+                    [
+                        'model' => $this->getModel(),
+                        'field' => $this->getField()
+                    ]
+                )
+            )
             ->throw();
     }
 
@@ -574,7 +580,7 @@ class TokenGenerator
     {
         app(TokenGeneratorException::class)
             ->_1206()
-            ->with($this->fooinoExceptionWith())
+            ->with($this->exceptionContext())
             ->throw();
     }
 
@@ -587,14 +593,14 @@ class TokenGenerator
     {
         app(InfiniteLoopException::class)
             ->_253()
-            ->with($this->fooinoExceptionWith())
+            ->with($this->exceptionContext())
             ->throw();
     }
 
     /**
      * Build the context array attached to thrown exceptions for debugging purposes.
      */
-    private function fooinoExceptionWith(): array
+    private function exceptionContext(): array
     {
         return [
             'attempted' => $this->attempted,

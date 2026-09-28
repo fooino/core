@@ -77,12 +77,12 @@ interface Mathable
     public function sqrt(string|int|float|array $number): string|array;
 
     /**
-     * Round a number up to the next integer (ceiling), away from zero
+     * Round a number up to the next integer (ceiling), toward positive infinity
      */
     public function roundUp(string|int|float|array $number): string|array;
 
     /**
-     * Round a number down to the previous integer (floor), toward zero
+     * Round a number down to the previous integer (floor), toward negative infinity
      */
     public function roundDown(string|int|float|array $number): string|array;
 

@@ -39,7 +39,7 @@ pest()->extend(Fooino\Core\Tests\TestCase::class);
 |
 */
 
-function something()
-{
-    // ..
-}
+// function something()
+// {
+//     // ..
+// }

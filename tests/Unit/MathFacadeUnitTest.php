@@ -6,6 +6,7 @@ use Fooino\Core\Concretes\Math\FooinoMathHandler;
 use Fooino\Core\Exceptions\MathCalculationException;
 use Fooino\Core\Facades\Math;
 use Fooino\Core\Tests\Data\Datasets;
+use ReflectionMethod;
 use RoundingMode;
 
 describe('Math facade using FooinoMathHandler', function () {
@@ -18,7 +19,7 @@ describe('Math facade using FooinoMathHandler', function () {
         expect(math()->getPrecision())->toBe(12);
         expect(math(precision: 5)->getPrecision())->toBe(5);
 
-        expect(bcscale())->toBe(0);
+        expect(bcscale())->toBe(0); // setting the precision does not affect bcscale
     });
 
     test('setPrecision returns same instance for same precision', function () {
@@ -41,6 +42,25 @@ describe('Math facade using FooinoMathHandler', function () {
         expect($a)->not->toBe($c); // different precision → different instance
     });
 
+    test('setPrecision accepts the zero boundary and caches by precision', function () {
+
+        expect(math(precision: 0)->getPrecision())->toBe(0);
+        expect(Math::setPrecision(precision: 0)->number(5.9999))->toBe('5');
+
+        expect(Math::setPrecision(precision: 12))->toBe(Math::setPrecision(precision: 12));
+
+        expect(fn() => math(13))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidPrecision');
+    });
+
+    test('comparisons are exact up to the twelve decimal places of bc scale', function () {
+
+        expect(Math::equal('1.000000000001', '1'))->toBeFalse();   // differs at the 12th decimal
+        expect(Math::equal('1.0000000000001', '1'))->toBeTrue();    // 13th decimal is beyond bc scale and is ignored
+        expect(Math::greaterThan('1.0000000000001', '1'))->toBeFalse();
+        expect(Math::greaterThanOrEqual('1.0000000000001', '1'))->toBeTrue();
+        expect(Math::notEqual('1.0000000000001', '1'))->toBeFalse();
+    });
+
     test('convertScientificNumber method', function () {
 
         foreach (Datasets::mathConvertScientificNumber() as $dataset) {
@@ -48,7 +68,13 @@ describe('Math facade using FooinoMathHandler', function () {
             $number = $dataset[0];
             $expected = $dataset[1];
 
-            expect(Math::convertScientificNumber($number))->toBe($expected);
+            if (rand(0, 1)) {
+
+                expect(Math::convertScientificNumber($number))->toBe($expected);
+                continue;
+            }
+
+            expect(convertScientificNumber($number))->toBe($expected);
         }
 
         // 
@@ -61,7 +87,13 @@ describe('Math facade using FooinoMathHandler', function () {
             $number = $dataset[0];
             $expected = $dataset[1];
 
-            expect(Math::trimTrailingZeros($number))->toBe($expected);
+            if (rand(0, 1)) {
+
+                expect(Math::trimTrailingZeros($number))->toBe($expected);
+                continue;
+            }
+
+            expect(trimTrailingZeros($number))->toBe($expected);
         }
 
         // 
@@ -559,7 +591,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(fn() => Math::convertScientificNumber(1.1E-322))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidValueError');
             expect(fn() => Math::convertScientificNumber(-1.1E-322))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidValueError');
 
-            // very small number when cast to string becomes zero. The max exponent PHP can handle is 324
+            // very small number when cast to string becomes zero. The max negative exponent PHP can handle is 324
             expect(Math::convertScientificNumber(1.1E-324))->toBe('0');
             expect(Math::convertScientificNumber(-1.1E-324))->toBe('0');
 
@@ -629,7 +661,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             try {
 
-                Math::convertScientificNumber('-1.1E+9999');
+                Math::convertScientificNumber('-1.1E-324');
 
                 // 
             } catch (MathCalculationException $e) {
@@ -641,10 +673,18 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
                     'method'        => 'convertScientificNumber',
-                    'operand'       => '-1.1E+9999',
+                    'operand'       => '-1.1E-324',
                     'args'          => []
                 ]);
             }
+        });
+
+        test('nan and infinite values are rejected as operands', function () {
+
+            expect(fn() => Math::number(NAN))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidValueError');
+            expect(fn() => Math::sum(NAN, 1))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidValueError');
+            expect(fn() => Math::subtract([1, NAN]))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidValueError');
+            expect(fn() => Math::numberFormat(INF))->toThrow(MathCalculationException::class);
         });
 
         test('number check the input is numeric', function () {
@@ -772,6 +812,31 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getWith())->toBe([
                     'method'        => 'numberFormat',
                     'operand'       => '2,000,000.12T',
+                    'args'          => []
+                ]);
+            }
+        });
+
+        test('numberFormat rejects an empty string input', function () {
+
+            expect(fn() => Math::numberFormat(''))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+            expect(fn() => numberFormat(' '))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionInvalidArgumentType');
+
+            try {
+
+                Math::numberFormat('');
+
+                //
+            } catch (MathCalculationException $e) {
+
+                expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
+                expect($e->getCode())->toBe(1103);
+                expect($e->getLevel())->toBe('error');
+                expect($e->getHttpStatusCode())->toBe(500);
+                expect($e->reportable())->toBeTrue();
+                expect($e->getWith())->toBe([
+                    'method'        => 'numberFormat',
+                    'operand'       => '',
                     'args'          => []
                 ]);
             }
@@ -1551,7 +1616,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             $handler = new FooinoMathHandler();
 
-            $reflector = new \ReflectionMethod($handler, 'calc');
+            $reflector = new ReflectionMethod($handler, 'calc');
 
             expect(fn() => $reflector->invoke($handler, 'bcfoobar', [1, 2]))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionUnsupportedFunction');
 
@@ -1577,7 +1642,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             $handler = new FooinoMathHandler();
 
-            $reflector = new \ReflectionMethod($handler, 'calcTwoOperand');
+            $reflector = new ReflectionMethod($handler, 'calcTwoOperand');
 
             expect(fn() => $reflector->invoke($handler, 'bcfoobar', [1, 2]))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionUnsupportedFunction');
 
@@ -1602,7 +1667,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             $handler = new FooinoMathHandler();
 
-            $reflector = new \ReflectionMethod($handler, 'calcOneOperand');
+            $reflector = new ReflectionMethod($handler, 'calcOneOperand');
 
             expect(fn() => $reflector->invoke($handler, 'bcfoobar', [1, 2]))->toThrow(MathCalculationException::class, 'msg.mathCalculationExceptionUnsupportedFunction');
 

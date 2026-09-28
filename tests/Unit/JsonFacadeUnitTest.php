@@ -268,6 +268,11 @@ describe('Json facade using FooinoJsonHandler', function () {
             ->toBe('')
             ->and(jsonEncodePretty(value: []))->toBe('');
 
+        expect(Json::encodePretty(value: null))
+            ->toBe('')
+            ->and(jsonEncodePretty(value: null))->toBe('');
+
+
         expect(removeWhitespace(value: Json::encodePretty(value: ['foo' => 'bar'])))->toBe('{&quot;foo&quot;:&quot;bar&quot;}');
 
         expect(removeWhitespace(value: Json::encodePretty(value: json_encode(['foo' => 'bar']))))->toBe('{&quot;foo&quot;:&quot;bar&quot;}');
@@ -290,7 +295,10 @@ describe('Json facade using FooinoJsonHandler', function () {
         expect(removeWhitespace(value: jsonEncodePretty(value: ['-5.5'])))->toBe('[&quot;-5.5&quot;]');
         expect(removeWhitespace(value: jsonEncodePretty(value: [-5.5])))->toBe('[-5.5]');
 
-        expect(removeWhitespace(value: jsonEncodePretty(value: 'foobar')))->toBe('&quot;foobar&quot;');
+        expect(removeWhiteSpace(value: jsonEncodePretty(value: true)))->toBe('[true]');
+        expect(removeWhiteSpace(value: jsonEncodePretty(value: false)))->toBe('[false]');
+
+        expect(removeWhitespace(value: jsonEncodePretty(value: 'foobar')))->toBe('[&quot;foobar&quot;]');
         expect(removeWhitespace(value: jsonEncodePretty(value: ["foobar"])))->toBe('[&quot;foobar&quot;]');
     });
 
@@ -318,8 +326,6 @@ describe('Json facade using FooinoJsonHandler', function () {
         expect(Json::decode($string))
             ->toBe(json_decode($string))
             ->and(jsonDecode($string))->toBe('foo bar');
-
-
 
         expect(Json::decode($null))
             ->toBe(json_decode($null))
@@ -492,10 +498,12 @@ describe('Json facade using FooinoJsonHandler', function () {
         expect(Json::decodeToArray('foo bar'))->toBe(['foo bar']);
         expect(Json::decodeToArray(''))->toBe(['']);
         expect(Json::decodeToArray('  '))->toBe(['  ']);
+        expect(jsonDecodeToArray('  '))->toBe(['  ']);
 
         expect(Json::decodeToArray(null))->toBe([]);
         expect(Json::decodeToArray(true))->toBe([true]);
         expect(Json::decodeToArray(false))->toBe([false]);
+        expect(jsonDecodeToArray(false))->toBe([false]);
 
         expect(Json::decodeToArray(['foo' => 'bar']))->toBe(['foo' => 'bar']);
         expect(Json::decodeToArray([0]))->toBe([0]);
@@ -503,6 +511,7 @@ describe('Json facade using FooinoJsonHandler', function () {
         expect(Json::decodeToArray([true]))->toBe([true]);
         expect(Json::decodeToArray([false]))->toBe([false]);
         expect(Json::decodeToArray([]))->toBe([]);
+        expect(jsonDecodeToArray([]))->toBe([]);
 
         expect(Json::decodeToArray(new stdClass))->toBe([]);
 
@@ -519,7 +528,7 @@ describe('Json facade using FooinoJsonHandler', function () {
 
         $facade = Json::respond(
             status: 429,
-            message: 'too many request',
+            message: 'too many requests',
             errors: [
                 'foo'       => 'bar'
             ],
@@ -536,7 +545,7 @@ describe('Json facade using FooinoJsonHandler', function () {
 
         $helper = jsonRespond(
             status: 429,
-            message: 'too many request',
+            message: 'too many requests',
             errors: [
                 'foo'       => 'bar'
             ],
@@ -556,7 +565,7 @@ describe('Json facade using FooinoJsonHandler', function () {
                 data: [
                     'status'    => 429,
                     'success'   => false,
-                    'message'   => 'too many request',
+                    'message'   => 'too many requests',
                     'errors'    => [
                         'foo'   => 'bar'
                     ],
@@ -587,7 +596,7 @@ describe('Json facade using FooinoJsonHandler', function () {
 
         expect($facade->getData(true)['status'])->toBe(429);
         expect($facade->getData(true)['success'])->toBe(false);
-        expect($facade->getData(true)['message'])->toBe('too many request');
+        expect($facade->getData(true)['message'])->toBe('too many requests');
         expect($facade->getData(true)['errors'])->toBe(['foo' => 'bar']);
         expect($facade->getData(true)['data'])->toBe(['foo' => 'bar']);
         expect($facade->getData(true)['additional'])->toBe(['bypass' => false]);

@@ -1,22 +1,18 @@
 <?php
 
-use Fooino\Core\Exceptions\FooinoException;
-use Fooino\Core\Exceptions\FooinoRuntimeException;
-
 use Fooino\Core\Facades\Date;
 use Fooino\Core\Facades\Json;
 use Fooino\Core\Facades\Math;
 
 use Fooino\Core\Interfaces\Mathable;
 use Fooino\Core\Support\Sanitizer;
+use Fooino\Core\Exceptions\FooinoRuntimeException;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 if (!defined('FOOINO_CORE_CONSTANTS_DEFINED')) {
 
@@ -55,7 +51,7 @@ if (!function_exists('jsonEncodePretty')) {
     /**
      * Serialize a value to a human-readable JSON string with HTML-safe escaping for display
      */
-    function jsonEncodePretty(string|array $value): string
+    function jsonEncodePretty(int|float|string|null|bool|array $value): string
     {
         return Json::encodePretty(value: $value);
     }
@@ -149,6 +145,26 @@ if (!function_exists('numberFormat')) {
     }
 }
 
+if (!function_exists('convertScientificNumber')) {
+    /**
+     * Expand a number expressed in scientific notation (e.g. 1.5E+4) into its full numeric string representation
+     */
+    function convertScientificNumber(string|int|float|array $number): string|array
+    {
+        return Math::convertScientificNumber(number: $number);
+    }
+}
+
+if (!function_exists('trimTrailingZeros')) {
+    /**
+     * Remove all trailing zeros after the decimal point from a number, returning a clean numeric string
+     */
+    function trimTrailingZeros(string|int|float $number): string
+    {
+        return Math::trimTrailingZeros(number: $number);
+    }
+}
+
 if (!function_exists('sum')) {
     /**
      * Add a series of numbers (or an array of numbers) together using arbitrary precision arithmetic
@@ -201,7 +217,7 @@ if (!function_exists('remainder')) {
 
 if (!function_exists('roundUp')) {
     /**
-     * Round a number up to the next integer (ceiling), away from zero
+     * Round a number up to the next integer (ceiling), toward positive infinity
      */
     function roundUp(string|int|float|array $number): string|array
     {
@@ -211,7 +227,7 @@ if (!function_exists('roundUp')) {
 
 if (!function_exists('roundDown')) {
     /**
-     * Round a number down to the previous integer (floor), toward zero
+     * Round a number down to the previous integer (floor), toward negative infinity
      */
     function roundDown(string|int|float|array $number): string|array
     {
@@ -399,18 +415,18 @@ if (!function_exists('removeComma')) {
     function removeComma(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
         if (is_string($value)) {
-            return str_replace(',', $replace, $value);
+
+            return str_replace(search: ',', replace: $replace, subject: $value);
         }
 
         if (is_array($value)) {
 
-            $result = [];
-
             foreach ($value as $key => $item) {
-                $result[$key] = is_string($item) ? str_replace(',', $replace, $item) : $item;
+
+                $value[$key] = is_string($item) || is_array($item) ? removeComma(value: $item, replace: $replace) : $item;
             }
 
-            return $result;
+            return $value;
         }
 
         return $value;
@@ -424,18 +440,18 @@ if (!function_exists('removeWhitespace')) {
     function removeWhitespace(int|float|string|null|bool|array $value, string $replace = ''): int|float|string|null|bool|array
     {
         if (is_string($value)) {
-            return str_replace([' ', "\n", "\t"], $replace, $value);
+
+            return str_replace(search: [" ", "\n", "\t"], replace: $replace, subject: $value);
         }
 
         if (is_array($value)) {
 
-            $result = [];
-
             foreach ($value as $key => $item) {
-                $result[$key] = is_string($item) ? str_replace([' ', "\n", "\t"], $replace, $item) : $item;
+
+                $value[$key] = is_string($item) || is_array($item) ? removeWhitespace(value: $item, replace: $replace) : $item;
             }
 
-            return $result;
+            return $value;
         }
 
         return $value;
@@ -459,18 +475,18 @@ if (!function_exists('replaceSlashWithDash')) {
     function replaceSlashWithDash(int|float|string|null|bool|array $value): int|float|string|null|bool|array
     {
         if (is_string($value)) {
-            return str_replace('/', '-', $value);
+
+            return str_replace(search: '/', replace: '-', subject: $value);
         }
 
         if (is_array($value)) {
 
-            $result = [];
-
             foreach ($value as $key => $item) {
-                $result[$key] = is_string($item) ? str_replace('/', '-', $item) : $item;
+
+                $value[$key] = is_string($item) || is_array($item) ? replaceSlashWithDash(value: $item) : $item;
             }
 
-            return $result;
+            return $value;
         }
 
         return $value;
@@ -483,7 +499,7 @@ if (!function_exists('setUserTimezone')) {
      */
     function setUserTimezone(string $timezone): void
     {
-        config(['user-timezone' => $timezone]);
+        config(['fooino.user_timezone' => $timezone]);
     }
 }
 
@@ -493,13 +509,13 @@ if (!function_exists('getUserTimezone')) {
      */
     function getUserTimezone(): string
     {
-        return (config(key: 'user-timezone', default: 'UTC')) ?: 'UTC';
+        return (config(key: 'fooino.user_timezone', default: 'UTC')) ?: 'UTC';
     }
 }
 
 if (!function_exists('setDefaultLocale')) {
     /**
-     * Setter for 'app.locale' config
+     * Override the application locale so subsequent translations resolve to the requested language
      */
     function setDefaultLocale(string $locale): void
     {
@@ -509,7 +525,7 @@ if (!function_exists('setDefaultLocale')) {
 
 if (!function_exists('getDefaultLocale')) {
     /**
-     * Getter for 'app.locale' config
+     * Resolve the current application locale, falling back to Persian when unset
      */
     function getDefaultLocale(): string
     {
@@ -527,7 +543,8 @@ if (!function_exists('perPage')) {
 
         $perPage = $request->input($key);
 
-        if (is_null($perPage) || !is_numeric($perPage) || $perPage <= 0) {
+        if (is_null($perPage) || !is_numeric($perPage) || $perPage < 1) {
+
             return FOOINO_PER_PAGE;
         }
 
@@ -537,7 +554,7 @@ if (!function_exists('perPage')) {
 
 if (!function_exists('currentDate')) {
     /**
-     * Return date in 'Y-m-d' format
+     * Get today's date in 'Y-m-d' format
      */
     function currentDate(): string
     {
@@ -547,7 +564,7 @@ if (!function_exists('currentDate')) {
 
 if (!function_exists('currentDateTime')) {
     /**
-     * Return date in 'Y-m-d H:i:s' format
+     * Get today's date in 'Y-m-d H:i:s' format
      */
     function currentDateTime(): string
     {
@@ -578,7 +595,7 @@ if (!function_exists('currentDateTimeTs')) {
 if (!function_exists('strToDate')) {
     /**
      * Convert a date string to the standard date format (Y-m-d)
-     * The helper use php strtotime function to parse $str
+     * The helper uses PHP's strtotime() to parse $str
      *
      * @throws \Fooino\Core\Exceptions\FooinoRuntimeException with code 3
      */
@@ -604,7 +621,7 @@ if (!function_exists('strToDate')) {
 if (!function_exists('strToDateTime')) {
     /**
      * Convert a date string to the standard datetime format (Y-m-d H:i:s)
-     * The helper use php strtotime function to parse $str
+     * The helper uses PHP's strtotime() to parse $str
      *
      * @throws \Fooino\Core\Exceptions\FooinoRuntimeException with code 3
      */
@@ -679,6 +696,7 @@ if (!function_exists('unitNumberFormat')) {
         };
 
         if ($threshold === null) {
+
             return trim(math(precision: $precision)->numberFormat($number) . ' ' . $unit);
         }
 
@@ -689,7 +707,7 @@ if (!function_exists('unitNumberFormat')) {
         return trim(
             math(precision: $precision)->numberFormat($divided)
                 . ' '
-                . __($unitKey, ['count' => $count])
+                . trans_choice($unitKey, $count)
                 . ' '
                 . $unit
         );
@@ -716,7 +734,7 @@ if (!function_exists('unitSizeFormat')) {
 
             greaterThanOrEqual($bytes, '0')               => $bytes . ' Byte',
 
-            default                                       => $bytes . ' ' . __('msg.isInvalid'),
+            default                                       => $bytes . ' ' . __('msg.invalid'),
         };
     }
 }
@@ -736,9 +754,9 @@ if (!function_exists('normalizeInput')) {
      * Normalize the input by converting Persian/Arabic digits and letters,
      * removing zero-width non-joiners, stripping XSS vectors, and trimming whitespace
      */
-    function normalizeInput(string|int|float|null|bool|array|object $value): string|int|float|null|bool|array|object
+    function normalizeInput(string|int|float|null|bool|array|object $value, array $includeHTMLTags = []): string|int|float|null|bool|array|object
     {
-        return sanitizer(value: $value)->normalizeInput()->value();
+        return sanitizer(value: $value)->normalizeInput(includeHTMLTags: $includeHTMLTags)->value();
     }
 }
 
@@ -809,6 +827,7 @@ if (!function_exists('resolveRequest')) {
         $req->merge($data);
 
         if (!is_null($user)) {
+            
             $req->setUserResolver(fn() => $user);
         }
 

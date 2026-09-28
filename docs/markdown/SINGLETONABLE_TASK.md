@@ -12,6 +12,8 @@ Use `SingletonableTask` when you have a unit of work that:
 
 Common examples: loading configuration, fetching a remote resource, computing a derived value, building a lookup map.
 
+> **Note:** cached instances live for the whole PHP process. Under standard PHP-FPM that matches one request, but under long-running workers (e.g., Octane or queue workers) the data stays cached across requests — call `flush()` (e.g., in a request lifecycle hook) to force a fresh cycle per request.
+
 ## How it works
 
 ```
@@ -27,6 +29,7 @@ Common examples: loading configuration, fetching a remote resource, computing a 
 - `instance()` returns the singleton.
 - `run()` calls `getData()` on the **first** invocation only. Subsequent calls return the cached result.
 - `reset()` clears the cached data so the next `run()` re-executes `getData()`.
+- `flush()` clears **all** cached instances so the next `instance()` call rebuilds them.
 - `beforeReset()` / `afterReset()` are lifecycle hooks that run before and after data is cleared.
 
 ## Usage example
@@ -61,6 +64,16 @@ Returns the singleton instance. The constructor is `protected` — the only way 
 
 ```php
 $task = MyTask::instance();
+```
+
+### `flush(): void`
+
+Clears every cached singleton instance across **all** subclasses. The next `instance()` call rebuilds a fresh instance with an empty cache. Useful for long-running processes where a per-request lifecycle applies (e.g., Octane request hooks) and in tests to reset state between cases.
+
+```php
+MyTask::flush();
+
+$task = MyTask::instance(); // fresh instance with an empty cache
 ```
 
 ### `run(): mixed`

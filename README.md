@@ -46,15 +46,17 @@ exit
 
 6. [NormalizesInputs trait](./docs/markdown/NORMALIZES_INPUTS.md)
 
-7. [TokenGenerator](./docs/markdown/TOKEN_GENERATOR.md)
+7. [ApiResourceable trait](./docs/markdown/API_RESOURCEABLE.md)
 
-8. [SingletonableTask](./docs/markdown/SINGLETONABLE_TASK.md)
+8. [TokenGenerator](./docs/markdown/TOKEN_GENERATOR.md)
 
-9. [FooinoException](./docs/markdown/FOOINO_EXCEPTION.md)
+9. [SingletonableTask](./docs/markdown/SINGLETONABLE_TASK.md)
 
-10. [Exceptions](./docs/markdown/EXCEPTIONS.md)
+10. [FooinoException](./docs/markdown/FOOINO_EXCEPTION.md)
 
-11. [Configuration](./docs/markdown/CONFIGURATION.md)
+11. [Exceptions](./docs/markdown/EXCEPTIONS.md)
+
+12. [Configuration](./docs/markdown/CONFIGURATION.md)
 
 
 ## 🚀 Change log

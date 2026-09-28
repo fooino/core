@@ -12,31 +12,35 @@ trait NormalizesInputs
         $inputConfigs = $this->inputConfigs();
 
         $prepared = [];
+        $processed = [];
 
         foreach ($this->rules() as $input => $rules) {
 
-            if (str_contains($input, '*')) {
+            $config = $inputConfigs[$input] ?? [];
 
-                $this->applyWildcard(
-                    prepared: $prepared,
-                    input: $input,
-                    config: $inputConfigs[$input] ?? [],
+            $isWildcard = str_contains($input, '*');
+
+            foreach ($this->resolveInputPaths(input: $input) as $path) {
+
+                if ($isWildcard && isset($processed[$path])) {
+
+                    // a field already prepared by an earlier rule wins over the wildcard pipeline
+                    continue;
+                }
+
+                data_set(
+                    target: $prepared,
+                    key: $path,
+                    value: $this->prepareValue(input: $path, config: $config),
                 );
 
-                continue;
+                $processed[$path] = true;
             }
-
-            $value = $this->prepareValue(
-                input: $input,
-                config: $inputConfigs[$input] ?? [],
-            );
-
-            data_set(target: $prepared, key: $input, value: $value);
         }
 
         if (filled($prepared)) {
 
-            $this->merge($prepared);
+            $this->mergePrepared(prepared: $prepared);
         }
     }
 
@@ -57,11 +61,22 @@ trait NormalizesInputs
     }
 
     /**
-     * Apply the pipeline to every item matched by a wildcard rule key at any nesting level
+     * Resolve a rule key into the concrete input paths it covers, so wildcard and plain
+     * keys can share the same pipeline
      */
-    private function applyWildcard(array &$prepared, string $input, array $config): void
+    private function resolveInputPaths(string $input): array
     {
-        $segments = explode('.', $input);
+        return str_contains($input, '*')
+            ? $this->expandWildcardPaths(pattern: $input)
+            : [$input];
+    }
+
+    /**
+     * Expand a wildcard rule key into every concrete leaf path it matches inside the current input
+     */
+    private function expandWildcardPaths(string $pattern): array
+    {
+        $segments = explode('.', $pattern);
 
         $firstStar = array_search('*', $segments);
 
@@ -69,37 +84,34 @@ trait NormalizesInputs
 
         $parent = $this->input($parentKey, []);
 
-        if (!is_array($parent)) {
+        $remaining = array_slice($segments, $firstStar + 1);
 
-            return;
+        if (!is_array($parent) || $remaining === []) {
+
+            return [];
         }
 
-        $remainingSegments = array_slice($segments, $firstStar + 1);
+        $paths = [];
 
-        $parent = $this->walkWildcardItems(
-            items: $parent,
-            segments: $remainingSegments,
-            config: $config,
+        $this->collectWildcardPaths(
+            paths: $paths,
+            value: $parent,
+            segments: $remaining,
+            path: $parentKey,
         );
 
-        $existing = data_get(target: $prepared, key: $parentKey);
-
-        if (is_array($existing) && $existing !== []) {
-
-            $parent = array_replace_recursive($parent, $existing);
-        }
-
-        data_set(target: $prepared, key: $parentKey, value: $parent);
+        return $paths;
     }
 
     /**
-     * Recursively walk nested arrays at each wildcard level, applying the pipeline to leaf fields
+     * Collect concrete leaf paths by matching segments against the data: a star iterates over
+     * the items of the current level, a concrete segment descends into nested keys
      */
-    private function walkWildcardItems(array $items, array $segments, array $config): array
+    private function collectWildcardPaths(array &$paths, array $value, array $segments, string $path): void
     {
         if ($segments === []) {
 
-            return $items;
+            return;
         }
 
         $starIndex = array_search('*', $segments);
@@ -108,90 +120,91 @@ trait NormalizesInputs
 
             $fieldPath = implode('.', $segments);
 
-            foreach ($items as $index => $item) {
+            foreach ($value as $index => $item) {
 
-                if (!is_array($item)) {
+                if (is_array($item)) {
 
-                    continue;
+                    $paths[] = $path . '.' . $index . '.' . $fieldPath;
                 }
-
-                $fieldValue = data_get(target: $item, key: $fieldPath);
-
-                $fieldValue = $this->applyNormalize(value: $fieldValue, config: $config);
-
-                $fieldValue = $this->applyNullIfBlank(value: $fieldValue, config: $config);
-
-                $fieldValue = $this->applyPipes(value: $fieldValue, config: $config);
-
-                data_set(target: $item, key: $fieldPath, value: $fieldValue);
-
-                $items[$index] = $item;
             }
 
-            return $items;
+            return;
         }
 
         $prefixKey = implode('.', array_slice($segments, 0, $starIndex));
 
-        $suffixSegments = array_slice($segments, $starIndex + 1);
+        $remaining = array_slice($segments, $starIndex + 1);
 
-        foreach ($items as $index => $item) {
+        foreach ($value as $index => $item) {
 
             if (!is_array($item)) {
 
                 continue;
             }
 
-            $subItems = $prefixKey !== '' ? data_get(target: $item, key: $prefixKey) : $item;
+            $subValue = $prefixKey !== '' ? data_get(target: $item, key: $prefixKey) : $item;
 
-            if (!is_array($subItems)) {
+            if (!is_array($subValue)) {
 
                 continue;
             }
 
-            $subItems = $this->walkWildcardItems(
-                items: $subItems,
-                segments: $suffixSegments,
-                config: $config,
+            $this->collectWildcardPaths(
+                paths: $paths,
+                value: $subValue,
+                segments: $remaining,
+                path: $prefixKey !== '' ? $path . '.' . $index . '.' . $prefixKey : $path . '.' . $index,
             );
+        }
+    }
 
-            if ($prefixKey !== '') {
+    /**
+     * Merge the prepared values back into the request, deep-merging arrays so unruled
+     * sibling keys inside the same parent are not lost
+     */
+    private function mergePrepared(array $prepared): void
+    {
+        $merged = [];
 
-                data_set(target: $item, key: $prefixKey, value: $subItems);
+        foreach ($prepared as $key => $value) {
+
+            if (is_array($value) && is_array($this->input($key))) {
+
+                $value = array_replace_recursive($this->input($key), $value);
             }
 
-            $items[$index] = $item;
+            $merged[$key] = $value;
         }
 
-        return $items;
+        $this->merge($merged);
     }
 
     /**
      * Run normalizeInput on the value unless skipNormalize is set
      */
-    private function applyNormalize(mixed $value, array $config): mixed
+    protected function applyNormalize(mixed $value, array $config): mixed
     {
-        if ($config['skipNormalize'] ?? false) {
+        if (($config['skipNormalize'] ?? false) === true) {
 
             return $value;
         }
 
-        return normalizeInput(value: $value);
+        return normalizeInput(value: $value, includeHTMLTags: $config['includeHTMLTags'] ?? []);
     }
 
     /**
      * Convert blank values to null, with optional fallback and zero handling
      */
-    private function applyNullIfBlank(mixed $value, array $config): mixed
+    protected function applyNullIfBlank(mixed $value, array $config): mixed
     {
-        if ($config['keepBlank'] ?? false) {
+        if (($config['keepBlank'] ?? false) === true) {
 
             return $value;
         }
 
         $default = $config['default'] ?? null;
 
-        if ($config['nullOnZero'] ?? false) {
+        if (($config['nullOnZero'] ?? false) === true) {
 
             return nullIfBlankOrZero(value: $value, fallback: $default);
         }
@@ -202,7 +215,7 @@ trait NormalizesInputs
     /**
      * Execute one or more custom pipe transformations on the value
      */
-    private function applyPipes(mixed $value, array $config): mixed
+    protected function applyPipes(mixed $value, array $config): mixed
     {
         $pipes = $config['pipe'] ?? null;
 
@@ -237,6 +250,9 @@ trait NormalizesInputs
      *   skipNormalize: bool
      *       Skip normalizeInput for this input. Defaults to false.
      *
+     *   includeHTMLTags: array
+     *       HTML tags to keep when normalizing input. Defaults to []
+     *
      *   keepBlank: bool
      *       Keep blank values as-is instead of converting them to null.
      *       When true, nullIfBlank / nullIfBlankOrZero are skipped. Defaults to false.
@@ -257,14 +273,15 @@ trait NormalizesInputs
      * Dot notation and wildcards:
      *   Rule keys like user.name (dot notation) and user.*.name (wildcards) are
      *   supported. The config key must match the rule key exactly, including the
-     *   wildcard pattern:
+     *   wildcard pattern. When a specific rule and a wildcard rule match the same
+     *   field, the specific rule's value is kept.
      *
      *     'user.name'      => ['default' => 'Guest']
      *     'user.*.name'    => ['skipNormalize' => true]
      *
      * Example:
      *   [
-     *       'title' => ['default' => 'Untitled'],
+     *       'title' => ['default' => 'Untitled', 'includeHTMLTags' => ['<custom>']],
      *       'slug'  => ['pipe' => fn($v, $request) => sanitizeSlug($v)],
      *       'count' => ['nullOnZero' => true, 'default' => 0],
      *       'phone' => ['pipe' => [

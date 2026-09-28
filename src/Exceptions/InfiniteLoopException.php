@@ -27,12 +27,12 @@ class InfiniteLoopException extends FooinoException
     }
 
     /**
-     * Configure the exception when a recursive sanitizer operation exceeds the maximum nesting depth
+     * Configure the exception when a sanitizer value is nested deeper than the maximum allowed depth
      */
     final public function _252(): static
     {
         return $this
-            ->setMessage('msg.infiniteLoopExceptionSanitizerRecursionLimit')
+            ->setMessage('msg.infiniteLoopExceptionSanitizerDepthLimit')
             ->setCode(252)
             ->critical()
             ->setHttpStatusCode(500)
