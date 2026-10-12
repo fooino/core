@@ -104,9 +104,7 @@ if (!function_exists('datesBetween')) {
      * Generate an array of dates within a given period(from, to) at specified intervals and format.
      *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
-     *
      * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
-     *
      * @throws \Fooino\Core\Exceptions\InfiniteLoopException
      */
     function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array
@@ -323,7 +321,7 @@ if (!function_exists('nullIfBlank')) {
      */
     function nullIfBlank(int|float|string|null|bool|array|object|callable $value, int|float|string|null|bool|array|object|callable $fallback = null): int|float|string|null|bool|array|object|callable
     {
-        return ((blank($value) || (is_string($value) && trim(str_replace([" ", "\n", "\t", "'", "`", '"', "null", "undefined", "nan"], '', strtolower($value))) === '')) ? null : $value) ?? $fallback;
+        return ((blank($value) || (is_string($value) && trim(str_replace([' ', "\n", "\t", "'", '`', '"', 'null', 'undefined', 'nan'], '', strtolower($value))) === '')) ? null : $value) ?? $fallback;
     }
 }
 
@@ -441,7 +439,7 @@ if (!function_exists('removeWhitespace')) {
     {
         if (is_string($value)) {
 
-            return str_replace(search: [" ", "\n", "\t"], replace: $replace, subject: $value);
+            return str_replace(search: [' ', "\n", "\t"], replace: $replace, subject: $value);
         }
 
         if (is_array($value)) {
@@ -608,8 +606,8 @@ if (!function_exists('strToDate')) {
             app(FooinoRuntimeException::class)
                 ->_3()
                 ->with([
-                    'method'    => 'strToDate',
-                    'input'     => $str
+                    'method' => 'strToDate',
+                    'input'  => $str
                 ])
                 ->throw();
         }
@@ -634,8 +632,8 @@ if (!function_exists('strToDateTime')) {
             app(FooinoRuntimeException::class)
                 ->_3()
                 ->with([
-                    'method'    => 'strToDateTime',
-                    'input'     => $str
+                    'method' => 'strToDateTime',
+                    'input'  => $str
                 ])
                 ->throw();
         }
@@ -662,13 +660,10 @@ if (!function_exists('percentageChange')) {
     {
         return match (true) {
 
-            isZero($from) && isZero($to)    => '0',
-
-            isZero($from)                   => '100',
-
-            isZero($to)                     => '-100',
-
-            default                         => math(precision: $precision)->number(multiply(divide(subtract($to, $from), abs($from)), 100))
+            isZero($from) && isZero($to) => '0',
+            isZero($from)                => '100',
+            isZero($to)                  => '-100',
+            default                      => math(precision: $precision)->number(multiply(divide(subtract($to, $from), abs($from)), 100))
         };
     }
 }
@@ -722,19 +717,13 @@ if (!function_exists('unitSizeFormat')) {
     {
         return match (true) {
 
-            greaterThanOrEqual($bytes, '1099511627776')   => math(precision: $precision)->numberFormat(divide($bytes, '1099511627776')) . ' TB',
-
-            greaterThanOrEqual($bytes, '1073741824')      => math(precision: $precision)->numberFormat(divide($bytes, '1073741824')) . ' GB',
-
-            greaterThanOrEqual($bytes, '1048576')         => math(precision: $precision)->numberFormat(divide($bytes, '1048576')) . ' MB',
-
-            greaterThanOrEqual($bytes, '1024')            => math(precision: $precision)->numberFormat(divide($bytes, '1024')) . ' KB',
-
-            greaterThan($bytes, '1')                      => $bytes . ' Bytes',
-
-            greaterThanOrEqual($bytes, '0')               => $bytes . ' Byte',
-
-            default                                       => $bytes . ' ' . __('msg.invalid'),
+            greaterThanOrEqual($bytes, '1099511627776') => math(precision: $precision)->numberFormat(divide($bytes, '1099511627776')) . ' TB',
+            greaterThanOrEqual($bytes, '1073741824')    => math(precision: $precision)->numberFormat(divide($bytes, '1073741824')) . ' GB',
+            greaterThanOrEqual($bytes, '1048576')       => math(precision: $precision)->numberFormat(divide($bytes, '1048576')) . ' MB',
+            greaterThanOrEqual($bytes, '1024')          => math(precision: $precision)->numberFormat(divide($bytes, '1024')) . ' KB',
+            greaterThan($bytes, '1')                    => $bytes . ' Bytes',
+            greaterThanOrEqual($bytes, '0')             => $bytes . ' Byte',
+            default                                     => $bytes . ' ' . __('msg.invalid'),
         };
     }
 }
@@ -810,7 +799,7 @@ if (!function_exists('jsonAttribute')) {
     {
         return Attribute::make(
             get: fn(mixed $value) => !is_null(nullIfBlank($value)) ? jsonDecodeToArray($value) : [],
-            set: fn(mixed $value) => !is_null(nullIfBlank($value)) ? jsonEncode($value)        : null,
+            set: fn(mixed $value) => !is_null(nullIfBlank($value)) ? jsonEncode($value) : null,
         );
     }
 }
@@ -827,7 +816,7 @@ if (!function_exists('resolveRequest')) {
         $req->merge($data);
 
         if (!is_null($user)) {
-            
+
             $req->setUserResolver(fn() => $user);
         }
 

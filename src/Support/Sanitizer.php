@@ -59,7 +59,6 @@ class Sanitizer
             $value = match (true) {
 
                 in_array(gettype($decoded), ['object', 'array']) => jsonDecodeToArray(json: $value),
-
                 default                                          => $decoded
             };
 

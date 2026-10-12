@@ -188,7 +188,7 @@ describe('TokenGenerator utilities', function () {
     test('check token uniqueness', function () {
 
         Schema::create('testing_users_table', function (Blueprint $table) {
-            
+
             $table->id();
             $table->string('code');
         });
@@ -232,14 +232,14 @@ describe('TokenGenerator utilities', function () {
         foreach (range(1, 8) as $i) {
 
             $insert[] = [
-                'code'      => $i,
-                'status'    => 'ACTIVE'
+                'code'   => $i,
+                'status' => 'ACTIVE'
             ];
         }
         // Code 9 exists but with INACTIVE status — should not be blocked when filtering by ACTIVE
         $insert[] = [
-            'code'      => 9,
-            'status'    => 'INACTIVE'
+            'code'   => 9,
+            'status' => 'INACTIVE'
         ];
 
         $model->insert($insert);

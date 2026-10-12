@@ -30,7 +30,8 @@
     "require-dev": {
         "orchestra/testbench": "^11.0",
         "pestphp/pest": "^5.0",
-        "pestphp/pest-plugin-type-coverage": "^5.0"
+        "pestphp/pest-plugin-type-coverage": "^5.0",
+        "laravel/pint": "^1.32"
     },
     "autoload": {
         "psr-4": {
@@ -58,6 +59,7 @@
         }
     },
     "scripts": {
+        "pint": "./vendor/bin/pint",
         "pest": "./vendor/bin/pest",
         "pest:fast": "./vendor/bin/pest --parallel --tia",
         "pest:coverage": "./vendor/bin/pest --coverage",

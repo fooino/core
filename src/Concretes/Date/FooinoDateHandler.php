@@ -11,7 +11,7 @@ class FooinoDateHandler extends DateHandler implements Dateable
 {
     /**
      * Convert a date between timezones and calendar systems, with fallback and exception control
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
      */
     public function convert(
@@ -34,7 +34,7 @@ class FooinoDateHandler extends DateHandler implements Dateable
             blank($date)
         ) {
             return $fallback;
-        };
+        }
 
         try {
 
@@ -60,8 +60,8 @@ class FooinoDateHandler extends DateHandler implements Dateable
 
             return $date;
 
-            // 
-        } catch (CanNotConvertDateException | Exception $e) {
+            //
+        } catch (CanNotConvertDateException|Exception $e) {
 
             if ($throwException) {
 
@@ -73,7 +73,7 @@ class FooinoDateHandler extends DateHandler implements Dateable
                             'date'          => $date,
                             'format'        => $format,
                             'from'          => is_string($from) ? $from : $from->getName(),
-                            'to'            => is_string($to)   ? $to   : $to->getName(),
+                            'to'            => is_string($to) ? $to : $to->getName(),
                         ]
                     )
                     ->throw();
@@ -90,8 +90,8 @@ class FooinoDateHandler extends DateHandler implements Dateable
     {
         $fromMethod = $this->getCalendarTypeByTimezone(timezone: $from);
 
-        $toMethod   = $this->getCalendarTypeByTimezone(timezone: $to);
+        $toMethod = $this->getCalendarTypeByTimezone(timezone: $to);
 
-        return ($fromMethod !== 'UTC' && $toMethod !== 'UTC') ? [$fromMethod . 'ToUTC', 'UTCTo' .  ucfirst($toMethod)] : [$fromMethod . 'To' . ucfirst($toMethod)];
+        return ($fromMethod !== 'UTC' && $toMethod !== 'UTC') ? [$fromMethod . 'ToUTC', 'UTCTo' . ucfirst($toMethod)] : [$fromMethod . 'To' . ucfirst($toMethod)];
     }
 }

@@ -8,7 +8,7 @@ interface Dateable
 {
     /**
      * Convert a date between timezones and calendar systems (Gregorian, Jalali, Hijri)
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
      */
     public function convert(string|int|null $date, string $format = STANDARD_DATE_TIME_FORMAT, DateTimeZone|string $from = 'UTC', DateTimeZone|string $to = 'UTC', string $fallback = '', bool $throwException = false): string;
@@ -40,11 +40,9 @@ interface Dateable
 
     /**
      * Generate an array of dates within a given period(from, to) at specified intervals and format.
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
-     * 
      * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
-     * 
      * @throws \Fooino\Core\Exceptions\InfiniteLoopException
      */
     public function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array;

@@ -240,9 +240,9 @@ class Datasets
             ['-.011000', '-0.011000'],
             ['-0.011000', '-0.011000'],
 
-            [PHP_INT_MAX, "" . PHP_INT_MAX . ""],
+            [PHP_INT_MAX, '' . PHP_INT_MAX . ''],
             [PHP_INT_MAX . '.' . PHP_INT_MAX, PHP_INT_MAX . '.' . PHP_INT_MAX],
-            [PHP_INT_MIN, "" . PHP_INT_MIN . ""],
+            [PHP_INT_MIN, '' . PHP_INT_MIN . ''],
             [bcadd(PHP_INT_MAX, 1000, 0), bcadd(PHP_INT_MAX, 1000, 0)],
             [bcsub(PHP_INT_MIN, 1000, 0), bcsub(PHP_INT_MIN, 1000, 0)],
 
@@ -472,7 +472,7 @@ class Datasets
         ];
 
         return array_merge(
-            array_map(fn($arr) => [$arr[0], (int)$arr[1]], self::shuffleZeros()),
+            array_map(fn($arr) => [$arr[0], (int) $arr[1]], self::shuffleZeros()),
             $set
         );
     }

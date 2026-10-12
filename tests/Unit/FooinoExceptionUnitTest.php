@@ -54,7 +54,7 @@ describe('FooinoException for better error handling', function () {
         expect($e->getLevel())->toEqual('fooino');
 
         foreach ($levels as $level) {
-            
+
             expect($e->{$level}()->getLevel())->toEqual($level);
         }
 
@@ -90,7 +90,7 @@ describe('FooinoException for better error handling', function () {
 
             $e->throw();
 
-            // 
+            //
         } catch (FooinoException $e) {
 
             expect($e->getCause())->toBe(null);
@@ -113,7 +113,7 @@ describe('FooinoException for better error handling', function () {
 
             $e->throw();
 
-            // 
+            //
         } catch (FooinoException $e) {
 
             expect($e->getCause())->toBe(null);
@@ -138,7 +138,7 @@ describe('FooinoException for better error handling', function () {
                 ->shouldReport()
                 ->throw();
 
-            // 
+            //
         } catch (FooinoException $e) {
 
             expect($e->getCause())->toBe(null);
@@ -231,8 +231,8 @@ describe('FooinoException for better error handling', function () {
         expect($wrapper->getCause())->toBe($inner);
 
         expect($inner->getWith())->toBe([
-            'user_id'       => 7,
-            'request_id'    => 'abc',
+            'user_id'    => 7,
+            'request_id' => 'abc',
         ]);
     });
 
@@ -275,8 +275,8 @@ describe('FooinoException for better error handling', function () {
         expect($inner->getHttpStatusCode())->toBe(503);
         expect($inner->reportable())->toBeFalse();
         expect($inner->getWith())->toBe([
-            'user_id'       => 7,
-            'request_id'    => 'abc',
+            'user_id'    => 7,
+            'request_id' => 'abc',
         ]);
     });
 });

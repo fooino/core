@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Fooino\Core\Concretes\Date;
 
 use Fooino\Core\Exceptions\CanNotConvertDateException;
@@ -22,7 +21,7 @@ abstract class DateHandler
 {
     protected array $instances = [];
 
-    protected const string OFFICIAL   = 'OFFICIAL';
+    protected const string OFFICIAL = 'OFFICIAL';
 
     protected const string UNOFFICIAL = 'UNOFFICIAL';
 
@@ -133,7 +132,7 @@ abstract class DateHandler
         )
             ->format(format: $hasTimePart ? $baseFormat : $format);
 
-        /** 
+        /**
          * The Morilog package converts the Jalali date to Gregorian but leaves it in the source timezone.
          * Shift to UTC whenever the input has time OR the output format requests time fields.
          */
@@ -201,7 +200,7 @@ abstract class DateHandler
 
         $date = $this->normalize(date: $date, timezone: $from);
 
-        list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
+        [$year, $month, $day, $hour, $minute, $second] = $this->parseDate(date: (string) $date);
 
         $locale = $this->getIntlDateFormatterLocaleByTimezone(timezone: $from);
 
@@ -216,7 +215,7 @@ abstract class DateHandler
             second: $second === false ? null : $second
         );
 
-        $timestamp = (int)($hijriCalendar->getTime() / 1000);
+        $timestamp = (int) ($hijriCalendar->getTime() / 1000);
 
         return (new DateTime(datetime: date($format, $timestamp)))
             ->setTimezone(timezone: $to)
@@ -397,7 +396,7 @@ abstract class DateHandler
      */
     protected function dateParts(string $date): array
     {
-        $parts = explode(" ", $date);
+        $parts = explode(' ', $date);
 
         return [
             $parts[0] ?? null,
@@ -418,13 +417,13 @@ abstract class DateHandler
      */
     protected function normalize(string|null $date, DateTimeZone $timezone): string
     {
-        list($year, $month, $day, $hour, $minute, $second) = $this->parseDate(date: (string) $date);
+        [$year, $month, $day, $hour, $minute, $second] = $this->parseDate(date: (string) $date);
 
         $datePart = $this->padZero($year) . '-' . $this->padZero($month) . '-' . $this->padZero($day);
         $timePart = '';
 
         if (
-            $hour   !== false ||
+            $hour !== false ||
             $minute !== false ||
             $second !== false // since the timezone can change the day, add timePart when exists
         ) {
@@ -438,7 +437,7 @@ abstract class DateHandler
 
     /**
      * Parse a date string into its components and throw if no valid part is found
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException with 1003 code
      */
     protected function parseDate(string $date): array
@@ -470,7 +469,9 @@ abstract class DateHandler
     {
         $value = (int) $value;
 
-        if (strlen($value) === 1) $value = '0' . $value;
+        if (strlen($value) === 1) {
+            $value = '0' . $value;
+        }
 
         return $value;
     }
@@ -583,11 +584,10 @@ abstract class DateHandler
     {
         return match ($timezone->getName()) {
 
-            'Asia/Tehran'           => 'jalali',    // +3:30
-            'Asia/Kabul'            => 'jalali',    // +4:30
-
-            'UTC'                   => 'UTC',
-            default                 => 'gregorian',
+            'Asia/Tehran' => 'jalali',    // +3:30
+            'Asia/Kabul'  => 'jalali',    // +4:30
+            'UTC'         => 'UTC',
+            default       => 'gregorian',
         };
     }
 
@@ -598,42 +598,38 @@ abstract class DateHandler
     {
         return match ($timezone->getName()) {
 
-            'Asia/Tehran'           => 'jalali',    // +3:30
-            'Asia/Kabul'            => 'jalali',    // +4:30
-
-            'Asia/Dubai'            => 'hijri',     // +4:00
-            'Asia/Qatar'            => 'hijri',     // +3:00
-            'Asia/Riyadh'           => 'hijri',     // +3:00
-            'Asia/Muscat'           => 'hijri',     // +4:00
-            'Asia/Bahrain'          => 'hijri',     // +3:00
-            'Asia/Kuwait'           => 'hijri',     // +3:00
-            'Asia/Baghdad'          => 'hijri',     // +3:00
-            'Asia/Amman'            => 'hijri',     // +3:00
-            'Asia/Beirut'           => 'hijri',     // +3:00
-            'Asia/Damascus'         => 'hijri',     // +3:00
-            'Asia/Aden'             => 'hijri',     // +3:00
-
-            'UTC'                   => 'UTC',
-            default                 => 'gregorian',
+            'Asia/Tehran'   => 'jalali',    // +3:30
+            'Asia/Kabul'    => 'jalali',    // +4:30
+            'Asia/Dubai'    => 'hijri',     // +4:00
+            'Asia/Qatar'    => 'hijri',     // +3:00
+            'Asia/Riyadh'   => 'hijri',     // +3:00
+            'Asia/Muscat'   => 'hijri',     // +4:00
+            'Asia/Bahrain'  => 'hijri',     // +3:00
+            'Asia/Kuwait'   => 'hijri',     // +3:00
+            'Asia/Baghdad'  => 'hijri',     // +3:00
+            'Asia/Amman'    => 'hijri',     // +3:00
+            'Asia/Beirut'   => 'hijri',     // +3:00
+            'Asia/Damascus' => 'hijri',     // +3:00
+            'Asia/Aden'     => 'hijri',     // +3:00
+            'UTC'           => 'UTC',
+            default         => 'gregorian',
         };
     }
 
     /**
      * Generate an array of dates within a given period(from, to) at specified intervals and format.
-     * 
+     *
      * @throws \Fooino\Core\Exceptions\CanNotConvertDateException
-     * 
      * @throws \Fooino\Core\Exceptions\FooinoRuntimeException
-     * 
      * @throws \Fooino\Core\Exceptions\InfiniteLoopException
      */
     public function datesBetween(string|int $from, string|int $to, string $format = STANDARD_DATE_FORMAT, string $interval = 'P1D'): array
     {
         $with = [
-            'from'      => $from,
-            'to'        => $to,
-            'format'    => $format,
-            'interval'  => $interval,
+            'from'     => $from,
+            'to'       => $to,
+            'format'   => $format,
+            'interval' => $interval,
         ];
 
         $from = Date::convert(date: $from, format: STANDARD_DATE_FORMAT, from: 'UTC', to: 'UTC', throwException: true);
@@ -677,7 +673,7 @@ abstract class DateHandler
         $output = [];
 
         foreach ($period as $value) {
-            
+
             $output[] = $value->format($format);
         }
 
@@ -692,7 +688,7 @@ abstract class DateHandler
         app(CanNotConvertDateException::class)
             ->_1001()
             ->with([
-                'invalid_timezone'  => $timezone
+                'invalid_timezone' => $timezone
             ])
             ->throw();
     }
@@ -725,7 +721,7 @@ abstract class DateHandler
         app(CanNotConvertDateException::class)
             ->_1004()
             ->with([
-                'invalid_timezone'  => date_default_timezone_get()
+                'invalid_timezone' => date_default_timezone_get()
             ])
             ->throw();
     }

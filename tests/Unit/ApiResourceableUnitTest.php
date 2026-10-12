@@ -15,8 +15,8 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'    => $this->id,
-            'name'  => $this->name,
+            'id'   => $this->id,
+            'name' => $this->name,
         ];
     }
 }
@@ -55,7 +55,7 @@ describe('ApiResourceable trait', function () {
         expect($resource->getErrors())->toBe([]);
 
         $errors = [
-            'name'      => ['The name field is required.'],
+            'name' => ['The name field is required.'],
         ];
 
         expect($resource->setErrors(errors: $errors))->toBe($resource)
@@ -79,24 +79,24 @@ describe('ApiResourceable trait', function () {
             ->with(request());
 
         expect($with)->toBe([
-            'status'        => 422,
-            'success'       => false,
-            'message'       => 'validation failed',
-            'errors'        => ['name' => ['The name field is required.']],
-            'data'          => [],
-            'additional'    => [],
+            'status'     => 422,
+            'success'    => false,
+            'message'    => 'validation failed',
+            'errors'     => ['name' => ['The name field is required.']],
+            'data'       => [],
+            'additional' => [],
         ]);
     });
 
     test('with method returns the envelope defaults when nothing is customized', function () {
 
         expect(UserResource::make(new stdClass)->with(request()))->toBe([
-            'status'        => 200,
-            'success'       => true,
-            'message'       => 'ok',
-            'errors'        => [],
-            'data'          => [],
-            'additional'    => [],
+            'status'     => 200,
+            'success'    => true,
+            'message'    => 'ok',
+            'errors'     => [],
+            'data'       => [],
+            'additional' => [],
         ]);
     });
 
@@ -115,15 +115,15 @@ describe('ApiResourceable trait', function () {
 
         expect($response->getStatusCode())->toBe(201)
             ->and($response->getData(true))->toBe([
-                'data'          => [
-                    'id'    => 1,
-                    'name'  => 'fooino',
+                'data' => [
+                    'id'   => 1,
+                    'name' => 'fooino',
                 ],
-                'status'        => 201,
-                'success'       => true,
-                'message'       => 'created',
-                'errors'        => ['foo' => 'bar'],
-                'additional'    => ['foo' => 'bar'],
+                'status'     => 201,
+                'success'    => true,
+                'message'    => 'created',
+                'errors'     => ['foo' => 'bar'],
+                'additional' => ['foo' => 'bar'],
             ]);
     });
 
@@ -165,21 +165,21 @@ describe('ApiResourceable trait', function () {
 
         expect($response->getStatusCode())->toBe(201)
             ->and($response->getData(true))->toBe([
-                'data'          => [
+                'data' => [
                     [
-                        'id'    => 1,
-                        'name'  => 'fooino',
+                        'id'   => 1,
+                        'name' => 'fooino',
                     ],
                     [
-                        'id'    => 2,
-                        'name'  => 'foo',
+                        'id'   => 2,
+                        'name' => 'foo',
                     ],
                 ],
-                'status'        => 201,
-                'success'       => true,
-                'message'       => 'created',
-                'errors'        => ['foo' => 'bar'],
-                'additional'    => ['foo' => 'bar'],
+                'status'     => 201,
+                'success'    => true,
+                'message'    => 'created',
+                'errors'     => ['foo' => 'bar'],
+                'additional' => ['foo' => 'bar'],
             ]);
     });
 });

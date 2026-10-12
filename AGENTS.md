@@ -66,6 +66,22 @@ Follow **SOLID** and **KISS** principles. Methods must have a **single responsib
 - Managers extend `Illuminate\Support\Manager` and are registered as singletons in `CoreServiceProvider`.
 - Facade `@method` docblocks mirror the interface exactly.
 
+### Code Style & Formatting (Pint)
+- **Laravel Pint** is the single source of truth for code style. Configuration lives in `pint.json` (base: the `laravel` preset) and every rule is justified in `PINT.md`.
+- **Always run Pint before finishing a change**: `./vendor/bin/pint` (or `composer pint`). Never hand-format what Pint can format.
+- **Verify without writing**: `./vendor/bin/pint --test` must pass on the whole codebase. Use `--test -v` to inspect the diffs and `--dirty` to format only uncommitted files.
+- **Do not fight the formatter**: when `--test` reports a fixer that conflicts with the intended style, either accept the change or disable/configure that fixer in `pint.json` — never hand-tune alignment or add suppression workarounds.
+- Config highlights (full rationale in `PINT.md`):
+  - `binary_operator_spaces`: single space everywhere; multi-line array `=>` aligned minimally per consecutive block (a blank line ends a block).
+  - `concat_space`: spaces around concatenation — `$a . $b`.
+  - `not_operator_with_successor_space: false` → `!$value`.
+  - `function_declaration.closure_fn_spacing: none` → `fn() => ...`.
+  - `nullable_type_declaration: false` → keep `string|null` as written.
+  - `trailing_comma_in_multiline: false` → no trailing commas.
+  - `single_line_empty_body: true` → empty bodies may stay `{}` on one line.
+  - `fully_qualified_strict_types`, `ordered_imports`, `new_with_parentheses`, and `no_extra_blank_lines` are disabled to preserve the project's manual choices.
+- Pint changes styling only — it must never alter behavior. If a Pint diff looks behavioural, treat it as a bug and investigate before committing.
+
 ---
 
 ## Error Code Ranges

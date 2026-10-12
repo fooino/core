@@ -2,6 +2,11 @@
 
 All notable changes to `fooino/core` will be documented in this file
 
+## 1.5.0 - 2026-10-12
+
+- Added `laravel/pint` as a dev dependency with a project-specific `pint.json`, and reformatted the entire codebase to match it
+- Documented the Pint configuration and commands in `PINT.md`, and the code style requirements for contributors and AI agents in `AGENTS.md`
+
 ## 1.4.0 - 2026-09-11
 
 - Upgrade the pest from version `4.7` to the `5.0`
