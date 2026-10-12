@@ -351,9 +351,9 @@ class TokenGenerator
 
             $token = match ($pipeline) {
 
-                'strtolower'    => strtolower($token),
+                'strtolower' => strtolower($token),
 
-                'strtoupper'    => strtoupper($token)
+                'strtoupper' => strtoupper($token)
             };
         }
 
@@ -501,7 +501,7 @@ class TokenGenerator
     /**
      * Abort execution when the length is zero or negative
      *
-     * @throws \Fooino\Core\Exceptions\TokenGeneratorException  with 1201
+     * @throws \Fooino\Core\Exceptions\TokenGeneratorException with 1201
      */
     private function throwLengthMustBePositiveException(): never
     {
@@ -514,7 +514,7 @@ class TokenGenerator
     /**
      * Abort execution when the length exceeds the maximum allowed value
      *
-     * @throws \Fooino\Core\Exceptions\TokenGeneratorException  with 1202
+     * @throws \Fooino\Core\Exceptions\TokenGeneratorException with 1202
      */
     private function throwBigLengthNumberException(): never
     {
@@ -527,7 +527,7 @@ class TokenGenerator
     /**
      * Abort execution when the strongPassword format is used with insufficient length
      *
-     * @throws \Fooino\Core\Exceptions\TokenGeneratorException  with 1203
+     * @throws \Fooino\Core\Exceptions\TokenGeneratorException with 1203
      */
     private function throwSmallLengthNumberForStrongPasswordException(): never
     {
@@ -540,7 +540,7 @@ class TokenGenerator
     /**
      * Abort execution when the password format is used with insufficient length
      *
-     * @throws \Fooino\Core\Exceptions\TokenGeneratorException  with 1204
+     * @throws \Fooino\Core\Exceptions\TokenGeneratorException with 1204
      */
     private function throwSmallLengthNumberForPasswordException(): never
     {
@@ -553,7 +553,7 @@ class TokenGenerator
     /**
      * Abort execution when only one of model or field is present
      *
-     * @throws \Fooino\Core\Exceptions\TokenGeneratorException  with 1205
+     * @throws \Fooino\Core\Exceptions\TokenGeneratorException with 1205
      */
     private function throwModelAndFieldAreRequiredException(): never
     {
@@ -574,7 +574,7 @@ class TokenGenerator
     /**
      * Abort execution when the memorableOtp format is used with insufficient length
      *
-     * @throws \Fooino\Core\Exceptions\TokenGeneratorException  with 1206
+     * @throws \Fooino\Core\Exceptions\TokenGeneratorException with 1206
      */
     private function throwSmallLengthNumberForMemorableException(): never
     {
@@ -587,7 +587,7 @@ class TokenGenerator
     /**
      * Abort execution when the uniqueness retry limit is exhausted
      *
-     * @throws \Fooino\Core\Exceptions\InfiniteLoopException  with 253
+     * @throws \Fooino\Core\Exceptions\InfiniteLoopException with 253
      */
     private function throwInfiniteLoopException(): never
     {

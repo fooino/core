@@ -299,7 +299,7 @@ describe('Json facade using FooinoJsonHandler', function () {
         expect(removeWhiteSpace(value: jsonEncodePretty(value: false)))->toBe('[false]');
 
         expect(removeWhitespace(value: jsonEncodePretty(value: 'foobar')))->toBe('[&quot;foobar&quot;]');
-        expect(removeWhitespace(value: jsonEncodePretty(value: ["foobar"])))->toBe('[&quot;foobar&quot;]');
+        expect(removeWhitespace(value: jsonEncodePretty(value: ['foobar'])))->toBe('[&quot;foobar&quot;]');
     });
 
     test('decode method returns well-formatted value', function () {
@@ -530,16 +530,16 @@ describe('Json facade using FooinoJsonHandler', function () {
             status: 429,
             message: 'too many requests',
             errors: [
-                'foo'       => 'bar'
+                'foo' => 'bar'
             ],
             data: [
-                'foo'       => 'bar'
+                'foo' => 'bar'
             ],
             additional: [
-                'bypass'    => false
+                'bypass' => false
             ],
             headers: [
-                'accept-language'    => 'fa'
+                'accept-language' => 'fa'
             ]
         );
 
@@ -547,38 +547,38 @@ describe('Json facade using FooinoJsonHandler', function () {
             status: 429,
             message: 'too many requests',
             errors: [
-                'foo'       => 'bar'
+                'foo' => 'bar'
             ],
             data: [
-                'foo'       => 'bar'
+                'foo' => 'bar'
             ],
             additional: [
-                'bypass'    => false
+                'bypass' => false
             ],
             headers: [
-                'accept-language'    => 'fa'
+                'accept-language' => 'fa'
             ]
         );
 
         $expected = response()
             ->json(
                 data: [
-                    'status'    => 429,
-                    'success'   => false,
-                    'message'   => 'too many requests',
-                    'errors'    => [
-                        'foo'   => 'bar'
-                    ],
-                    'data'      => [
+                    'status'  => 429,
+                    'success' => false,
+                    'message' => 'too many requests',
+                    'errors'  => [
                         'foo' => 'bar'
                     ],
-                    'additional'    => [
-                        'bypass'    => false
+                    'data' => [
+                        'foo' => 'bar'
+                    ],
+                    'additional' => [
+                        'bypass' => false
                     ],
                 ],
                 status: 429,
                 headers: [
-                    'accept-language'    => 'fa'
+                    'accept-language' => 'fa'
                 ]
             );
 
@@ -613,12 +613,12 @@ describe('Json facade using FooinoJsonHandler', function () {
     test('check json response template', function () {
 
         expect(Json::responseTemplate())->toBe([
-            'status'        => 200,
-            'success'       => true,
-            'message'       => '',
-            'errors'        => [],
-            'data'          => [],
-            'additional'    => []
+            'status'     => 200,
+            'success'    => true,
+            'message'    => '',
+            'errors'     => [],
+            'data'       => [],
+            'additional' => []
         ]);
     });
 });

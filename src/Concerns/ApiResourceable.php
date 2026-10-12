@@ -78,10 +78,10 @@ trait ApiResourceable
         return array_merge(
             Json::responseTemplate(),
             [
-                'status'        => $status,
-                'success'       => $status >= 200 && $status <= 299,
-                'message'       => $this->getMessage(),
-                'errors'        => $this->getErrors(),
+                'status'  => $status,
+                'success' => $status >= 200 && $status <= 299,
+                'message' => $this->getMessage(),
+                'errors'  => $this->getErrors(),
             ]
         );
     }

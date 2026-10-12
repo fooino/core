@@ -27,7 +27,7 @@ class FooinoMathHandler implements Mathable
      *
      * Based on BC_SCALE, the result is 11.098. If we assumed BC_SCALE = precision = 0, the result would be 10, which is wrong. To output the number we use precision = 0 and the result is 11. For calculations we use BC_SCALE, which is high enough not to lose precision.
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1101 when precision is out of valid range
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1101 when precision is out of valid range
      */
     public function __construct(private int $precision = 12)
     {
@@ -62,7 +62,7 @@ class FooinoMathHandler implements Mathable
     /**
      * Expand a number expressed in scientific notation (e.g. 1.5E+4) into its full numeric string representation
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1105 when the number is infinite, NaN, or the exponent exceeds the allowable range
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1105 when the number is infinite, NaN, or the exponent exceeds the allowable range
      */
     public function convertScientificNumber(string|int|float|array $number): string|array
     {
@@ -99,16 +99,16 @@ class FooinoMathHandler implements Mathable
             return $this->assembleNumber(number: $number);
         }
 
-        $sign      = $matches[1];
-        $mantissa  = $matches[2];
-        $exponent  = (int) $matches[3];
+        $sign = $matches[1];
+        $mantissa = $matches[2];
+        $exponent = (int) $matches[3];
 
         if (abs($exponent) > 99) {
             // Very Big or Small number is not allowed. '1.1E999' in string format has high exponent value
             $this->throwInvalidValueErrorException(method: 'convertScientificNumber', operand: $number);
         }
 
-        list($sign, $integerPart, $decimalPart) = $this->numberParts(number: ($sign . $mantissa));
+        [$sign, $integerPart, $decimalPart] = $this->numberParts(number: ($sign . $mantissa));
 
         // All significant digits, without decimal point
         $digits = ltrim($integerPart . $decimalPart, '0');
@@ -127,11 +127,11 @@ class FooinoMathHandler implements Mathable
             // No decimal point needed (or decimal shifted right beyond end)
             $result = $digits . str_repeat('0', $shift);
 
-            // 
+            //
         } else {
 
             $absShift = abs($shift);
-            $len      = strlen($digits);
+            $len = strlen($digits);
 
             if ($absShift >= $len) {
 
@@ -139,13 +139,13 @@ class FooinoMathHandler implements Mathable
                 // Decimal point goes after '0.', padding with leading zeros
                 $result = '0.' . str_repeat('0', $absShift - $len) . rtrim($digits, '0');
 
-                // 
+                //
             } else {
 
                 // example: 1002.1E-2
                 // Insert decimal point inside the digit string
                 $splitPos = $len - $absShift;
-                $result   = substr($digits, 0, $splitPos) . '.' . rtrim(substr($digits, $splitPos), '0');
+                $result = substr($digits, 0, $splitPos) . '.' . rtrim(substr($digits, $splitPos), '0');
             }
         }
 
@@ -196,8 +196,8 @@ class FooinoMathHandler implements Mathable
     /**
      * Internal implementation that truncates each number to the configured precision and returns clean numeric strings
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1102 when no numbers are provided
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1103 when a non-numeric value is provided
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1102 when no numbers are provided
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1103 when a non-numeric value is provided
      */
     private function _number(bool $expandScientific = false, string|int|float|array ...$number): string|array
     {
@@ -231,7 +231,7 @@ class FooinoMathHandler implements Mathable
     /**
      * Format a number with thousands separators and apply precision truncation, returning a locale-friendly currency-style string
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1103 when a non-numeric value is provided
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1103 when a non-numeric value is provided
      */
     public function numberFormat(string|int|float $number, string $thousandsSeparator = ','): string
     {
@@ -256,7 +256,7 @@ class FooinoMathHandler implements Mathable
 
         $sanitized = $this->_number(false, $sanitized); // apply precision
 
-        list($sign, $integer, $decimal) = $this->numberParts(number: ($sign . $sanitized));
+        [$sign, $integer, $decimal] = $this->numberParts(number: ($sign . $sanitized));
 
         $integerWithSeparators = preg_replace(pattern: '/\B(?=(\d{3})+(?!\d))/', replacement: $thousandsSeparator, subject: $integer);
 
@@ -396,7 +396,7 @@ class FooinoMathHandler implements Mathable
      */
     private function compare(string|int|float $num1, string|int|float $num2): int
     {
-        list($num1, $num2) = $this->validateAndNormalizeNumbersForCompare(num1: $num1, num2: $num2);
+        [$num1, $num2] = $this->validateAndNormalizeNumbersForCompare(num1: $num1, num2: $num2);
 
         return bccomp(num1: $num1, num2: $num2, scale: self::BC_SCALE);
     }
@@ -418,17 +418,10 @@ class FooinoMathHandler implements Mathable
 
         $dotPos = strpos($number, '.');
 
-        list($integer, $decimal) = match ($dotPos) {
+        [$integer, $decimal] = match ($dotPos) {
 
-            false           => [
-                $number,
-                '0'
-            ],
-
-            default         => [
-                substr($number, 0, $dotPos),
-                substr($number, $dotPos + 1)
-            ]
+            false   => [$number, '0'],
+            default => [substr($number, 0, $dotPos), substr($number, $dotPos + 1)]
         };
 
         $integer = (string) ((isZero($integer) || trim($integer) === '') ? '0' : $integer);
@@ -452,7 +445,7 @@ class FooinoMathHandler implements Mathable
      */
     private function assembleNumber(string|int|float $number, int|null $precision = null): string
     {
-        list($sign, $integer, $decimal) = $this->numberParts(number: $number);
+        [$sign, $integer, $decimal] = $this->numberParts(number: $number);
 
         $decimal = isZero($decimal) ? '' : ('.' . (is_null($precision) ? $decimal : substr($decimal, 0, $precision)));
 
@@ -462,7 +455,7 @@ class FooinoMathHandler implements Mathable
     /**
      * Route a math operation to the correct calculation handler based on the number of operands it requires
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1106 when the method is not recognised
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1106 when the method is not recognised
      */
     private function calc(string $method, string|int|float|array $operand, array $args = []): string|array
     {
@@ -482,7 +475,7 @@ class FooinoMathHandler implements Mathable
     /**
      * Chain binary bcmath operations across a series of numbers to produce a single result
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1106 when the method is not recognised
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1106 when the method is not recognised
      */
     private function calcTwoOperand(string $method, string|int|float|array $operand, array $args = []): string
     {
@@ -494,26 +487,26 @@ class FooinoMathHandler implements Mathable
             'scale' => 'bc_args.scale'
         ];
 
-        list($result, $start, $template) = match ($method) {
+        [$result, $start, $template] = match ($method) {
 
-            'bcadd'             => ['0', 0, $defaultTemplate],
+            'bcadd' => ['0', 0, $defaultTemplate],
 
-            'bcmul'             => ['1', 0, $defaultTemplate],
+            'bcmul' => ['1', 0, $defaultTemplate],
 
-            'bcsub'             => [$numbers[0], 1, $defaultTemplate],
+            'bcsub' => [$numbers[0], 1, $defaultTemplate],
 
-            'bcdiv'             => [$numbers[0], 1, $defaultTemplate],
+            'bcdiv' => [$numbers[0], 1, $defaultTemplate],
 
-            'bcmod'             => [$numbers[0], 1, $defaultTemplate],
+            'bcmod' => [$numbers[0], 1, $defaultTemplate],
 
-            default             => $this->throwUnsupportedFunctionException(method: $method, operand: $operand, args: $args),
+            default => $this->throwUnsupportedFunctionException(method: $method, operand: $operand, args: $args),
         };
 
         $data = [
-            'bc_args'   => [
-                'result'    => $result,
-                'number'    => null,
-                'scale'     => self::BC_SCALE
+            'bc_args' => [
+                'result' => $result,
+                'number' => null,
+                'scale'  => self::BC_SCALE
             ]
         ];
 
@@ -526,7 +519,7 @@ class FooinoMathHandler implements Mathable
 
                 $mapped[$argKey] = data_get($data, $search);
 
-                // 
+                //
             }
 
             $result = $data['bc_args']['result'] = call_user_func($method, ...$mapped);
@@ -538,7 +531,7 @@ class FooinoMathHandler implements Mathable
     /**
      * Apply a unary bcmath operation to each number in the operand set
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1106 when the method is not recognised
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1106 when the method is not recognised
      */
     private function calcOneOperand(string $method, string|int|float|array $operand, array $args = []): string|array
     {
@@ -546,24 +539,24 @@ class FooinoMathHandler implements Mathable
 
         $template = match ($method) {
 
-            'bcpow'             => ['num' => 'bc_args.value', 'exponent' => 'bc_args.args.exponent', 'scale'  => 'bc_args.scale'],
+            'bcpow' => ['num' => 'bc_args.value', 'exponent' => 'bc_args.args.exponent', 'scale' => 'bc_args.scale'],
 
-            'bcsqrt'            => ['num' => 'bc_args.value', 'scale' => 'bc_args.scale'],
+            'bcsqrt' => ['num' => 'bc_args.value', 'scale' => 'bc_args.scale'],
 
-            'bcceil'            => ['num' => 'bc_args.value'],
+            'bcceil' => ['num' => 'bc_args.value'],
 
-            'bcfloor'           => ['num' => 'bc_args.value'],
+            'bcfloor' => ['num' => 'bc_args.value'],
 
-            'bcround'           => ['num' => 'bc_args.value', 'precision' => 'bc_args.args.precision', 'mode' => 'bc_args.args.mode'],
+            'bcround' => ['num' => 'bc_args.value', 'precision' => 'bc_args.args.precision', 'mode' => 'bc_args.args.mode'],
 
-            default             => $this->throwUnsupportedFunctionException(method: $method, operand: $operand, args: $args),
+            default => $this->throwUnsupportedFunctionException(method: $method, operand: $operand, args: $args),
         };
 
         $data = [
-            'bc_args'         => [
-                'value'           => null,
-                'scale'           => self::BC_SCALE,
-                'args'            => $args
+            'bc_args' => [
+                'value' => null,
+                'scale' => self::BC_SCALE,
+                'args'  => $args
             ],
         ];
 
@@ -576,7 +569,7 @@ class FooinoMathHandler implements Mathable
 
                 $mapped[$argKey] = data_get($data, $search);
 
-                // 
+                //
             }
 
             $numbers[$key] = $this->_trimTrailingZeros(number: call_user_func($method, ...$mapped));
@@ -585,14 +578,13 @@ class FooinoMathHandler implements Mathable
         return is_array($operand) ? $numbers : $numbers[0];
     }
 
-
     /**
      * Convert scientific notation and type-validate every operand before calculation
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1102 when insufficient operands are provided
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1103 when a non-numeric operand is provided
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1104 when attempting to divide by zero
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1105 when the operand is negative for sqrt, infinite, or the exponent exceeds the allowable range
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1102 when insufficient operands are provided
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1103 when a non-numeric operand is provided
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1104 when attempting to divide by zero
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1105 when the operand is negative for sqrt, infinite, or the exponent exceeds the allowable range
      */
     private function validateAndNormalizeNumbers(string $method, string|int|float|array $operand, array $args = []): array
     {
@@ -656,7 +648,7 @@ class FooinoMathHandler implements Mathable
     /**
      * Convert scientific notation and type-validate both comparison operands
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1103 when a non-numeric operand is provided
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1103 when a non-numeric operand is provided
      */
     private function validateAndNormalizeNumbersForCompare(string|int|float $num1, string|int|float $num2): array
     {
@@ -668,7 +660,7 @@ class FooinoMathHandler implements Mathable
             !is_numeric($num1) ||
             !is_numeric($num2)
         ) {
-            
+
             $this->throwInvalidArgumentTypeException(method: 'bccomp', operand: [$num1, $num2]);
         }
 
@@ -681,7 +673,7 @@ class FooinoMathHandler implements Mathable
     /**
      * Abort execution when the configured precision falls outside the allowed range
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1101
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1101
      */
     private function throwInvalidPrecisionException(): never
     {
@@ -697,16 +689,16 @@ class FooinoMathHandler implements Mathable
     /**
      * Abort execution when an insufficient number of operands are provided for the operation
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1102
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1102
      */
     private function throwInvalidArgumentsCountException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->_1102()
             ->with([
-                'method'    => $method,
-                'operand'   => $operand,
-                'args'      => $args
+                'method'  => $method,
+                'operand' => $operand,
+                'args'    => $args
             ])
             ->throw();
     }
@@ -714,16 +706,16 @@ class FooinoMathHandler implements Mathable
     /**
      * Abort execution when a non-numeric value is encountered where a number is required
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1103
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1103
      */
     private function throwInvalidArgumentTypeException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->_1103()
             ->with([
-                'method'    => $method,
-                'operand'   => $operand,
-                'args'      => $args
+                'method'  => $method,
+                'operand' => $operand,
+                'args'    => $args
             ])
             ->throw();
     }
@@ -731,16 +723,16 @@ class FooinoMathHandler implements Mathable
     /**
      * Abort execution when a division or modulo by zero is attempted
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1104
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1104
      */
     private function throwDivisionByZeroException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->_1104()
             ->with([
-                'method'      => $method,
-                'operand'     => $operand,
-                'args'        => $args,
+                'method'  => $method,
+                'operand' => $operand,
+                'args'    => $args,
             ])
             ->throw();
     }
@@ -748,16 +740,16 @@ class FooinoMathHandler implements Mathable
     /**
      * Abort execution when an operand value is invalid for the requested operation
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1105
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1105
      */
     private function throwInvalidValueErrorException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->_1105()
             ->with([
-                'method'          => $method,
-                'operand'         => $operand,
-                'args'            => $args,
+                'method'  => $method,
+                'operand' => $operand,
+                'args'    => $args,
             ])
             ->throw();
     }
@@ -765,16 +757,16 @@ class FooinoMathHandler implements Mathable
     /**
      * Abort execution when an unrecognised bcmath function name is provided
      *
-     * @throws \Fooino\Core\Exceptions\MathCalculationException  with 1106
+     * @throws \Fooino\Core\Exceptions\MathCalculationException with 1106
      */
     private function throwUnsupportedFunctionException(string $method, string|int|float|array $operand, array $args = []): never
     {
         app(MathCalculationException::class)
             ->_1106()
             ->with([
-                'method'        => $method,
-                'operand'       => $operand,
-                'args'          => $args
+                'method'  => $method,
+                'operand' => $operand,
+                'args'    => $args
             ])
             ->throw();
     }

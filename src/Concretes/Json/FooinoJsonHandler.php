@@ -71,12 +71,12 @@ class FooinoJsonHandler implements Jsonable
         $payload = array_merge(
             $this->responseTemplate(),
             [
-                'status'        => $status,
-                'success'       => $status >= 200 && $status <= 299,
-                'message'       => $message,
-                'errors'        => $errors,
-                'data'          => $data,
-                'additional'    => $additional,
+                'status'     => $status,
+                'success'    => $status >= 200 && $status <= 299,
+                'message'    => $message,
+                'errors'     => $errors,
+                'data'       => $data,
+                'additional' => $additional,
             ]
         );
 
@@ -94,12 +94,12 @@ class FooinoJsonHandler implements Jsonable
     public function responseTemplate(): array
     {
         return [
-            'status'        => 200,
-            'success'       => true,
-            'message'       => '',
-            'errors'        => [],
-            'data'          => [],
-            'additional'    => []
+            'status'     => 200,
+            'success'    => true,
+            'message'    => '',
+            'errors'     => [],
+            'data'       => [],
+            'additional' => []
         ];
     }
 }

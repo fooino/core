@@ -62,8 +62,8 @@ describe('Sanitizer utilities', function () {
 
 
         expect(sanitizer('')->normalizeInput()->value())->toBe('');
-        expect(sanitizer("   \t\r\nfoo  bar \n")->normalizeInput()->value())->toBe("foo  bar");
-        expect(sanitizer("   ")->normalizeInput()->value())->toBe("");
+        expect(sanitizer("   \t\r\nfoo  bar \n")->normalizeInput()->value())->toBe('foo  bar');
+        expect(sanitizer('   ')->normalizeInput()->value())->toBe('');
 
         expect(gettype(sanitizer('foobar')->normalizeInput()->value()))->toBe('string');
         expect(sanitizer('foobar')->normalizeInput()->value())->toBe('foobar');
@@ -103,7 +103,7 @@ describe('Sanitizer utilities', function () {
 
         expect(sanitizer('foo' . json_decode('"\u200C"') . 'bar')->normalizeInput()->value())->toBe('foobar');
         expect(sanitizer('سلام' . json_decode('"\u200C"') . 'علیک')->normalizeInput()->value())->toBe('سلامعلیک');
-        expect(sanitizer('  ' . json_decode('"\u200C"') . '  ')->normalizeInput()->value())->toBe("");
+        expect(sanitizer('  ' . json_decode('"\u200C"') . '  ')->normalizeInput()->value())->toBe('');
         expect(sanitizer('سلام' . json_decode('"\u200D"') . 'علیک')->normalizeInput()->value())->toBe('سلامعلیک');
         expect(sanitizer('سلام' . json_decode('"\uFEFF"') . 'علیک')->normalizeInput()->value())->toBe('سلامعلیک');
 
@@ -157,7 +157,7 @@ describe('Sanitizer utilities', function () {
 
         expect(sanitizer('{"name":"foo <b>bar<\/b>","num":"۰۱۲۳"}')->normalizeInput()->value())->toBe('{"name":"foo <b>bar<\/b>","num":"0123"}');
 
-        expect(sanitizer(jsonEncode("علیك ۰۱۲۳"))->normalizeInput()->value())->toBe(jsonEncode("علیک 0123"));
+        expect(sanitizer(jsonEncode('علیك ۰۱۲۳'))->normalizeInput()->value())->toBe(jsonEncode('علیک 0123'));
 
         expect(sanitizer('۰۱۲۳ ')->normalizeInput()->value())->toBe('0123');
 
@@ -178,52 +178,52 @@ describe('Sanitizer utilities', function () {
 
         expect(
             sanitizer([
-                0       => 'bar۰۱۲۳',
-                1       => '۱.۰',
-                2       => true,
-                3       => false,
-                4       => null,
-                5       => '۱٤۰۱/۱۰/۱٤',
-                'foo'   => '۰۱۲۳',
-                '2d'    => [
+                0     => 'bar۰۱۲۳',
+                1     => '۱.۰',
+                2     => true,
+                3     => false,
+                4     => null,
+                5     => '۱٤۰۱/۱۰/۱٤',
+                'foo' => '۰۱۲۳',
+                '2d'  => [
                     '123',
                     '۰۱۲۳',
                     'علیك سلام'
                 ],
-                'withKey'    => [
-                    'foo' => '123',
-                    'bar' => '۰۱۲۳',
+                'withKey' => [
+                    'foo'   => '123',
+                    'bar'   => '۰۱۲۳',
                     'third' => [
-                        'foo'   => '123',
-                        'bar'   => '۰۱۲۳',
-                        'john'  => null,
-                        'doe'   => true
+                        'foo'  => '123',
+                        'bar'  => '۰۱۲۳',
+                        'john' => null,
+                        'doe'  => true
                     ]
                 ]
             ])->normalizeInput()->value()
         )
             ->toBe(
                 [
-                    0       => 'bar0123',
-                    1       => '1.0',
-                    2       => true,
-                    3       => false,
-                    4       => null,
-                    5       => '1401/10/14',
-                    'foo'   => '0123',
-                    '2d'    => [
+                    0     => 'bar0123',
+                    1     => '1.0',
+                    2     => true,
+                    3     => false,
+                    4     => null,
+                    5     => '1401/10/14',
+                    'foo' => '0123',
+                    '2d'  => [
                         '123',
                         '0123',
                         'علیک سلام'
                     ],
-                    'withKey'    => [
-                        'foo' => '123',
-                        'bar' => '0123',
+                    'withKey' => [
+                        'foo'   => '123',
+                        'bar'   => '0123',
                         'third' => [
-                            'foo'   => '123',
-                            'bar'   => '0123',
-                            'john'  => null,
-                            'doe'   => true
+                            'foo'  => '123',
+                            'bar'  => '0123',
+                            'john' => null,
+                            'doe'  => true
                         ]
                     ]
                 ]

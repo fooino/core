@@ -36,25 +36,25 @@ class CustomClass
     {
         return $this->precision;
     }
-};
+}
 
 enum WrappedBackedEnum: string
 {
-    case ACTIVE   = 'ACTIVE';
+    case ACTIVE = 'ACTIVE';
     case INACTIVE = 'INACTIVE';
 };
 
 enum WrappedNumberBackedEnum: int
 {
-    case ONE    = 1;
-    case TWO    = 2;
+    case ONE = 1;
+    case TWO = 2;
 };
 
 enum WrappedPureEnum
 {
     case ACTIVE;
     case INACTIVE;
-};
+}
 
 class TestFormRequest extends FormRequest
 {
@@ -66,7 +66,7 @@ class TestFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => [
+            'name' => [
                 'required',
                 'max:255'
             ],
@@ -104,8 +104,8 @@ describe('Helpers unit tests', function () {
             [
                 ...Datasets::zeros(),
                 1e-400,
-                new class implements Stringable {
-
+                new class implements Stringable
+                {
                     public function __toString()
                     {
                         return '0.0E+10';
@@ -135,15 +135,14 @@ describe('Helpers unit tests', function () {
                 [0],
                 fn() => 0,
                 new stdClass,
-                new class implements Stringable {
-
+                new class implements Stringable
+                {
                     public function __toString()
                     {
                         return '.e+10';
                     }
                 },
-            ]
-            as $nonZero
+            ] as $nonZero
         ) {
 
             expect(isZero(value: $nonZero))->toBeFalse();
@@ -183,17 +182,18 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: [null], fallback: 'fooino'))->toBe([null]);
         expect(nullIfBlank(value: [true], fallback: 'fooino'))->toBe([true]);
         expect(nullIfBlank(value: [false], fallback: 'fooino'))->toBe([false]);
-        expect(nullIfBlank(value: [""], fallback: 'fooino'))->toBe([""]);
+        expect(nullIfBlank(value: [''], fallback: 'fooino'))->toBe(['']);
         expect(nullIfBlank(value: [1, 'foobar', true], fallback: 'fooino'))->toBe([1, 'foobar', true]);
 
-        expect(nullIfBlank(value: collect([null]),  fallback: 'fooino'))->toEqual(collect([null]));
-        expect(nullIfBlank(value: collect([false]),  fallback: 'fooino'))->toEqual(collect([false]));
-        expect(nullIfBlank(value: collect([""]),  fallback: 'fooino'))->toEqual(collect([""]));
-        expect(nullIfBlank(value: collect([1, "foobar", true]),  fallback: 'fooino'))->toEqual(collect([1, "foobar", true]));
+        expect(nullIfBlank(value: collect([null]), fallback: 'fooino'))->toEqual(collect([null]));
+        expect(nullIfBlank(value: collect([false]), fallback: 'fooino'))->toEqual(collect([false]));
+        expect(nullIfBlank(value: collect(['']), fallback: 'fooino'))->toEqual(collect(['']));
+        expect(nullIfBlank(value: collect([1, 'foobar', true]), fallback: 'fooino'))->toEqual(collect([1, 'foobar', true]));
 
-        expect(value(nullIfBlank(value: fn() => 'foobar',  fallback: 'fooino')))->toBe('foobar');
+        expect(value(nullIfBlank(value: fn() => 'foobar', fallback: 'fooino')))->toBe('foobar');
 
-        $object = new class implements Stringable {
+        $object = new class implements Stringable
+        {
             public function __toString(): string
             {
                 return 'foobar';
@@ -229,7 +229,7 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: '  "" '))->toBeNull();
         expect(nullIfBlank(value: '  " '))->toBeNull();
         expect(nullIfBlank(value: "  ' "))->toBeNull();
-        expect(nullIfBlank(value: "  ``` "))->toBeNull();
+        expect(nullIfBlank(value: '  ``` '))->toBeNull();
         expect(nullIfBlank(value: "  '' "))->toBeNull();
         expect(nullIfBlank(value: "  ' \" ' "))->toBeNull();
         expect(nullIfBlank(value: "  ' \" ' ", fallback: 'fooino'))->toEqual('fooino');
@@ -239,7 +239,8 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlank(value: [], fallback: 'fooino'))->toEqual('fooino');
         expect(nullIfBlank(value: collect([])))->toBeNull();
 
-        $object = new class implements Stringable {
+        $object = new class implements Stringable
+        {
             public function __toString(): string
             {
                 return '';
@@ -265,13 +266,14 @@ describe('Helpers unit tests', function () {
 
         expect(nullIfBlankOrZero(value: [null], fallback: 'fooino'))->toBe([null]);
         expect(nullIfBlankOrZero(value: [false], fallback: 'fooino'))->toBe([false]);
-        expect(nullIfBlankOrZero(value: [""], fallback: 'fooino'))->toBe([""]);
+        expect(nullIfBlankOrZero(value: [''], fallback: 'fooino'))->toBe(['']);
         expect(nullIfBlankOrZero(value: [1, 'foobar', true], fallback: 'fooino'))->toBe([1, 'foobar', true]);
-        expect(nullIfBlankOrZero(value: collect([1, 'foobar', true]),  fallback: 'fooino'))->toEqual(collect([1, 'foobar', true]));
+        expect(nullIfBlankOrZero(value: collect([1, 'foobar', true]), fallback: 'fooino'))->toEqual(collect([1, 'foobar', true]));
 
-        expect(value(nullIfBlankOrZero(value: fn() => 'foobar',  fallback: 'fooino')))->toEqual('foobar');
+        expect(value(nullIfBlankOrZero(value: fn() => 'foobar', fallback: 'fooino')))->toEqual('foobar');
 
-        $object = new class implements Stringable {
+        $object = new class implements Stringable
+        {
             public function __toString(): string
             {
                 return 'foobar';
@@ -314,7 +316,8 @@ describe('Helpers unit tests', function () {
         expect(nullIfBlankOrZero(value: []))->toBeNull();
         expect(nullIfBlankOrZero(value: collect([])))->toBeNull();
 
-        $object = new class implements Stringable {
+        $object = new class implements Stringable
+        {
             public function __toString(): string
             {
                 return '';
@@ -323,7 +326,8 @@ describe('Helpers unit tests', function () {
 
         expect(nullIfBlankOrZero(value: $object))->toBeNull();
 
-        $object = new class implements Stringable {
+        $object = new class implements Stringable
+        {
             public function __toString(): string
             {
                 return '0';
@@ -474,14 +478,14 @@ describe('Helpers unit tests', function () {
         expect(removeWhitespace(value: 'foobar '))->toBe('foobar');
         expect(removeWhitespace(value: ' foobar '))->toBe('foobar');
         expect(removeWhitespace(value: ' 0912 123 1234 '))->toBe('09121231234');
-        expect(removeWhitespace(value: ' 0912 123 1234 ', replace: "_"))->toBe('_0912_123_1234_');
+        expect(removeWhitespace(value: ' 0912 123 1234 ', replace: '_'))->toBe('_0912_123_1234_');
 
         expect(removeWhitespace(value: null))->toBe(null);
         expect(removeWhitespace(value: true))->toBe(true);
         expect(removeWhitespace(value: false))->toBe(false);
 
         expect(removeWhitespace(value: [1, ' 0912 123 1234 ']))->toBe([1, '09121231234']);
-        expect(removeWhitespace(value: [1, ' 0912 123 1234 '], replace: "_"))->toBe([1, '_0912_123_1234_']);
+        expect(removeWhitespace(value: [1, ' 0912 123 1234 '], replace: '_'))->toBe([1, '_0912_123_1234_']);
 
         expect(removeWhitespace(value: [0, 1, 11.11, null, true, false, ' 123 123 ']))->toBe([0, 1, 11.11, null, true, false, '123123']);
 
@@ -509,7 +513,7 @@ describe('Helpers unit tests', function () {
 
         expect(sanitizeNumber([0, 1, 11.11, null, true, false, ' 1,234 ']))->toBe([0, 1, 11.11, null, true, false, '1234']);
 
-        expect(sanitizeNumber(value: ['123', '11,22', '2' => ["33, 44\t", 1 => ["44,55\n66 ", 123, true, false, null]]]))->toBe(['123', '1122', '2' => ["3344", 1 => ["445566", 123, true, false, null]]]);
+        expect(sanitizeNumber(value: ['123', '11,22', '2' => ["33, 44\t", 1 => ["44,55\n66 ", 123, true, false, null]]]))->toBe(['123', '1122', '2' => ['3344', 1 => ['445566', 123, true, false, null]]]);
     });
 
     test('replaceSlashWithDash helper', function () {
@@ -694,7 +698,7 @@ describe('Helpers unit tests', function () {
         expect(callMethodIfExists(object: CustomClass::class, method: 'getPrecision', fallback: 'fooino', constructorArgs: ['precision' => 2]))->toBe(2);
         expect(callMethodIfExists(object: new CustomClass(2), method: 'getPrecision', fallback: 'fooino'))->toBe(2);
 
-        expect(callMethodIfExists(object: "foobar", method: 'abs', fallback: 'NOT EXIST'))->toBe('NOT EXIST');
+        expect(callMethodIfExists(object: 'foobar', method: 'abs', fallback: 'NOT EXIST'))->toBe('NOT EXIST');
         expect(callMethodIfExists(object: CustomClass::class, method: 'abs', fallback: 'fooino', methodArgs: ['a' => -5]))->toBe(5);
 
         expect(callMethodIfExists(object: CustomClass::class, method: 'power', fallback: 'NOT EXIST'))->toBe('NOT EXIST');
@@ -759,11 +763,11 @@ describe('Helpers unit tests', function () {
 
         expect(unitNumberFormat(number: 1.e20, unit: 'Persons'))->toBe('100,000,000 ' . $trillion . ' Persons');
 
-        expect(unitNumberFormat(number: 10_000_000_000,))->toBe('10 ' . $billion);
+        expect(unitNumberFormat(number: 10_000_000_000))->toBe('10 ' . $billion);
 
-        expect(unitNumberFormat(number: -10_000_000_000,))->toBe('-10 ' . $billion);
+        expect(unitNumberFormat(number: -10_000_000_000))->toBe('-10 ' . $billion);
 
-        expect(unitNumberFormat(number: 1_000_000_000,))->toBe('1 ' . $billion);
+        expect(unitNumberFormat(number: 1_000_000_000))->toBe('1 ' . $billion);
 
         expect(unitNumberFormat(number: 123_000_000, unit: '$'))->toBe('123 ' . $million . ' $');
 
@@ -837,36 +841,36 @@ describe('Helpers unit tests', function () {
         expect(sanitizeUrl(value: ''))->toBe('');
         expect(sanitizeUrl(value: '0'))->toBe('0');
 
-        expect(sanitizeUrl(value: "test / prettify canonical ? %& $ *"))->toBe("test / prettify canonical ? %& - -");
+        expect(sanitizeUrl(value: 'test / prettify canonical ? %& $ *'))->toBe('test / prettify canonical ? %& - -');
 
-        expect(sanitizeUrl(value: "https://google.com/laravel_tips!for-2025"))->toBe("https://google.com/laravel_tips-for-2025");
-        expect(sanitizeUrl(value: ["https://google.com/laravel_tips!for-2025", "https://fooino.com/I am_god"]))->toBe(["https://google.com/laravel_tips-for-2025", "https://fooino.com/I am_god"]);
+        expect(sanitizeUrl(value: 'https://google.com/laravel_tips!for-2025'))->toBe('https://google.com/laravel_tips-for-2025');
+        expect(sanitizeUrl(value: ['https://google.com/laravel_tips!for-2025', 'https://fooino.com/I am_god']))->toBe(['https://google.com/laravel_tips-for-2025', 'https://fooino.com/I am_god']);
 
-        expect(sanitizeUrl(value: "https://example.com/search?q=hello&page=1"))->toBe("https://example.com/search?q=hello&page=1");
-        expect(sanitizeUrl(value: "https://example.com/page#section"))->toBe("https://example.com/page#section");
-        expect(sanitizeUrl(value: "https://user:pass@example.com/path"))->toBe("https://user:pass@example.com/path");
-        expect(sanitizeUrl(value: "https://x.com/test 🎉"))->toBe("https://x.com/test -");
+        expect(sanitizeUrl(value: 'https://example.com/search?q=hello&page=1'))->toBe('https://example.com/search?q=hello&page=1');
+        expect(sanitizeUrl(value: 'https://example.com/page#section'))->toBe('https://example.com/page#section');
+        expect(sanitizeUrl(value: 'https://user:pass@example.com/path'))->toBe('https://user:pass@example.com/path');
+        expect(sanitizeUrl(value: 'https://x.com/test 🎉'))->toBe('https://x.com/test -');
 
-        expect(sanitizeUrl(value: "https://example.com/page;param=value"))->toBe("https://example.com/page-param=value");
+        expect(sanitizeUrl(value: 'https://example.com/page;param=value'))->toBe('https://example.com/page-param=value');
 
-        expect(sanitizeUrl(value: "https://example.com/(test)"))->toBe("https://example.com/-test-");
-        expect(sanitizeUrl(value: "https://example.com/'test'"))->toBe("https://example.com/-test-");
-        expect(sanitizeUrl(value: "https://example.com/<test>"))->toBe("https://example.com/-test-");
+        expect(sanitizeUrl(value: 'https://example.com/(test)'))->toBe('https://example.com/-test-');
+        expect(sanitizeUrl(value: "https://example.com/'test'"))->toBe('https://example.com/-test-');
+        expect(sanitizeUrl(value: 'https://example.com/<test>'))->toBe('https://example.com/-test-');
 
-        expect(sanitizeUrl(value: "foo   bar   baz"))->toBe("foo   bar   baz");
+        expect(sanitizeUrl(value: 'foo   bar   baz'))->toBe('foo   bar   baz');
 
-        expect(sanitizeUrl(value: "https://github.com/user/repo_name"))->toBe("https://github.com/user/repo_name");
-        expect(sanitizeUrl(value: "https://en.wikipedia.org/wiki/C_Sharp"))->toBe("https://en.wikipedia.org/wiki/C_Sharp");
-        expect(sanitizeUrl(value: "https://example.com/search?q=foo_bar"))->toBe("https://example.com/search?q=foo_bar");
+        expect(sanitizeUrl(value: 'https://github.com/user/repo_name'))->toBe('https://github.com/user/repo_name');
+        expect(sanitizeUrl(value: 'https://en.wikipedia.org/wiki/C_Sharp'))->toBe('https://en.wikipedia.org/wiki/C_Sharp');
+        expect(sanitizeUrl(value: 'https://example.com/search?q=foo_bar'))->toBe('https://example.com/search?q=foo_bar');
 
-        expect(sanitizeUrl(value: ["https://example.com/a_b", "https://example.com/c_d"]))->toBe(["https://example.com/a_b", "https://example.com/c_d"]);
+        expect(sanitizeUrl(value: ['https://example.com/a_b', 'https://example.com/c_d']))->toBe(['https://example.com/a_b', 'https://example.com/c_d']);
 
-        expect(sanitizeUrl(value: "https://example.com/api/v1/../v2/resource"))->toBe("https://example.com/api/v1/../v2/resource");
-        expect(sanitizeUrl(value: "https://example.com/a/../../c"))->toBe("https://example.com/a/../../c");
+        expect(sanitizeUrl(value: 'https://example.com/api/v1/../v2/resource'))->toBe('https://example.com/api/v1/../v2/resource');
+        expect(sanitizeUrl(value: 'https://example.com/a/../../c'))->toBe('https://example.com/a/../../c');
 
 
-        expect(sanitizeUrl(value: "https://example.com/path with spaces"))->toBe("https://example.com/path with spaces");
-        expect(sanitizeUrl(value: ["https://example.com/a b", "https://example.com/c d"]))->toBe(["https://example.com/a b", "https://example.com/c d"]);
+        expect(sanitizeUrl(value: 'https://example.com/path with spaces'))->toBe('https://example.com/path with spaces');
+        expect(sanitizeUrl(value: ['https://example.com/a b', 'https://example.com/c d']))->toBe(['https://example.com/a b', 'https://example.com/c d']);
     });
 
     test('sanitizeSlug helper', function () {
@@ -878,25 +882,25 @@ describe('Helpers unit tests', function () {
         expect(sanitizeSlug(value: false))->toBe(false);
         expect(sanitizeSlug(value: []))->toBe([]);
 
-        expect(sanitizeSlug(value: "test / Prettify slug ? %& $ *"))->toBe('test-prettify-slug');
-        expect(sanitizeSlug(value: "Laravel_tips!for-2025"))->toBe('laravel-tips-for-2025');
-        expect(sanitizeSlug(value: ["Laravel_tips!for-2025", "I am_god"]))->toBe(["laravel-tips-for-2025", "i-am-god"]);
+        expect(sanitizeSlug(value: 'test / Prettify slug ? %& $ *'))->toBe('test-prettify-slug');
+        expect(sanitizeSlug(value: 'Laravel_tips!for-2025'))->toBe('laravel-tips-for-2025');
+        expect(sanitizeSlug(value: ['Laravel_tips!for-2025', 'I am_god']))->toBe(['laravel-tips-for-2025', 'i-am-god']);
 
-        expect(sanitizeSlug(value: "café"))->toBe('cafe');
-        expect(sanitizeSlug(value: "straße"))->toBe('strasse');
-        expect(sanitizeSlug(value: "über cool"))->toBe('uber-cool');
-        expect(sanitizeSlug(value: "ñoño"))->toBe('nono');
-        expect(sanitizeSlug(value: "München"))->toBe('munchen');
+        expect(sanitizeSlug(value: 'café'))->toBe('cafe');
+        expect(sanitizeSlug(value: 'straße'))->toBe('strasse');
+        expect(sanitizeSlug(value: 'über cool'))->toBe('uber-cool');
+        expect(sanitizeSlug(value: 'ñoño'))->toBe('nono');
+        expect(sanitizeSlug(value: 'München'))->toBe('munchen');
 
-        expect(sanitizeSlug(value: ["café", "straße"]))->toBe(["cafe", "strasse"]);
-        expect(sanitizeSlug(value: ["über cool", "hello world"]))->toBe(["uber-cool", "hello-world"]);
+        expect(sanitizeSlug(value: ['café', 'straße']))->toBe(['cafe', 'strasse']);
+        expect(sanitizeSlug(value: ['über cool', 'hello world']))->toBe(['uber-cool', 'hello-world']);
 
-        expect(sanitizeSlug(value: "café 🎉"))->toBe('cafe');
-        expect(sanitizeSlug(value: "hello 🎉 world"))->toBe('hello-world');
+        expect(sanitizeSlug(value: 'café 🎉'))->toBe('cafe');
+        expect(sanitizeSlug(value: 'hello 🎉 world'))->toBe('hello-world');
 
-        expect(sanitizeSlug(value: "hello-world"))->toBe('hello-world');
-        expect(sanitizeSlug(value: "foo_bar_baz"))->toBe('foo-bar-baz');
-        expect(sanitizeSlug(value: "test123"))->toBe('test123');
+        expect(sanitizeSlug(value: 'hello-world'))->toBe('hello-world');
+        expect(sanitizeSlug(value: 'foo_bar_baz'))->toBe('foo-bar-baz');
+        expect(sanitizeSlug(value: 'test123'))->toBe('test123');
     });
 
     test('jsonAttribute helper', function () {
@@ -910,8 +914,8 @@ describe('Helpers unit tests', function () {
             $table->timestamps();
         });
 
-        $model = new class extends Model {
-
+        $model = new class extends Model
+        {
             protected $guarded = ['id'];
 
             protected $table = 'testing_json_table';

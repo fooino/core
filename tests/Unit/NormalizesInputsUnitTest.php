@@ -27,6 +27,7 @@ class NormalizesInputsTestFormRequest extends FormRequest
     use NormalizesInputs;
 
     public static array $testRules = [];
+
     public static array $testConfigs = [];
 
     public function authorize(): bool
@@ -57,16 +58,16 @@ describe('NormalizesInputs trait', function () {
     it('normalizes and converts blank to null by default', function () {
 
         NormalizesInputsTestFormRequest::$testRules = [
-            'title'                 => 'required',
-            'bio'                   => 'nullable',
-            'slogan'                => 'nullable',
-            'content'               => 'required',
-            'age'                   => 'required|numeric',
-            'amount'                => 'required|numeric',
-            'phone_number'          => 'required',
-            'remember_me'           => 'required|boolean:strict',
-            'user'                  => 'nullable',
-            'attributes'            => 'required|array'
+            'title'        => 'required',
+            'bio'          => 'nullable',
+            'slogan'       => 'nullable',
+            'content'      => 'required',
+            'age'          => 'required|numeric',
+            'amount'       => 'required|numeric',
+            'phone_number' => 'required',
+            'remember_me'  => 'required|boolean:strict',
+            'user'         => 'nullable',
+            'attributes'   => 'required|array'
         ];
 
         $collection = collect(['id' => 123, 'name' => 'عليك سلام']);
@@ -74,37 +75,37 @@ describe('NormalizesInputs trait', function () {
         $request = resolveRequest(
             request: NormalizesInputsTestFormRequest::class,
             data: [
-                'title'         => 'عليك سلام',
-                'bio'           => 'null ',
+                'title' => 'عليك سلام',
+                'bio'   => 'null ',
                 // I did not pass the slogan
-                'content'       => '<script>alert(1)</script>',
-                'age'           => 29,
-                'amount'        => 123.0102,
-                'phone_number'  => '۰۱۲۳٤٥٦۷۸۹',
-                'remember_me'   => true,
-                'user'          => $collection,
-                'attributes'    => [
-                    'id'        => 1,
-                    'name'      => 'عليك سلام',
-                    'priority'  => '۷۸۹'
+                'content'      => '<script>alert(1)</script>',
+                'age'          => 29,
+                'amount'       => 123.0102,
+                'phone_number' => '۰۱۲۳٤٥٦۷۸۹',
+                'remember_me'  => true,
+                'user'         => $collection,
+                'attributes'   => [
+                    'id'       => 1,
+                    'name'     => 'عليك سلام',
+                    'priority' => '۷۸۹'
                 ]
             ],
         );
 
         expect($request->validated())->toBe([
-            'title'         => 'علیک سلام',
-            'bio'           => null,
-            'slogan'        => null, // the null value is merged into the request
-            'content'       => 'alert(1)',
-            'age'           => 29,
-            'amount'        => 123.0102,
-            'phone_number'  => '0123456789',
-            'remember_me'   => true,
-            'user'          => $collection,
-            'attributes'    => [
-                'id'        => 1,
-                'name'      => 'علیک سلام',
-                'priority'  => '789'
+            'title'        => 'علیک سلام',
+            'bio'          => null,
+            'slogan'       => null, // the null value is merged into the request
+            'content'      => 'alert(1)',
+            'age'          => 29,
+            'amount'       => 123.0102,
+            'phone_number' => '0123456789',
+            'remember_me'  => true,
+            'user'         => $collection,
+            'attributes'   => [
+                'id'       => 1,
+                'name'     => 'علیک سلام',
+                'priority' => '789'
             ]
         ]);
 
@@ -283,13 +284,13 @@ describe('NormalizesInputs trait', function () {
         it('default fallback when input is blank', function () {
 
             NormalizesInputsTestFormRequest::$testRules = [
-                'title'     => 'nullable',
-                'slogan'    => 'nullable'
+                'title'  => 'nullable',
+                'slogan' => 'nullable'
             ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
-                'title'     => ['default' => 'Untitled'],
-                'slogan'    => ['default' => 'fooino will rock you']
+                'title'  => ['default' => 'Untitled'],
+                'slogan' => ['default' => 'fooino will rock you']
             ];
 
             $request = resolveRequest(
@@ -429,7 +430,7 @@ describe('NormalizesInputs trait', function () {
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
                 data: [
-                    'slug' => '',
+                    'slug'  => '',
                     'title' => 'My Article'
                 ],
             );
@@ -473,34 +474,34 @@ describe('NormalizesInputs trait', function () {
         it('normalizes dot-notation inputs', function () {
 
             NormalizesInputsTestFormRequest::$testRules = [
-                'user.name'                  => 'required',
-                'user.bio'                   => 'nullable',
-                'user.content'               => 'required',
-                'user.age'                   => 'required|numeric',
-                'user.phone_number'          => 'required',
-                'user.remember_me'           => 'required|boolean:strict',
-                'user.attributes.id'         => 'nullable',
-                'user.attributes.email'      => 'required|email'
+                'user.name'             => 'required',
+                'user.bio'              => 'nullable',
+                'user.content'          => 'required',
+                'user.age'              => 'required|numeric',
+                'user.phone_number'     => 'required',
+                'user.remember_me'      => 'required|boolean:strict',
+                'user.attributes.id'    => 'nullable',
+                'user.attributes.email' => 'required|email'
             ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
-                'user.content'              => ['includeHTMLTags'   => ['<custom>']],
-                'user.attributes.id'        => ['nullOnZero'        => true],
-                'user.attributes.email'     => ['default'           => 'FOO@INO.COM', 'pipe' => fn($value, $request) => strtolower($value)]
+                'user.content'          => ['includeHTMLTags' => ['<custom>']],
+                'user.attributes.id'    => ['nullOnZero' => true],
+                'user.attributes.email' => ['default' => 'FOO@INO.COM', 'pipe' => fn($value, $request) => strtolower($value)]
             ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
                 data: [
                     'user' => [
-                        'name'          => 'عليك سلام',
-                        'bio'           => 'null ',
-                        'content'       => '<script>alert(1)</script><custom>I am a custom tag</custom>',
-                        'age'           => 29,
-                        'phone_number'  => '۰۱۲۳٤٥٦۷۸۹',
-                        'remember_me'   => true,
-                        'attibutes'     => [
-                            'id'        => 0,
+                        'name'         => 'عليك سلام',
+                        'bio'          => 'null ',
+                        'content'      => '<script>alert(1)</script><custom>I am a custom tag</custom>',
+                        'age'          => 29,
+                        'phone_number' => '۰۱۲۳٤٥٦۷۸۹',
+                        'remember_me'  => true,
+                        'attibutes'    => [
+                            'id' => 0,
                         ]
                     ],
                 ],
@@ -508,13 +509,13 @@ describe('NormalizesInputs trait', function () {
 
             expect($request->validated())->toBe([
                 'user' => [
-                    'name'          => 'علیک سلام',
-                    'bio'           => null,
-                    'content'       => 'alert(1)<custom>I am a custom tag</custom>',
-                    'age'           => 29,
-                    'phone_number'  => '0123456789',
-                    'remember_me'   => true,
-                    'attributes'    => [
+                    'name'         => 'علیک سلام',
+                    'bio'          => null,
+                    'content'      => 'alert(1)<custom>I am a custom tag</custom>',
+                    'age'          => 29,
+                    'phone_number' => '0123456789',
+                    'remember_me'  => true,
+                    'attributes'   => [
                         'id'    => null,
                         'email' => 'foo@ino.com'
                     ]
@@ -558,7 +559,7 @@ describe('NormalizesInputs trait', function () {
             ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
-                'user.3.name'   => ['default' => 'FIFA world cup 2026 - Germany vs Paraguay']
+                'user.3.name' => ['default' => 'FIFA world cup 2026 - Germany vs Paraguay']
             ];
 
             $request = resolveRequest(
@@ -637,10 +638,10 @@ describe('NormalizesInputs trait', function () {
             expect($request->validated())->toBe([
                 'users' => [
                     [
-                        'name'  => 'علیک سلام'
+                        'name' => 'علیک سلام'
                     ],
                     [
-                        'name'  => '0123'
+                        'name' => '0123'
                     ],
                 ],
             ]);
@@ -662,13 +663,13 @@ describe('NormalizesInputs trait', function () {
         it('applies config to wildcard inputs', function () {
 
             NormalizesInputsTestFormRequest::$testRules = [
-                'users.1.name'  => 'required',
-                'users.*.name'  => 'nullable',
+                'users.1.name' => 'required',
+                'users.*.name' => 'nullable',
             ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
-                'users.*.name'  => ['default'   => 'Guest'],
-                'users.1.name'  => ['default'   => 'fooino magic', 'pipe' => fn($value) => strtoupper($value)]
+                'users.*.name' => ['default' => 'Guest'],
+                'users.1.name' => ['default' => 'fooino magic', 'pipe' => fn($value) => strtoupper($value)]
             ];
 
             $request = resolveRequest(
@@ -752,13 +753,13 @@ describe('NormalizesInputs trait', function () {
         it('lets a specific rule win over a matching wildcard pipeline', function () {
 
             NormalizesInputsTestFormRequest::$testRules = [
-                'users.1.name'  => 'nullable',
-                'users.*.name'  => 'nullable',
+                'users.1.name' => 'nullable',
+                'users.*.name' => 'nullable',
             ];
 
             NormalizesInputsTestFormRequest::$testConfigs = [
-                'users.1.name'  => ['default' => 'fooino magic', 'pipe' => fn($value) => strtoupper($value)],
-                'users.*.name'  => ['default' => 'Guest', 'pipe' => fn($value) => strtolower($value)],
+                'users.1.name' => ['default' => 'fooino magic', 'pipe' => fn($value) => strtoupper($value)],
+                'users.*.name' => ['default' => 'Guest', 'pipe' => fn($value) => strtolower($value)],
             ];
 
             $request = resolveRequest(
@@ -850,8 +851,8 @@ describe('NormalizesInputs trait', function () {
 
             NormalizesInputsTestFormRequest::$testConfigs = [
                 'users.*.attributes.*.name' => [
-                    'default'   => 'n/a',
-                    'pipe'      => fn($v) => $v === null ? null : strtoupper($v)
+                    'default' => 'n/a',
+                    'pipe'    => fn($v) => $v === null ? null : strtoupper($v)
                 ],
             ];
 
@@ -1107,20 +1108,20 @@ describe('NormalizesInputs trait', function () {
         it('normalizeInput does not corrupt array or JSON structure', function () {
 
             NormalizesInputsTestFormRequest::$testRules = [
-                'metadata.json'                 => 'required',
-                'metadata.json_persian'         => 'required',
-                'metadata.nested_json'          => 'required',
-                'metadata.nested'               => 'required',
+                'metadata.json'         => 'required',
+                'metadata.json_persian' => 'required',
+                'metadata.nested_json'  => 'required',
+                'metadata.nested'       => 'required',
             ];
 
             $request = resolveRequest(
                 request: NormalizesInputsTestFormRequest::class,
                 data: [
                     'metadata' => [
-                        'json'          => '{"status":"ok"}',
-                        'json_persian'  => '{"title":"۰۱۲۳"}',
-                        'nested_json'   => '{"deep":{"deeper":"\u0639\u0644\u064a\u0643 \u0633\u0644\u0627\u0645","0":{"deepest":{"number":"\u06f0\u06f1\u06f2\u06f3","name":"undefined"}}}}',
-                        'nested'        => ['deep' => ['deeper' => 'عليك سلام']],
+                        'json'         => '{"status":"ok"}',
+                        'json_persian' => '{"title":"۰۱۲۳"}',
+                        'nested_json'  => '{"deep":{"deeper":"\u0639\u0644\u064a\u0643 \u0633\u0644\u0627\u0645","0":{"deepest":{"number":"\u06f0\u06f1\u06f2\u06f3","name":"undefined"}}}}',
+                        'nested'       => ['deep' => ['deeper' => 'عليك سلام']],
                     ],
                 ],
             );

@@ -57,8 +57,11 @@ class TaskBetaForTesting extends SingletonableTask
 class CacheAwareTaskForTesting extends SingletonableTask
 {
     public bool $beforeResetCalled = false;
+
     public bool $afterResetCalled = false;
+
     public int $resetCount = 0;
+
     public bool $cacheInvalidated = false;
 
     protected function getData(): mixed

@@ -71,13 +71,14 @@ describe('Math facade using FooinoMathHandler', function () {
             if (rand(0, 1)) {
 
                 expect(Math::convertScientificNumber($number))->toBe($expected);
+
                 continue;
             }
 
             expect(convertScientificNumber($number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('trimTrailingZeros method', function () {
@@ -90,13 +91,14 @@ describe('Math facade using FooinoMathHandler', function () {
             if (rand(0, 1)) {
 
                 expect(Math::trimTrailingZeros($number))->toBe($expected);
+
                 continue;
             }
 
             expect(trimTrailingZeros($number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('countDecimalPlaces method', function () {
@@ -122,6 +124,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             if (is_callable($number)) {
                 $number();
+
                 continue;
             }
 
@@ -130,23 +133,26 @@ describe('Math facade using FooinoMathHandler', function () {
                 if (!is_null($precision)) {
 
                     expect(Math::setPrecision(precision: $precision)->number($number))->toBe($expected);
+
                     continue;
                 }
 
                 expect(Math::number($number))->toBe($expected);
+
                 continue;
             }
 
             if (!is_null($precision)) {
 
                 expect(math(precision: $precision)->number($number))->toBe($expected);
+
                 continue;
             }
 
             expect(number($number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('numberFormat method', function () {
@@ -163,23 +169,26 @@ describe('Math facade using FooinoMathHandler', function () {
                 if (!is_null($precision)) {
 
                     expect(Math::setPrecision(precision: $precision)->numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+
                     continue;
                 }
 
                 expect(Math::numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+
                 continue;
             }
 
             if (!is_null($precision)) {
 
                 expect(math(precision: $precision)->numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
+
                 continue;
             }
 
             expect(numberFormat(number: $number, thousandsSeparator: $thousandsSeparator))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('sum method', function () {
@@ -191,6 +200,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             if (is_callable($number)) {
                 $number();
+
                 continue;
             }
 
@@ -204,7 +214,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(sum($number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('subtract method', function () {
@@ -216,6 +226,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             if (is_callable($number)) {
                 $number();
+
                 continue;
             }
 
@@ -229,7 +240,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(subtract($number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('multiply method', function () {
@@ -241,6 +252,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             if (is_callable($number)) {
                 $number();
+
                 continue;
             }
 
@@ -254,7 +266,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(multiply($number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('divide method', function () {
@@ -266,6 +278,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             if (is_callable($number)) {
                 $number();
+
                 continue;
             }
 
@@ -279,7 +292,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(divide($number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('remainder method', function () {
@@ -291,6 +304,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
             if (is_callable($number)) {
                 $number();
+
                 continue;
             }
 
@@ -304,7 +318,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(remainder($number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('power method', function () {
@@ -318,7 +332,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(Math::power(number: $number, exponent: $exponent))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('sqrt method', function () {
@@ -331,7 +345,7 @@ describe('Math facade using FooinoMathHandler', function () {
             expect(Math::sqrt(number: $number))->toBe($expected);
         }
 
-        // 
+        //
     });
 
     test('roundUp method', function () {
@@ -349,10 +363,10 @@ describe('Math facade using FooinoMathHandler', function () {
             }
 
             expect(roundUp(number: $number))->toBe($expected);
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('roundDown method', function () {
@@ -371,10 +385,10 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(roundDown(number: $number))->toBe($expected);
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('roundClose method', function () {
@@ -395,10 +409,10 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(roundClose(number: $number, precision: $precision, mode: $mode))->toBe($expected);
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('greaterThan method', function () {
@@ -418,10 +432,10 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(greaterThan($num1, $num2))->toBe($expected);
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('greaterThanOrEqual method', function () {
@@ -441,10 +455,10 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(greaterThanOrEqual($num1, $num2))->toBe($expected);
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('lessThan method', function () {
@@ -464,10 +478,10 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(lessThan($num1, $num2))->toBe($expected);
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('lessThanOrEqual method', function () {
@@ -486,10 +500,10 @@ describe('Math facade using FooinoMathHandler', function () {
             }
 
             expect(lessThanOrEqual($num1, $num2))->toBe($expected);
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('equal method', function () {
@@ -509,10 +523,10 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(equal($num1, $num2))->toBe($expected);
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
     test('notEqual method', function () {
@@ -532,10 +546,10 @@ describe('Math facade using FooinoMathHandler', function () {
 
             expect(notEqual($num1, $num2))->toBe($expected);
 
-            // 
+            //
         }
 
-        // 
+        //
     });
 
 
@@ -549,7 +563,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::setPrecision(precision: 20);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidPrecision');
@@ -569,7 +583,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::setPrecision(precision: -1);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidPrecision');
@@ -599,7 +613,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::convertScientificNumber(1.1E+9999);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
@@ -608,9 +622,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'convertScientificNumber',
-                    'operand'       => INF,
-                    'args'          => []
+                    'method'  => 'convertScientificNumber',
+                    'operand' => INF,
+                    'args'    => []
                 ]);
             }
 
@@ -618,7 +632,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::convertScientificNumber(-1.1E+9999);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
@@ -627,9 +641,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'convertScientificNumber',
-                    'operand'       => -INF,
-                    'args'          => []
+                    'method'  => 'convertScientificNumber',
+                    'operand' => -INF,
+                    'args'    => []
                 ]);
             }
 
@@ -644,7 +658,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::convertScientificNumber('1.1E+9999');
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
@@ -653,9 +667,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'convertScientificNumber',
-                    'operand'       => '1.1E+9999',
-                    'args'          => []
+                    'method'  => 'convertScientificNumber',
+                    'operand' => '1.1E+9999',
+                    'args'    => []
                 ]);
             }
 
@@ -663,7 +677,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::convertScientificNumber('-1.1E-324');
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
@@ -672,9 +686,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'convertScientificNumber',
-                    'operand'       => '-1.1E-324',
-                    'args'          => []
+                    'method'  => 'convertScientificNumber',
+                    'operand' => '-1.1E-324',
+                    'args'    => []
                 ]);
             }
         });
@@ -709,9 +723,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'number',
-                    'operand'       => [],
-                    'args'          => []
+                    'method'  => 'number',
+                    'operand' => [],
+                    'args'    => []
                 ]);
             }
 
@@ -728,9 +742,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'number',
-                    'operand'       => ['test'],
-                    'args'          => []
+                    'method'  => 'number',
+                    'operand' => ['test'],
+                    'args'    => []
                 ]);
             }
 
@@ -747,9 +761,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'number',
-                    'operand'       => ['1', 'test'],
-                    'args'          => []
+                    'method'  => 'number',
+                    'operand' => ['1', 'test'],
+                    'args'    => []
                 ]);
             }
 
@@ -766,9 +780,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'number',
-                    'operand'       => ['1', 'test'],
-                    'args'          => []
+                    'method'  => 'number',
+                    'operand' => ['1', 'test'],
+                    'args'    => []
                 ]);
             }
 
@@ -785,9 +799,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'number',
-                    'operand'       => [[1, 2], 2],
-                    'args'          => []
+                    'method'  => 'number',
+                    'operand' => [[1, 2], 2],
+                    'args'    => []
                 ]);
             }
         });
@@ -810,9 +824,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'numberFormat',
-                    'operand'       => '2,000,000.12T',
-                    'args'          => []
+                    'method'  => 'numberFormat',
+                    'operand' => '2,000,000.12T',
+                    'args'    => []
                 ]);
             }
         });
@@ -835,9 +849,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'numberFormat',
-                    'operand'       => '',
-                    'args'          => []
+                    'method'  => 'numberFormat',
+                    'operand' => '',
+                    'args'    => []
                 ]);
             }
         });
@@ -899,7 +913,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::sum();
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -908,9 +922,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcadd',
-                    'operand'       => [],
-                    'args'          => []
+                    'method'  => 'bcadd',
+                    'operand' => [],
+                    'args'    => []
                 ]);
             }
 
@@ -918,7 +932,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::subtract(1);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -927,9 +941,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcsub',
-                    'operand'       => [1],
-                    'args'          => []
+                    'method'  => 'bcsub',
+                    'operand' => [1],
+                    'args'    => []
                 ]);
             }
 
@@ -937,7 +951,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::multiply([1]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -946,9 +960,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcmul',
-                    'operand'       => [1],
-                    'args'          => []
+                    'method'  => 'bcmul',
+                    'operand' => [1],
+                    'args'    => []
                 ]);
             }
 
@@ -956,7 +970,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::divide([]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -965,9 +979,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcdiv',
-                    'operand'       => [],
-                    'args'          => []
+                    'method'  => 'bcdiv',
+                    'operand' => [],
+                    'args'    => []
                 ]);
             }
 
@@ -975,7 +989,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::remainder([[1, 2]]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -984,9 +998,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcmod',
-                    'operand'       => [[1, 2]],
-                    'args'          => []
+                    'method'  => 'bcmod',
+                    'operand' => [[1, 2]],
+                    'args'    => []
                 ]);
             }
 
@@ -994,7 +1008,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::power([]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -1003,9 +1017,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcpow',
-                    'operand'       => [],
-                    'args'          => ['exponent'  => 2]
+                    'method'  => 'bcpow',
+                    'operand' => [],
+                    'args'    => ['exponent' => 2]
                 ]);
             }
 
@@ -1013,7 +1027,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::sqrt([]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -1022,9 +1036,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcsqrt',
-                    'operand'       => [],
-                    'args'          => []
+                    'method'  => 'bcsqrt',
+                    'operand' => [],
+                    'args'    => []
                 ]);
             }
 
@@ -1032,7 +1046,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::roundUp([]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -1041,9 +1055,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcceil',
-                    'operand'       => [],
-                    'args'          => []
+                    'method'  => 'bcceil',
+                    'operand' => [],
+                    'args'    => []
                 ]);
             }
 
@@ -1051,7 +1065,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::roundDown([]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -1060,9 +1074,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcfloor',
-                    'operand'       => [],
-                    'args'          => []
+                    'method'  => 'bcfloor',
+                    'operand' => [],
+                    'args'    => []
                 ]);
             }
 
@@ -1070,7 +1084,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::roundClose([]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentsCount');
@@ -1079,9 +1093,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->reportable())->toBeTrue();
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcround',
-                    'operand'       => [],
-                    'args'          => ['precision' => 0, 'mode' => RoundingMode::HalfAwayFromZero]
+                    'method'  => 'bcround',
+                    'operand' => [],
+                    'args'    => ['precision' => 0, 'mode' => RoundingMode::HalfAwayFromZero]
                 ]);
             }
         });
@@ -1167,7 +1181,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::sum(1, 'test');
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1176,9 +1190,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcadd',
-                    'operand'       => [1, 'test'],
-                    'args'          => []
+                    'method'  => 'bcadd',
+                    'operand' => [1, 'test'],
+                    'args'    => []
                 ]);
             }
 
@@ -1186,7 +1200,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::subtract([1, 'test']);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1195,9 +1209,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcsub',
-                    'operand'       => [1, 'test'],
-                    'args'          => []
+                    'method'  => 'bcsub',
+                    'operand' => [1, 'test'],
+                    'args'    => []
                 ]);
             }
 
@@ -1205,7 +1219,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::multiply([1], [2]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1214,9 +1228,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcmul',
-                    'operand'       => [[1], [2]],
-                    'args'          => []
+                    'method'  => 'bcmul',
+                    'operand' => [[1], [2]],
+                    'args'    => []
                 ]);
             }
 
@@ -1224,7 +1238,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::divide([[1], [2]]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1233,9 +1247,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcdiv',
-                    'operand'       => [[1], [2]],
-                    'args'          => []
+                    'method'  => 'bcdiv',
+                    'operand' => [[1], [2]],
+                    'args'    => []
                 ]);
             }
 
@@ -1243,7 +1257,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::remainder(1, 'test', 0);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1252,9 +1266,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcmod',
-                    'operand'       => [1, 'test', 0],
-                    'args'          => []
+                    'method'  => 'bcmod',
+                    'operand' => [1, 'test', 0],
+                    'args'    => []
                 ]);
             }
 
@@ -1262,7 +1276,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::power('test');
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1271,9 +1285,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcpow',
-                    'operand'       => 'test',
-                    'args'          => ['exponent' => 2]
+                    'method'  => 'bcpow',
+                    'operand' => 'test',
+                    'args'    => ['exponent' => 2]
                 ]);
             }
 
@@ -1281,7 +1295,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::sqrt([1, 'test']);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1289,9 +1303,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getLevel())->toBe('error');
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcsqrt',
-                    'operand'       => [1, 'test'],
-                    'args'          => []
+                    'method'  => 'bcsqrt',
+                    'operand' => [1, 'test'],
+                    'args'    => []
                 ]);
             }
 
@@ -1299,7 +1313,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::roundUp([[], []]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1308,9 +1322,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcceil',
-                    'operand'       => [[], []],
-                    'args'          => []
+                    'method'  => 'bcceil',
+                    'operand' => [[], []],
+                    'args'    => []
                 ]);
             }
 
@@ -1318,7 +1332,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::roundDown([[1], [2]]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1327,9 +1341,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcfloor',
-                    'operand'       => [[1], [2]],
-                    'args'          => []
+                    'method'  => 'bcfloor',
+                    'operand' => [[1], [2]],
+                    'args'    => []
                 ]);
             }
 
@@ -1337,7 +1351,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::roundClose([[1]]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1346,9 +1360,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcround',
-                    'operand'       => [[1]],
-                    'args'          => ['precision' => 0, 'mode' => RoundingMode::HalfAwayFromZero]
+                    'method'  => 'bcround',
+                    'operand' => [[1]],
+                    'args'    => ['precision' => 0, 'mode' => RoundingMode::HalfAwayFromZero]
                 ]);
             }
         });
@@ -1364,7 +1378,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::divide(1, 2, 0);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
@@ -1373,9 +1387,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcdiv',
-                    'operand'       => [1, 2, 0],
-                    'args'          => []
+                    'method'  => 'bcdiv',
+                    'operand' => [1, 2, 0],
+                    'args'    => []
                 ]);
             }
 
@@ -1383,7 +1397,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::remainder([1, 2, 0]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
@@ -1392,9 +1406,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcmod',
-                    'operand'       => [1, 2, 0],
-                    'args'          => []
+                    'method'  => 'bcmod',
+                    'operand' => [1, 2, 0],
+                    'args'    => []
                 ]);
             }
 
@@ -1413,7 +1427,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::power(0, -1);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
@@ -1422,9 +1436,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcpow',
-                    'operand'       => 0,
-                    'args'          => ['exponent' => -1]
+                    'method'  => 'bcpow',
+                    'operand' => 0,
+                    'args'    => ['exponent' => -1]
                 ]);
             }
 
@@ -1432,7 +1446,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::power([1, 0], -1);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionDivisionByZero');
@@ -1441,9 +1455,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcpow',
-                    'operand'       => [1, 0],
-                    'args'          => ['exponent' => -1]
+                    'method'  => 'bcpow',
+                    'operand' => [1, 0],
+                    'args'    => ['exponent' => -1]
                 ]);
             }
 
@@ -1451,7 +1465,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::sqrt(-1);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
@@ -1460,9 +1474,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcsqrt',
-                    'operand'       => -1,
-                    'args'          => []
+                    'method'  => 'bcsqrt',
+                    'operand' => -1,
+                    'args'    => []
                 ]);
             }
 
@@ -1470,7 +1484,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::sqrt([1, -1]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidValueError');
@@ -1479,9 +1493,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcsqrt',
-                    'operand'       => [1, -1],
-                    'args'          => []
+                    'method'  => 'bcsqrt',
+                    'operand' => [1, -1],
+                    'args'    => []
                 ]);
             }
         });
@@ -1501,7 +1515,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::greaterThan('test', 1);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1510,9 +1524,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bccomp',
-                    'operand'       => ['test', '1'],
-                    'args'          => []
+                    'method'  => 'bccomp',
+                    'operand' => ['test', '1'],
+                    'args'    => []
                 ]);
             }
 
@@ -1520,7 +1534,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::greaterThanOrEqual(1, 'test');
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1529,9 +1543,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bccomp',
-                    'operand'       => ['1', 'test'],
-                    'args'          => []
+                    'method'  => 'bccomp',
+                    'operand' => ['1', 'test'],
+                    'args'    => []
                 ]);
             }
 
@@ -1539,7 +1553,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::lessThan('test', 1);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1548,9 +1562,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bccomp',
-                    'operand'       => ['test', '1'],
-                    'args'          => []
+                    'method'  => 'bccomp',
+                    'operand' => ['test', '1'],
+                    'args'    => []
                 ]);
             }
 
@@ -1558,7 +1572,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::lessThanOrEqual(1, 'test');
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1567,9 +1581,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bccomp',
-                    'operand'       => ['1', 'test'],
-                    'args'          => []
+                    'method'  => 'bccomp',
+                    'operand' => ['1', 'test'],
+                    'args'    => []
                 ]);
             }
 
@@ -1577,7 +1591,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::equal('test', 1);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1586,9 +1600,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bccomp',
-                    'operand'       => ['test', '1'],
-                    'args'          => []
+                    'method'  => 'bccomp',
+                    'operand' => ['test', '1'],
+                    'args'    => []
                 ]);
             }
 
@@ -1596,7 +1610,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 Math::notEqual(1, 'test');
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionInvalidArgumentType');
@@ -1605,9 +1619,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bccomp',
-                    'operand'       => ['1', 'test'],
-                    'args'          => []
+                    'method'  => 'bccomp',
+                    'operand' => ['1', 'test'],
+                    'args'    => []
                 ]);
             }
         });
@@ -1624,7 +1638,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 $reflector->invoke($handler, 'bcfoobar', [1, 2]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionUnsupportedFunction');
@@ -1633,9 +1647,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcfoobar',
-                    'operand'       => [1, 2],
-                    'args'          => []
+                    'method'  => 'bcfoobar',
+                    'operand' => [1, 2],
+                    'args'    => []
                 ]);
             }
 
@@ -1650,7 +1664,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 $reflector->invoke($handler, 'bcfoobar', [1, 2]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionUnsupportedFunction');
@@ -1659,9 +1673,9 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcfoobar',
-                    'operand'       => [1, 2],
-                    'args'          => []
+                    'method'  => 'bcfoobar',
+                    'operand' => [1, 2],
+                    'args'    => []
                 ]);
             }
 
@@ -1675,7 +1689,7 @@ describe('Math facade using FooinoMathHandler', function () {
 
                 $reflector->invoke($handler, 'bcfoobar', [1, 2]);
 
-                // 
+                //
             } catch (MathCalculationException $e) {
 
                 expect($e->getMessage())->toBe('msg.mathCalculationExceptionUnsupportedFunction');
@@ -1684,13 +1698,13 @@ describe('Math facade using FooinoMathHandler', function () {
                 expect($e->getHttpStatusCode())->toBe(500);
                 expect($e->reportable())->toBeTrue();
                 expect($e->getWith())->toBe([
-                    'method'        => 'bcfoobar',
-                    'operand'       => [1, 2],
-                    'args'          => []
+                    'method'  => 'bcfoobar',
+                    'operand' => [1, 2],
+                    'args'    => []
                 ]);
             }
         });
 
-        // 
+        //
     });
 });
