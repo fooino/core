@@ -1,6 +1,6 @@
 # Pint Configuration
 
-Base: the `laravel` preset, with `exclude` skipping `public/` (the stock front controller stays untouched).
+Base: the `laravel` preset.
 
 | Rule | Configuration | Why |
 |---|---|---|

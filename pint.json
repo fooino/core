@@ -1,8 +1,5 @@
 {
     "preset": "laravel",
-    "exclude": [
-        "public"
-    ],
     "rules": {
         "binary_operator_spaces": {
             "default": "single_space",

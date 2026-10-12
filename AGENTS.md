@@ -67,7 +67,7 @@ Follow **SOLID** and **KISS** principles. Methods must have a **single responsib
 - Facade `@method` docblocks mirror the interface exactly.
 
 ### Code Style & Formatting (Pint)
-- **Laravel Pint** is the single source of truth for code style. Configuration lives in `pint.json` (base: the `laravel` preset, `public/` excluded) and every rule is justified in `PINT.md`.
+- **Laravel Pint** is the single source of truth for code style. Configuration lives in `pint.json` (base: the `laravel` preset) and every rule is justified in `PINT.md`.
 - **Always run Pint before finishing a change**: `./vendor/bin/pint` (or `composer pint`). Never hand-format what Pint can format.
 - **Verify without writing**: `./vendor/bin/pint --test` must pass on the whole codebase. Use `--test -v` to inspect the diffs and `--dirty` to format only uncommitted files.
 - **Do not fight the formatter**: when `--test` reports a fixer that conflicts with the intended style, either accept the change or disable/configure that fixer in `pint.json` — never hand-tune alignment or add suppression workarounds.
