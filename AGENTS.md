@@ -47,7 +47,7 @@ Follow **SOLID** and **KISS** principles. Methods must have a **single responsib
 - Interface methods carry full `@param`/`@return` phpDocs; concrete implementations may omit `@param`/`@return` if the signature is self-documenting.
 
 ### phpDoc
-- **Every method must have a phpDoc description.** The description explains **why**, not how. Keep it one line.
+- **Every method must have a phpDoc description.** The description explains **why** or **what**, not how. Keep it one line.
 - Example: `/** Retrieve the current precision value used for truncating output numbers */` — not "Returns the precision property".
 
 ### Method Size & Responsibility

@@ -2,6 +2,10 @@
 
 All notable changes to `fooino/core` will be documented in this file
 
+## 1.6.0 - 2026-10-19
+
+- Added the global sentinel constants `UNKNOWN`, `INVALID`, `UNDEFINED`, `NOT_FOUND`, and `HIDDEN`
+
 ## 1.5.0 - 2026-10-12
 
 - Added `laravel/pint` as a dev dependency with a project-specific `pint.json`, and reformatted the entire codebase to match it
