@@ -16,6 +16,12 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 
 if (!defined('FOOINO_CORE_CONSTANTS_DEFINED')) {
 
+    define('UNKNOWN', 'UNKNOWN');
+    define('INVALID', 'INVALID');
+    define('UNDEFINED', 'UNDEFINED');
+    define('NOT_FOUND', 'NOT_FOUND');
+    define('HIDDEN', 'HIDDEN');
+
     define('STANDARD_DATE_TIME_FORMAT', 'Y-m-d H:i:s');
     define('STANDARD_DATE_FORMAT', 'Y-m-d');
 

@@ -24,7 +24,7 @@ Thanks for contributing! Here's how to get started.
 ## Guidelines
 
 - Follow SOLID & KISS — small methods, single responsibility
-- Every method needs a phpDoc describing **why**, not how
+- Every method needs a phpDoc describing **why** or **what**, not how
 - Explicit type declarations on all parameters and return types
 - Always use named arguments when calling methods
 - Use the existing error code ranges for new exceptions

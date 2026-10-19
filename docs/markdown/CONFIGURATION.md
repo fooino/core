@@ -70,6 +70,11 @@ Defined in `helpers.php` when `FOOINO_CORE_CONSTANTS_DEFINED` is not already def
 
 | Constant | Value | Used By |
 |---|---|---|
+| `UNKNOWN` | `UNKNOWN` | Application-level sentinel for unknown values |
+| `INVALID` | `INVALID` | Application-level sentinel for invalid values |
+| `UNDEFINED` | `UNDEFINED` | Application-level sentinel for undefined values |
+| `NOT_FOUND` | `NOT_FOUND` | Application-level sentinel for missing records |
+| `HIDDEN` | `HIDDEN` | Application-level sentinel for hidden values |
 | `STANDARD_DATE_TIME_FORMAT` | `Y-m-d H:i:s` | All date conversions |
 | `STANDARD_DATE_FORMAT` | `Y-m-d` | Date-only conversions |
 | `FOOINO_PER_PAGE` | 30 | `perPage()` helper default |
